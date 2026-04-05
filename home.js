@@ -59,6 +59,22 @@ function closeModal() {
 // INIT (MAIN)
 async function init() {
   const movies = await fetchTrending("movie");
+  const tv = await fetchTrending("tv");
+  const anime = await fetchAnime();
+
+  // 🎬 BANNER FIX (SAFE)
+  const randomMovie = movies.find(m => m.backdrop_path);
+
+  if (randomMovie) {
+    document.getElementById("banner").style.backgroundImage =
+      `url(${IMG_URL}${randomMovie.backdrop_path})`;
+
+    document.getElementById("banner-title").textContent =
+      randomMovie.title || randomMovie.name;
+
+    document.getElementById("watchBtn").onclick =
+      () => openPlayer(randomMovie);
+  }
 let index = 0;
 
 setInterval(() => {
@@ -87,40 +103,6 @@ setInterval(() => {
     index++;
   }, 300);
 
-}, 5000);
-  const tv = await fetchTrending("tv");
-  const anime = await fetchAnime();
-
-  // 🎬 BANNER FIX (SAFE)
-  const randomMovie = movies.find(m => m.backdrop_path);
-
-  if (randomMovie) {
-    document.getElementById("banner").style.backgroundImage =
-      `url(${IMG_URL}${randomMovie.backdrop_path})`;
-
-    document.getElementById("banner-title").textContent =
-      randomMovie.title || randomMovie.name;
-
-    document.getElementById("watchBtn").onclick =
-      () => openPlayer(randomMovie);
-  }
-let index = 0;
-
-setInterval(() => {
-  const movie = movies[index % movies.length];
-
-  if (!movie.backdrop_path) return;
-
-  document.getElementById("banner").style.backgroundImage =
-    `url(${IMG_URL}${movie.backdrop_path})`;
-
-  document.getElementById("banner-title").textContent =
-    movie.title || movie.name;
-
-  document.getElementById("watchBtn").onclick =
-    () => openPlayer(movie);
-
-  index++;
 }, 5000);
   // 🎬 LISTS
   displayList(movies, "movies-list");
