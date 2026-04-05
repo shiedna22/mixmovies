@@ -69,6 +69,18 @@ async function init() {
 }
 
 init();
+const movies = await fetchTrending("movie");
+
+const randomMovie = movies[Math.floor(Math.random() * movies.length)];
+
+document.getElementById("banner").style.backgroundImage =
+  `url(${IMG_URL}${randomMovie.backdrop_path})`;
+
+document.getElementById("banner-title").textContent =
+  randomMovie.title;
+
+document.getElementById("watchBtn").onclick = () => openPlayer(randomMovie);
+
 document.getElementById("searchInput").addEventListener("input", async function() {
   const query = this.value;
 
@@ -93,14 +105,4 @@ document.getElementById("searchInput").addEventListener("input", async function(
 
     container.appendChild(img);
   });
-});const movies = await fetchTrending("movie");
-
-const randomMovie = movies[Math.floor(Math.random() * movies.length)];
-
-document.getElementById("banner").style.backgroundImage =
-  `url(${IMG_URL}${randomMovie.backdrop_path})`;
-
-document.getElementById("banner-title").textContent =
-  randomMovie.title;
-
-document.getElementById("watchBtn").onclick = () => openPlayer(randomMovie);
+});
