@@ -69,3 +69,28 @@ async function init() {
 }
 
 init();
+document.getElementById("searchInput").addEventListener("input", async function() {
+  const query = this.value;
+
+  if (!query) {
+    document.getElementById("search-results").innerHTML = "";
+    return;
+  }
+
+  const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${query}`);
+  const data = await res.json();
+
+  const container = document.getElementById("search-results");
+  container.innerHTML = "";
+
+  data.results.forEach(item => {
+    if (!item.poster_path) return;
+
+    const img = document.createElement("img");
+    img.src = IMG_URL + item.poster_path;
+
+    img.onclick = () => openPlayer(item);
+
+    container.appendChild(img);
+  });
+});
