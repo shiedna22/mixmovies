@@ -2,6 +2,13 @@ const API_KEY = '43c2413701b5c752d07b62acf8e57736';
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMG_URL = 'https://image.tmdb.org/t/p/w500';
 
+// 🔥 ANIME FETCH
+async function fetchAnime() {
+  const res = await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`);
+  const data = await res.json();
+  return data.results.filter(i => i.original_language === "ja");
+}
+
 let movies = [];
 
 // FETCH
@@ -102,11 +109,14 @@ function closeModal() {
 
 // INIT
 async function init() {
-  movies = await fetchTrending("movie");
+  const movies = await fetchTrending("movie");
   const tv = await fetchTrending("tv");
+  const anime = await fetchAnime(); // 🔥 ADD THIS
 
   displayList(movies, "movies-list");
   displayList(tv, "tvshows-list");
+  displayList(anime, "anime-list"); // 🔥 ADD THIS
+}
 
   // BANNER
   const m = movies[Math.floor(Math.random() * movies.length)];
