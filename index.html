@@ -11,6 +11,32 @@ body {
   font-family: Arial;
   margin:0;
 }
+.navbar {
+  position: sticky;
+  top: 0;
+  background: black;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+}
+
+.logo {
+  color: red;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.menu a {
+  color: white;
+  margin-left: 15px;
+  text-decoration: none;
+}
+
+.menu a:hover {
+  color: red;
+}
 
 h2 {
   margin: 20px;
@@ -64,7 +90,16 @@ iframe {
 </head>
 
 <body>
-<h1 style="padding:20px;">🎬 ShīedFlix</h1>
+<div class="navbar">
+  <div class="logo">🎬 ShīedFlix</div>
+
+  <div class="menu">
+    <a href="#">Home</a>
+    <a href="#">Movies</a>
+    <a href="#">TV Shows</a>
+    <a href="#">Anime</a>
+  </div>
+</div>
 
 <h2>🔥 Trending Movies</h2>
 <div id="movies-list" class="list"></div>
