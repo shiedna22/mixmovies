@@ -75,7 +75,24 @@ async function init() {
     document.getElementById("watchBtn").onclick =
       () => openPlayer(randomMovie);
   }
+let index = 0;
 
+setInterval(() => {
+  const movie = movies[index % movies.length];
+
+  if (!movie.backdrop_path) return;
+
+  document.getElementById("banner").style.backgroundImage =
+    `url(${IMG_URL}${movie.backdrop_path})`;
+
+  document.getElementById("banner-title").textContent =
+    movie.title || movie.name;
+
+  document.getElementById("watchBtn").onclick =
+    () => openPlayer(movie);
+
+  index++;
+}, 5000);
   // 🎬 LISTS
   displayList(movies, "movies-list");
   displayList(tv, "tvshows-list");
