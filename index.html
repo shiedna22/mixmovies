@@ -211,8 +211,16 @@ iframe { width:90%; height:300px; }
 <!-- MODAL -->
 <div id="modal">
   <span class="close" onclick="closeModal()">✖</span>
+
   <h2 id="modal-title"></h2>
-  <iframe id="modal-video" allowfullscreen></iframe>
+
+  <!-- PLAY BUTTON FIRST -->
+  <button id="playNow" style="padding:10px 20px;background:red;border:none;color:white;border-radius:5px;">
+    ▶ Play Now
+  </button>
+
+  <!-- VIDEO (HIDDEN FIRST) -->
+  <iframe id="modal-video" style="display:none;" allowfullscreen></iframe>
 
   <div id="season-container"></div>
   <div id="episodes"></div>
