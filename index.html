@@ -53,6 +53,11 @@ h2 {
   overflow-x: auto;
   padding: 10px;
 }
+#search-results {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px;
+ }   
 
 img {
   width: 140px;
@@ -106,7 +111,8 @@ iframe {
   <input type="text" placeholder="Search..." id="searchInput">
   </div>
 </div>
-
+<div id="search-results" class="list"></div>
+  
 <h2 id="movies">🔥 Trending Movies</h2>
 <div id="movies-list" class="list"></div>
 
