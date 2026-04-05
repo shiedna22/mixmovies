@@ -1,86 +1,71 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>My Movie Site</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+const API_KEY = '43c2413701b5c752d07b62acf8e57736';
+const BASE_URL = 'https://api.themoviedb.org/3';
+const IMG_URL = 'https://image.tmdb.org/t/p/w500';
 
-  <style>
-    body {
-      background: black;
-      color: white;
-      font-family: Arial;
-    }
+let currentItem;
 
-    h2 {
-      margin-left: 10px;
-    }
+// FETCH DATA
+async function fetchTrending(type) {
+  const res = await fetch(`${BASE_URL}/trending/${type}/week?api_key=${API_KEY}`);
+  const data = await res.json();
+  return data.results;
+}
 
-    .list {
-      display: flex;
-      flex-wrap: wrap;
-    }
+// ANIME FILTER
+async function fetchAnime() {
+  const res = await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`);
+  const data = await res.json();
+  return data.results.filter(item =>
+    item.original_language === "ja"
+  );
+}
 
-    img {
-      width: 150px;
-      margin: 10px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+// DISPLAY MOVIES
+function displayList(items, containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = "";
 
-    img:hover {
-      transform: scale(1.05);
-    }
+  items.forEach(item => {
+    if (!item.poster_path) return;
 
-    #modal {
-      display: none;
-      position: fixed;
-      top:0;
-      left:0;
-      width:100%;
-      height:100%;
-      background: rgba(0,0,0,0.9);
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      padding:10px;
-    }
+    const img = document.createElement("img");
+    img.src = IMG_URL + item.poster_path;
 
-    iframe {
-      width: 100%;
-      max-width: 600px;
-      height: 300px;
-    }
+    img.onclick = () => openPlayer(item);
 
-    .close {
-      color:red;
-      font-size:30px;
-      cursor:pointer;
-      align-self:flex-end;
-      margin-right:20px;
-    }
-  </style>
-</head>
+    container.appendChild(img);
+  });
+}
 
-<body>
+// PLAYER
+function openPlayer(item) {
+  currentItem = item;
 
-<h2>🔥 Trending Movies</h2>
-<div id="movies-list" class="list"></div>
+  const type = item.title ? "movie" : "tv";
 
-<h2>📺 Trending TV Shows</h2>
-<div id="tvshows-list" class="list"></div>
+  const embed = `https://vidsrc.cc/v2/embed/${type}/${item.id}`;
 
-<h2>🎌 Anime</h2>
-<div id="anime-list" class="list"></div>
+  document.getElementById("modal-title").textContent = item.title || item.name;
+  document.getElementById("modal-video").src = embed;
 
-<!-- MODAL -->
-<div id="modal">
-  <span class="close" onclick="closeModal()">✖</span>
-  <h2 id="modal-title"></h2>
-  <iframe id="modal-video" frameborder="0" allowfullscreen></iframe>
-</div>
+  document.getElementById("modal").style.display = "flex";
+}
 
-<script src="home.js"></script>
+// CLOSE
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+  document.getElementById("modal-video").src = "";
+}
 
-</body>
-</html>
+// INIT
+async function init() {
+  const movies = await fetchTrending("movie");
+  const tv = await fetchTrending("tv");
+  const anime = await fetchAnime();
+
+  displayList(movies, "movies-list");
+  displayList(tv, "tvshows-list");
+  displayList(anime, "anime-list");
+}
+
+init();
