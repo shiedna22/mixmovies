@@ -4,23 +4,21 @@ const IMG_URL = 'https://image.tmdb.org/t/p/w500';
 
 let currentItem;
 
-// FETCH DATA
+// FETCH
 async function fetchTrending(type) {
   const res = await fetch(`${BASE_URL}/trending/${type}/week?api_key=${API_KEY}`);
   const data = await res.json();
   return data.results;
 }
 
-// ANIME FILTER
+// ANIME
 async function fetchAnime() {
   const res = await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`);
   const data = await res.json();
-  return data.results.filter(item =>
-    item.original_language === "ja"
-  );
+  return data.results.filter(item => item.original_language === "ja");
 }
 
-// DISPLAY LIST
+// DISPLAY
 function displayList(items, containerId) {
   const container = document.getElementById(containerId);
   container.innerHTML = "";
@@ -28,12 +26,35 @@ function displayList(items, containerId) {
   items.forEach(item => {
     if (!item.poster_path) return;
 
+    const div = document.createElement("div");
+    div.style.position = "relative";
+
     const img = document.createElement("img");
     img.src = IMG_URL + item.poster_path;
 
+    // 🎬 CLICK PLAY
     img.onclick = () => openPlayer(item);
 
-    container.appendChild(img);
+    // ❤️ FAVORITE BUTTON
+    const fav = document.createElement("button");
+    fav.textContent = "❤️";
+    fav.style.position = "absolute";
+    fav.style.top = "5px";
+    fav.style.right = "5px";
+    fav.style.background = "rgba(0,0,0,0.6)";
+    fav.style.border = "none";
+    fav.style.color = "white";
+    fav.style.cursor = "pointer";
+
+    fav.onclick = (e) => {
+      e.stopPropagation();
+      localStorage.setItem(item.id, JSON.stringify(item));
+      alert("Added to Favorites ❤️");
+    };
+
+    div.appendChild(img);
+    div.appendChild(fav);
+    container.appendChild(div);
   });
 }
 
@@ -46,7 +67,6 @@ function openPlayer(item) {
 
   document.getElementById("modal-title").textContent = item.title || item.name;
   document.getElementById("modal-video").src = embed;
-
   document.getElementById("modal").style.display = "flex";
 }
 
@@ -56,55 +76,56 @@ function closeModal() {
   document.getElementById("modal-video").src = "";
 }
 
-// INIT (MAIN)
+// INIT
 async function init() {
   const movies = await fetchTrending("movie");
   const tv = await fetchTrending("tv");
   const anime = await fetchAnime();
 
-  // 🎬 BANNER FIX (SAFE)
-  const randomMovie = movies.find(m => m.backdrop_path);
+  // 🎬 INITIAL BANNER
+  const firstMovie = movies.find(m => m.backdrop_path);
 
-  if (randomMovie) {
+  if (firstMovie) {
     document.getElementById("banner").style.backgroundImage =
-      `url(${IMG_URL}${randomMovie.backdrop_path})`;
+      `url(${IMG_URL}${firstMovie.backdrop_path})`;
 
     document.getElementById("banner-title").textContent =
-      randomMovie.title || randomMovie.name;
+      firstMovie.title || firstMovie.name;
 
     document.getElementById("watchBtn").onclick =
-      () => openPlayer(randomMovie);
+      () => openPlayer(firstMovie);
   }
-let index = 0;
 
-setInterval(() => {
-  const banner = document.getElementById("banner");
+  // 🔥 AUTO SLIDE + FADE
+  let index = 0;
 
-  // fade out
-  banner.style.opacity = 0;
+  setInterval(() => {
+    const banner = document.getElementById("banner");
 
-  setTimeout(() => {
-    const movie = movies[index % movies.length];
+    banner.style.opacity = 0;
 
-    if (!movie.backdrop_path) return;
+    setTimeout(() => {
+      const movie = movies[index % movies.length];
 
-    banner.style.backgroundImage =
-      `url(${IMG_URL}${movie.backdrop_path})`;
+      if (!movie.backdrop_path) return;
 
-    document.getElementById("banner-title").textContent =
-      movie.title || movie.name;
+      banner.style.backgroundImage =
+        `url(${IMG_URL}${movie.backdrop_path})`;
 
-    document.getElementById("watchBtn").onclick =
-      () => openPlayer(movie);
+      document.getElementById("banner-title").textContent =
+        movie.title || movie.name;
 
-    // fade in
-    banner.style.opacity = 1;
+      document.getElementById("watchBtn").onclick =
+        () => openPlayer(movie);
 
-    index++;
-  }, 300);
+      banner.style.opacity = 1;
 
-}, 5000);
-  // 🎬 LISTS
+      index++;
+    }, 300);
+
+  }, 5000);
+
+  // DISPLAY
   displayList(movies, "movies-list");
   displayList(tv, "tvshows-list");
   displayList(anime, "anime-list");
@@ -113,14 +134,19 @@ setInterval(() => {
 // RUN
 init();
 
-// 🔍 SEARCH (FIXED)
+// 🔍 SEARCH (PRO VERSION)
 document.getElementById("searchInput").addEventListener("input", async function () {
   const query = this.value;
 
+  const sections = document.querySelectorAll("h2, .list");
+
   if (!query) {
     document.getElementById("search-results").innerHTML = "";
+    sections.forEach(el => el.style.display = "block");
     return;
   }
+
+  sections.forEach(el => el.style.display = "none");
 
   const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${query}`);
   const data = await res.json();
