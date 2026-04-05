@@ -59,6 +59,35 @@ function closeModal() {
 // INIT (MAIN)
 async function init() {
   const movies = await fetchTrending("movie");
+let index = 0;
+
+setInterval(() => {
+  const banner = document.getElementById("banner");
+
+  // fade out
+  banner.style.opacity = 0;
+
+  setTimeout(() => {
+    const movie = movies[index % movies.length];
+
+    if (!movie.backdrop_path) return;
+
+    banner.style.backgroundImage =
+      `url(${IMG_URL}${movie.backdrop_path})`;
+
+    document.getElementById("banner-title").textContent =
+      movie.title || movie.name;
+
+    document.getElementById("watchBtn").onclick =
+      () => openPlayer(movie);
+
+    // fade in
+    banner.style.opacity = 1;
+
+    index++;
+  }, 300);
+
+}, 5000);
   const tv = await fetchTrending("tv");
   const anime = await fetchAnime();
 
