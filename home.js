@@ -44,13 +44,13 @@ async function openPlayer(item) {
 
   if (type === "movie") {
     document.getElementById("modal-video").src =
-      `https://vidsrc.cc/v2/embed/movie/${item.id}`;
+      `https://vidsrc.to/embed/movie/${item.id}`;
 
     document.getElementById("season-container").innerHTML = "";
     document.getElementById("episodes").innerHTML = "";
   } else {
     document.getElementById("modal-video").src =
-      `https://vidsrc.cc/v2/embed/tv/${item.id}/1/1`;
+      `https://vidsrc.to/embed/tv/${item.id}/1/1`;
 
     loadSeasons(item.id);
   }
