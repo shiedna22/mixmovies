@@ -34,6 +34,7 @@ function displayList(items, containerId){
 
     const fav = document.createElement("button");
     fav.textContent="❤️";
+
     fav.onclick=(e)=>{
       e.stopPropagation();
       localStorage.setItem(item.id, JSON.stringify(item));
@@ -50,9 +51,11 @@ function displayList(items, containerId){
 function openPlayer(item){
   currentItem=item;
   const type=item.title?"movie":"tv";
-  document.getElementById("modal-title").textContent=item.title||item.name;
+
+  document.getElementById("modal-title").textContent=item.title||item.name||"No Title";
   document.getElementById("modal-video").src=
     `https://vidsrc.cc/v2/embed/${type}/${item.id}`;
+
   document.getElementById("modal").style.display="flex";
 }
 
@@ -68,11 +71,12 @@ async function init(){
   const tv=await fetchTrending("tv");
   const anime=await fetchAnime();
 
-  // INITIAL BANNER
   let index=0;
   const banner=document.getElementById("banner");
 
   function updateBanner(movie){
+    if(!movie.backdrop_path) return;
+
     banner.style.backgroundImage=`url(${IMG_URL}${movie.backdrop_path})`;
     document.getElementById("banner-title").textContent=movie.title||movie.name;
     document.getElementById("watchBtn").onclick=()=>openPlayer(movie);
@@ -87,16 +91,13 @@ async function init(){
 
     setTimeout(()=>{
       const movie=movies[index%movies.length];
-      if(movie.backdrop_path){
-        updateBanner(movie);
-        index++;
-      }
+      updateBanner(movie);
       banner.style.opacity=1;
+      index++;
     },300);
 
   },5000);
 
-  // DISPLAY
   displayList(movies,"movies-list");
   displayList(tv,"tvshows-list");
   displayList(anime,"anime-list");
