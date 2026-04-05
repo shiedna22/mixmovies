@@ -36,6 +36,8 @@ function displayList(items, id) {
 }
 
 // PLAYER
+let currentEmbed = "";
+
 async function openPlayer(item) {
   const type = item.title ? "movie" : "tv";
 
@@ -43,15 +45,11 @@ async function openPlayer(item) {
     item.title || item.name;
 
   if (type === "movie") {
-    document.getElementById("modal-video").src =
-      `https://vidsrc.to/embed/movie/${item.id}`;
-
+    currentEmbed = `https://vidsrc.to/embed/movie/${item.id}`;
     document.getElementById("season-container").innerHTML = "";
     document.getElementById("episodes").innerHTML = "";
   } else {
-    document.getElementById("modal-video").src =
-      `https://vidsrc.to/embed/tv/${item.id}/1/1`;
-
+    currentEmbed = `https://vidsrc.to/embed/tv/${item.id}/1/1`;
     loadSeasons(item.id);
   }
 
@@ -105,8 +103,9 @@ async function loadEpisodes(id, season) {
 function closeModal() {
   document.getElementById("modal").style.display = "none";
   document.getElementById("modal-video").src = "";
+  document.getElementById("modal-video").style.display = "none";
+  document.getElementById("playNow").style.display = "block";
 }
-
 // SEARCH
 document.getElementById("searchInput").addEventListener("input", async function() {
   const q = this.value;
@@ -153,3 +152,9 @@ async function init() {
 }
 
 init();
+document.getElementById("playNow").onclick = () => {
+  document.getElementById("modal-video").src = currentEmbed;
+
+  document.getElementById("modal-video").style.display = "block";
+  document.getElementById("playNow").style.display = "none";
+};
