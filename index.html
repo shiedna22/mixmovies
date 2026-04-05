@@ -21,6 +21,12 @@ body {
   align-items: center;
   z-index: 1000;
 }
+#searchInput {
+  margin-left: 15px;
+  padding: 5px;
+  border-radius: 5px;
+  border: none;
+    }
 
 .logo {
   color: red;
@@ -94,22 +100,17 @@ iframe {
   <div class="logo">🎬 ShīedFlix</div>
 
   <div class="menu">
-    <a href="#">Home</a>
-    <a href="#">Movies</a>
-    <a href="#">TV Shows</a>
-    <a href="#">Anime</a>
+  <a href="#">Home</a>
+  <a href="#movies">Movies</a>
+<a href="#tv">TV Shows</a>
+<a href="#anime">Anime</a>
+  <input type="text" placeholder="Search..." id="searchInput">
   </div>
 </div>
 
-<h2>🔥 Trending Movies</h2>
-<div id="movies-list" class="list"></div>
-
-<h2>📺 Trending TV Shows</h2>
-<div id="tvshows-list" class="list"></div>
-
-<h2>🎌 Anime</h2>
-<div id="anime-list" class="list"></div>
-
+<h2 id="movies">🔥 Trending Movies</h2>
+<h2 id="tv">📺 Trending TV Shows</h2>
+<h2 id="anime">🎌 Anime</h2>
 <!-- MODAL -->
 <div id="modal">
   <span class="close" onclick="closeModal()">✖</span>
