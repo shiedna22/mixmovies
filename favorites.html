@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Favorites - ShiedFlix</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+body {
+  background: #0b0b0b;
+  color: white;
+  font-family: Arial;
+  margin:0;
+}
+
+.navbar {
+  background: black;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.logo {
+  color: red;
+  font-size: 22px;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px;
+}
+
+.card {
+  position: relative;
+  margin: 10px;
+}
+
+img {
+  width: 140px;
+  border-radius: 10px;
+}
+
+button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: red;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.empty {
+  text-align: center;
+  margin-top: 50px;
+}
+  </style>
+</head>
+
+<body>
+
+<div class="navbar">
+  <div class="logo">❤️ My Favorites</div>
+  <a href="index.html" style="color:white;">⬅ Back</a>
+</div>
+
+<div id="favorites" class="container"></div>
+<div id="empty" class="empty"></div>
+
+<script>
+const IMG_URL = "https://image.tmdb.org/t/p/w500";
+
+function loadFavorites() {
+  const container = document.getElementById("favorites");
+  const empty = document.getElementById("empty");
+
+  container.innerHTML = "";
+  empty.innerHTML = "";
+
+  if (localStorage.length === 0) {
+    empty.innerHTML = "<h2>No favorites yet 😢</h2>";
+    return;
+  }
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    const item = JSON.parse(localStorage.getItem(key));
+
+    if (!item.poster_path) continue;
+
+    const div = document.createElement("div");
+    div.className = "card";
+
+    const img = document.createElement("img");
+    img.src = IMG_URL + item.poster_path;
+
+    img.onclick = () => {
+      const type = item.title ? "movie" : "tv";
+      window.open(`https://vidsrc.cc/v2/embed/${type}/${item.id}`, "_blank");
+    };
+
+    const btn = document.createElement("button");
+    btn.textContent = "❌";
+
+    btn.onclick = () => {
+      localStorage.removeItem(item.id);
+      loadFavorites();
+    };
+
+    div.appendChild(img);
+    div.appendChild(btn);
+    container.appendChild(div);
+  }
+}
+
+loadFavorites();
+</script>
+
+</body>
+</html>
