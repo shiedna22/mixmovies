@@ -2,13 +2,6 @@ const API_KEY = '43c2413701b5c752d07b62acf8e57736';
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMG_URL = 'https://image.tmdb.org/t/p/w500';
 
-// 🔥 ANIME FETCH
-async function fetchAnime() {
-  const res = await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`);
-  const data = await res.json();
-  return data.results.filter(i => i.original_language === "ja");
-}
-
 let movies = [];
 
 // FETCH
@@ -16,6 +9,13 @@ async function fetchTrending(type) {
   const res = await fetch(`${BASE_URL}/trending/${type}/week?api_key=${API_KEY}`);
   const data = await res.json();
   return data.results;
+}
+
+// 🔥 ANIME
+async function fetchAnime() {
+  const res = await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`);
+  const data = await res.json();
+  return data.results.filter(i => i.original_language === "ja");
 }
 
 // DISPLAY
@@ -107,25 +107,48 @@ function closeModal() {
   document.getElementById("modal-video").src = "";
 }
 
+// SEARCH
+document.getElementById("searchInput").addEventListener("input", async function() {
+  const q = this.value;
+
+  if (!q) {
+    document.getElementById("search-results").innerHTML = "";
+    return;
+  }
+
+  const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${q}`);
+  const data = await res.json();
+
+  const container = document.getElementById("search-results");
+  container.innerHTML = "";
+
+  data.results.forEach(item => {
+    if (!item.poster_path) return;
+
+    const img = document.createElement("img");
+    img.src = IMG_URL + item.poster_path;
+    img.onclick = () => openPlayer(item);
+
+    container.appendChild(img);
+  });
+});
+
 // INIT
 async function init() {
-  const movies = await fetchTrending("movie");
+  movies = await fetchTrending("movie");
   const tv = await fetchTrending("tv");
-  const anime = await fetchAnime(); // 🔥 ADD THIS
+  const anime = await fetchAnime();
 
   displayList(movies, "movies-list");
   displayList(tv, "tvshows-list");
-  displayList(anime, "anime-list"); // 🔥 ADD THIS
-}
+  displayList(anime, "anime-list");
 
-  // BANNER
   const m = movies[Math.floor(Math.random() * movies.length)];
 
   document.getElementById("banner").style.backgroundImage =
     `url(${IMG_URL}${m.backdrop_path})`;
 
   document.getElementById("banner-title").textContent = m.title;
-
   document.getElementById("watchBtn").onclick = () => openPlayer(m);
 }
 
