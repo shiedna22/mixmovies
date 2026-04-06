@@ -58,35 +58,21 @@ function show(items, id) {
 // 🎭 DRAMA
 function showDrama() {
   const box = document.getElementById("drama-list");
+function showDrama() {
+  const box = document.getElementById("drama-list");
   box.innerHTML = "";
 
   dramas.forEach(d => {
     const img = document.createElement("img");
 
-    // default placeholder muna
-    img.src = "https://via.placeholder.com/300x450?text=Loading...";
+    // ✅ fallback poster
+    img.src = d.image || "https://i.imgur.com/8Km9tLL.jpg";
 
-    // 🎬 AUTO GENERATE POSTER
-    const video = document.createElement("video");
-    video.src = d.video;
-    video.crossOrigin = "anonymous";
-    video.muted = true;
-
-    video.addEventListener("loadeddata", () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      img.src = canvas.toDataURL("image/jpeg");
-    });
-
-    // click play
     img.onclick = () => {
       document.getElementById("modal-title").innerText = d.title;
-      document.getElementById("modal-video").src = d.video + "?autoplay=1";
+      document.getElementById("modal-video").src =
+        d.video + "?autoplay=1";
+
       document.getElementById("modal").style.display = "flex";
     };
 
@@ -133,14 +119,23 @@ async function init() {
   showDrama();
 
   // 🎬 BANNER FIXED
+  let bannerIndex = 0;
+
+function startBanner() {
   const valid = movies.filter(m => m.backdrop_path);
-  const m = valid[Math.floor(Math.random() * valid.length)];
 
-  document.getElementById("banner").style.backgroundImage =
-    `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
+  setInterval(() => {
+    const m = valid[bannerIndex % valid.length];
 
-  document.getElementById("banner-title").innerText = m.title;
-  document.getElementById("watchBtn").onclick = () => openPlayer(m);
+    document.getElementById("banner").style.backgroundImage =
+      `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
+
+    document.getElementById("banner-title").innerText = m.title;
+
+    document.getElementById("watchBtn").onclick = () => openPlayer(m);
+
+    bannerIndex++;
+  }, 3000); // 3 seconds auto slide
 }
 
 init();
