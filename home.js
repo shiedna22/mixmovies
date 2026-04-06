@@ -11,7 +11,7 @@ const dramas = [
     title: "Batang Martial Arts 🔥",
     image: "https://i.imgur.com/8Km9tLL.jpg",
     video: "https://drive.google.com/file/d/1b4lWCUHE7EQS3HXqBrGSQoT9r1jgW7bq/preview"
-  },
+  }
 ];
 
 // FETCH
@@ -25,6 +25,30 @@ async function fetchData(type) {
 function saveLast(video, title) {
   localStorage.setItem("lastVideo", video);
   localStorage.setItem("lastTitle", title);
+}
+
+// ❤️ FAVORITES LOAD
+function loadFavorites() {
+  const likes = JSON.parse(localStorage.getItem("likes")) || [];
+  const box = document.getElementById("favorites-list");
+  if (!box) return;
+
+  box.innerHTML = "";
+
+  dramas.forEach(d => {
+    if (likes.includes(d.title)) {
+      const img = document.createElement("img");
+      img.src = d.image;
+
+      img.onclick = () => {
+        document.getElementById("modal-title").innerText = d.title;
+        document.getElementById("modal-video").src = d.video;
+        document.getElementById("modal").style.display = "flex";
+      };
+
+      box.appendChild(img);
+    }
+  });
 }
 
 // ▶ CONTINUE
@@ -66,7 +90,7 @@ function saveHistory(title) {
   localStorage.setItem("history", JSON.stringify(history));
 }
 
-// DISPLAY
+// DISPLAY MOVIES
 function show(items, id) {
   const box = document.getElementById(id);
   box.innerHTML = "";
@@ -77,16 +101,13 @@ function show(items, id) {
     const img = document.createElement("img");
     img.src = IMG + i.poster_path;
 
-    img.onmouseover = () => img.style.transform = "scale(1.2)";
-    img.onmouseout = () => img.style.transform = "scale(1)";
-
     img.onclick = () => openPlayer(i);
 
     box.appendChild(img);
   });
 }
 
-// 🎭 DRAMA NORMAL
+// 🎭 DRAMA
 function showDrama() {
   const box = document.getElementById("drama-list");
   box.innerHTML = "";
@@ -99,7 +120,6 @@ function showDrama() {
       const player = document.getElementById("modal-video");
 
       player.classList.add("portrait");
-
       player.src = d.video + "?autoplay=1";
 
       document.getElementById("modal-title").innerText = d.title;
@@ -107,16 +127,25 @@ function showDrama() {
 
       saveLast(player.src, d.title);
       saveHistory(d.title);
-
-      // auto next
-      if (dramas[index + 1]) {
-        setTimeout(() => {
-          player.src = dramas[index + 1].video + "?autoplay=1";
-        }, 15000);
-      }
     };
 
-    box.appendChild(img);
+    // wrapper with play icon
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+
+    const play = document.createElement("span");
+    play.innerText = "▶";
+    play.style.position = "absolute";
+    play.style.top = "50%";
+    play.style.left = "50%";
+    play.style.transform = "translate(-50%, -50%)";
+    play.style.fontSize = "30px";
+    play.style.color = "white";
+
+    wrapper.appendChild(img);
+    wrapper.appendChild(play);
+
+    box.appendChild(wrapper);
   });
 }
 
@@ -196,21 +225,22 @@ function autoNextUltra() {
 
   setInterval(() => {
     currentIndex++;
-    if (items[currentIndex]) {
-      items[currentIndex].scrollIntoView({ behavior: "smooth" });
+
+    if (currentIndex >= items.length) {
+      currentIndex = 0;
     }
+
+    items[currentIndex].scrollIntoView({ behavior: "smooth" });
   }, 15000);
 }
 
 // 🔍 SEARCH
 document.addEventListener("DOMContentLoaded", () => {
   const search = document.getElementById("searchInput");
-
   if (!search) return;
 
   search.addEventListener("input", async function () {
     const q = this.value;
-
     if (!q) return;
 
     const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${q}`);
@@ -219,19 +249,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("movies-list");
     container.innerHTML = "";
 
-    data.results.forEach(item => {
-      if (!item.poster_path) return;
+    const all = [...data.results, ...dramas];
 
-      const img = document.createElement("img");
-      img.src = IMG + item.poster_path;
-      img.onclick = () => openPlayer(item);
+    all.forEach(item => {
+      if (item.poster_path || item.image) {
+        const img = document.createElement("img");
 
-      container.appendChild(img);
+        img.src = item.poster_path
+          ? IMG + item.poster_path
+          : item.image;
+
+        img.onclick = () => {
+          if (item.video) {
+            document.getElementById("modal-title").innerText = item.title;
+            document.getElementById("modal-video").src = item.video;
+            document.getElementById("modal").style.display = "flex";
+          } else {
+            openPlayer(item);
+          }
+        };
+
+        container.appendChild(img);
+      }
     });
   });
 });
 
-// INIT
+// INIT (HIWALAY NA!)
 async function init() {
   movies = await fetchData("movie");
   const tv = await fetchData("tv");
@@ -241,6 +285,7 @@ async function init() {
   show(tv, "tvshows-list");
   show(anime, "anime-list");
   showDrama();
+  loadFavorites();
 
   loadLast();
   startBanner();
