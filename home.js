@@ -46,12 +46,17 @@ function showDrama() {
     img.src = d.image;
 
     img.onclick = () => {
-      document.getElementById("modal-title").innerText = d.title;
-      document.getElementById("modal-video").src =
-        d.video + "?autoplay=1";
+  document.getElementById("modal-title").innerText = drama.title;
 
-      document.getElementById("modal").style.display = "flex";
-    };
+  const player = document.getElementById("modal-video");
+
+  // 👉 ADD CLASS (portrait mode)
+  player.classList.add("portrait");
+
+  player.src = drama.video + "?autoplay=1";
+
+  document.getElementById("modal").style.display = "flex";
+};
 
     box.appendChild(img);
   });
@@ -59,6 +64,9 @@ function showDrama() {
 
 // PLAYER
 function openPlayer(item) {
+  const player = document.getElementById("modal-video");
+player.classList.remove("portrait");
+  
   const type = item.title ? "movie" : "tv";
 
   document.getElementById("modal-title").innerText =
