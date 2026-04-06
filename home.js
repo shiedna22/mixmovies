@@ -52,15 +52,20 @@ async function openPlayer(item) {
   document.getElementById("modal-title").textContent =
     item.title || item.name;
 
-  if (type === "movie") {
+    if (type === "movie") {
 
-  // 🔥 FORCE TEST GOOGLE DRIVE
-  document.getElementById("modal-video").src =
-    "https://drive.google.com/file/d/1b4lWCUHE7EQS3HXqBrGSQoT9r1jgW7bq/preview";
+    // 🔥 CHECK CUSTOM VIDEO
+    const custom = customVideos[item.id];
 
-  document.getElementById("season-container").innerHTML = "";
-  document.getElementById("episodes").innerHTML = "";
-  }
+    if (custom) {
+      document.getElementById("modal-video").src = custom;
+    } else {
+      document.getElementById("modal-video").src =
+        `https://vidsrc.cc/v2/embed/movie/${item.id}`;
+    }
+
+    document.getElementById("season-container").innerHTML = "";
+    document.getElementById("episodes").innerHTML = "";
   } else {
     document.getElementById("modal-video").src =
       `https://vidsrc.cc/v2/embed/tv/${item.id}/1/1`;
