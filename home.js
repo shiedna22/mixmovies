@@ -8,7 +8,7 @@ let movies = [];
 const dramas = [
   {
     title: "Prison Born Avenger 🔥",
-    image: "https://via.placeholder.com/300x450?text=Drama",
+    image: "https://i.imgur.com/8Km9tLL.jpg", // working image
     video: "https://www.dailymotion.com/embed/video/xa3qsp2"
   }
 ];
@@ -27,7 +27,7 @@ async function fetchAnime() {
   return data.results.filter(i => i.original_language === "ja");
 }
 
-// DISPLAY (Movies / TV / Anime)
+// DISPLAY
 function displayList(items, id) {
   const container = document.getElementById(id);
   container.innerHTML = "";
@@ -47,6 +47,8 @@ function displayList(items, id) {
 // 🎭 DISPLAY DRAMA
 function displayDramas() {
   const container = document.getElementById("drama-list");
+  if (!container) return;
+
   container.innerHTML = "";
 
   dramas.forEach(drama => {
@@ -166,7 +168,7 @@ document.getElementById("searchInput").addEventListener("input", async function(
   });
 });
 
-// INIT
+// 🎬 INIT (WITH BANNER FIX)
 async function init() {
   movies = await fetchTrending("movie");
   const tv = await fetchTrending("tv");
@@ -175,15 +177,19 @@ async function init() {
   displayList(movies, "movies-list");
   displayList(tv, "tvshows-list");
   displayList(anime, "anime-list");
-  displayDramas(); // ✅ DRAMA ADDED
+  displayDramas(); // ✅ DRAMA
 
+  // 🎯 BANNER (FIXED)
   const m = movies[Math.floor(Math.random() * movies.length)];
 
-  document.getElementById("banner").style.backgroundImage =
-    `url(${IMG_URL}${m.backdrop_path})`;
+  if (m && m.backdrop_path) {
+    document.getElementById("banner").style.backgroundImage =
+      `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
 
-  document.getElementById("banner-title").textContent = m.title;
-  document.getElementById("watchBtn").onclick = () => openPlayer(m);
+    document.getElementById("banner-title").textContent = m.title;
+
+    document.getElementById("watchBtn").onclick = () => openPlayer(m);
+  }
 }
 
 init();
