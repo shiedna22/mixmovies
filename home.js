@@ -2,6 +2,12 @@ const API_KEY = '43c2413701b5c752d07b62acf8e57736';
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMG_URL = 'https://image.tmdb.org/t/p/w500';
 
+// 🔥 ADD MO ITO (CUSTOM MOVIES)
+const customVideos = {
+  550: "https://drive.google.com/file/d/1b4lWCUHE7EQS3HXqBrGSQoT9r1jgW7bq/preview"
+  // 👉 palitan mo 550 ng ID ng movie mo
+};
+
 let movies = [];
 
 // FETCH
@@ -29,7 +35,11 @@ function displayList(items, id) {
     const img = document.createElement("img");
     img.src = IMG_URL + item.poster_path;
 
-    img.onclick = () => openPlayer(item);
+    // 🔥 CLICK WITH ID LOG
+    img.onclick = () => {
+      console.log("TMDB ID:", item.id);
+      openPlayer(item);
+    };
 
     container.appendChild(img);
   });
@@ -43,8 +53,16 @@ async function openPlayer(item) {
     item.title || item.name;
 
   if (type === "movie") {
-    document.getElementById("modal-video").src =
-      `https://vidsrc.cc/v2/embed/movie/${item.id}`;
+
+    // 🔥 CHECK CUSTOM VIDEO
+    const custom = customVideos[item.id];
+
+    if (custom) {
+      document.getElementById("modal-video").src = custom;
+    } else {
+      document.getElementById("modal-video").src =
+        `https://vidsrc.cc/v2/embed/movie/${item.id}`;
+    }
 
     document.getElementById("season-container").innerHTML = "";
     document.getElementById("episodes").innerHTML = "";
@@ -127,7 +145,11 @@ document.getElementById("searchInput").addEventListener("input", async function(
 
     const img = document.createElement("img");
     img.src = IMG_URL + item.poster_path;
-    img.onclick = () => openPlayer(item);
+
+    img.onclick = () => {
+      console.log("TMDB ID:", item.id);
+      openPlayer(item);
+    };
 
     container.appendChild(img);
   });
@@ -152,4 +174,4 @@ async function init() {
   document.getElementById("watchBtn").onclick = () => openPlayer(m);
 }
 
-init(); 
+init();
