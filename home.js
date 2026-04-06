@@ -4,6 +4,15 @@ const IMG_URL = 'https://image.tmdb.org/t/p/w500';
 
 let movies = [];
 
+// 🎭 DRAMA (Dailymotion)
+const dramas = [
+  {
+    title: "Prison Born Avenger 🔥",
+    image: "https://via.placeholder.com/300x450?text=Drama",
+    video: "https://www.dailymotion.com/embed/video/xa3qsp2"
+  }
+];
+
 // FETCH
 async function fetchTrending(type) {
   const res = await fetch(`${BASE_URL}/trending/${type}/week?api_key=${API_KEY}`);
@@ -18,7 +27,7 @@ async function fetchAnime() {
   return data.results.filter(i => i.original_language === "ja");
 }
 
-// DISPLAY
+// DISPLAY (Movies / TV / Anime)
 function displayList(items, id) {
   const container = document.getElementById(id);
   container.innerHTML = "";
@@ -30,6 +39,30 @@ function displayList(items, id) {
     img.src = IMG_URL + item.poster_path;
 
     img.onclick = () => openPlayer(item);
+
+    container.appendChild(img);
+  });
+}
+
+// 🎭 DISPLAY DRAMA
+function displayDramas() {
+  const container = document.getElementById("drama-list");
+  container.innerHTML = "";
+
+  dramas.forEach(drama => {
+    const img = document.createElement("img");
+    img.src = drama.image;
+
+    img.onclick = () => {
+      document.getElementById("modal-title").textContent = drama.title;
+      document.getElementById("modal-video").src =
+        drama.video + "?autoplay=1";
+
+      document.getElementById("season-container").innerHTML = "";
+      document.getElementById("episodes").innerHTML = "";
+
+      document.getElementById("modal").style.display = "flex";
+    };
 
     container.appendChild(img);
   });
@@ -142,6 +175,7 @@ async function init() {
   displayList(movies, "movies-list");
   displayList(tv, "tvshows-list");
   displayList(anime, "anime-list");
+  displayDramas(); // ✅ DRAMA ADDED
 
   const m = movies[Math.floor(Math.random() * movies.length)];
 
@@ -152,4 +186,4 @@ async function init() {
   document.getElementById("watchBtn").onclick = () => openPlayer(m);
 }
 
-init(); 
+init();
