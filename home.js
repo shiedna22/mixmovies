@@ -8,8 +8,26 @@ let movies = [];
 const dramas = [
   {
     title: "Prison Born Avenger 🔥",
-    image: "https://drive.google.com/uc?export=view&id=1gNm3umtjDpZq8wtpJQi6qmCFtAt7NN_8/view?usp=drivesdk",
+    image: "https://i.imgur.com/8Km9tLL.jpg",
     video: "https://www.dailymotion.com/embed/video/xa3wpbk"
+  }
+  
+  {
+    title: "Batang Martial Arts 🔥",
+    image: "https://i.imgur.com/8Km9tLL.jpg",
+    video: "https://drive.google.com/file/d/1b4lWCUHE7EQS3HXqBrGSQoT9r1jgW7bq/preview"
+  }
+
+  {
+    title: "Chinese Revenge Drama 💔",
+    image: "https://i.imgur.com/5tj6S7Ol.jpg",
+    video: "https://www.dailymotion.com/embed/video/x7tgczk"
+  },
+
+  {
+    title: "Love Story Full Movie 😭",
+    image: "https://i.imgur.com/3ZQ3Z5h.jpg",
+    video: "https://www.dailymotion.com/embed/video/x80abc1"
   }
 ];
 
@@ -40,23 +58,37 @@ function show(items, id) {
 // 🎭 DRAMA
 function showDrama() {
   const box = document.getElementById("drama-list");
+  box.innerHTML = "";
 
   dramas.forEach(d => {
     const img = document.createElement("img");
-    img.src = d.image;
 
+    // default placeholder muna
+    img.src = "https://via.placeholder.com/300x450?text=Loading...";
+
+    // 🎬 AUTO GENERATE POSTER
+    const video = document.createElement("video");
+    video.src = d.video;
+    video.crossOrigin = "anonymous";
+    video.muted = true;
+
+    video.addEventListener("loadeddata", () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      img.src = canvas.toDataURL("image/jpeg");
+    });
+
+    // click play
     img.onclick = () => {
-  document.getElementById("modal-title").innerText = drama.title;
-
-  const player = document.getElementById("modal-video");
-
-  // 👉 ADD CLASS (portrait mode)
-  player.classList.add("portrait");
-
-  player.src = drama.video + "?autoplay=1";
-
-  document.getElementById("modal").style.display = "flex";
-};
+      document.getElementById("modal-title").innerText = d.title;
+      document.getElementById("modal-video").src = d.video + "?autoplay=1";
+      document.getElementById("modal").style.display = "flex";
+    };
 
     box.appendChild(img);
   });
