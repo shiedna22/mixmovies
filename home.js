@@ -139,3 +139,33 @@ function startBanner() {
 }
 
 init();
+
+// 🔍 SEARCH SYSTEM (ILAGAY DITO SA PINAKA BABA)
+document.addEventListener("DOMContentLoaded", () => {
+  const search = document.getElementById("searchInput");
+
+  if (!search) return;
+
+  search.addEventListener("input", async function () {
+    const q = this.value;
+
+    if (!q) return;
+
+    const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${q}`);
+    const data = await res.json();
+
+    const container = document.getElementById("movies-list");
+    container.innerHTML = "";
+
+    data.results.forEach(item => {
+      if (!item.poster_path) return;
+
+      const img = document.createElement("img");
+      img.src = IMG + item.poster_path;
+      img.onclick = () => openPlayer(item);
+
+      container.appendChild(img);
+    });
+  });
+});
+  
