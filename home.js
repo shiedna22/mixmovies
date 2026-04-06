@@ -9,7 +9,7 @@ const dramas = [
   {
     title: "Prison Born Avenger 🔥",
     image: "https://i.imgur.com/8Km9tLL.jpg",
-    video: "https://www.dailymotion.com/embed/video/x84sh7c"
+    video: "https://www.dailymotion.com/embed/video/xa3wpbk"
   }
 ];
 
