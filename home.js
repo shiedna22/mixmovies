@@ -12,16 +12,6 @@ const dramas = [
     image: "https://i.imgur.com/8Km9tLL.jpg",
     video: "https://drive.google.com/file/d/1b4lWCUHE7EQS3HXqBrGSQoT9r1jgW7bq/preview"
   },
-  {
-    title: "Chinese Revenge Drama 💔",
-    image: "https://i.imgur.com/5tj6S7Ol.jpg",
-    video: "https://www.dailymotion.com/embed/video/x7tgczk"
-  },
-  {
-    title: "Love Story Full Movie 😭",
-    image: "https://i.imgur.com/3ZQ3Z5h.jpg",
-    video: "https://www.dailymotion.com/embed/video/x80abc1"
-  }
 ];
 
 // FETCH
