@@ -2,7 +2,12 @@ const API_KEY = '43c2413701b5c752d07b62acf8e57736';
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMG_URL = 'https://image.tmdb.org/t/p/w500';
 
+// 🎬 GOOGLE DRIVE VIDEO ID
+const driveVideoId = "1b4lWCUHE7EQS3HXqBrGSQoT9r1jgW7bq";
+
 let movies = [];
+let currentEmbed = "";
+let isDriveVideo = false;
 
 // FETCH
 async function fetchTrending(type) {
@@ -36,13 +41,13 @@ function displayList(items, id) {
 }
 
 // PLAYER
-let currentEmbed = "";
-
 async function openPlayer(item) {
   const type = item.title ? "movie" : "tv";
 
   document.getElementById("modal-title").textContent =
     item.title || item.name;
+
+  isDriveVideo = false;
 
   if (type === "movie") {
     currentEmbed = `https://vidsrc.to/embed/movie/${item.id}`;
@@ -54,6 +59,28 @@ async function openPlayer(item) {
   }
 
   document.getElementById("modal").style.display = "flex";
+
+  // reset
+  document.getElementById("modal-video").style.display = "none";
+  document.getElementById("modal-video").src = "";
+  document.getElementById("playNow").style.display = "block";
+}
+
+// 🎬 OPEN GOOGLE DRIVE MOVIE
+function openDriveMovie() {
+  document.getElementById("modal-title").textContent = "🎬 Full Drama Movie";
+
+  currentEmbed = `https://drive.google.com/file/d/${driveVideoId}/preview`;
+  isDriveVideo = true;
+
+  document.getElementById("modal").style.display = "flex";
+
+  document.getElementById("modal-video").style.display = "none";
+  document.getElementById("modal-video").src = "";
+  document.getElementById("playNow").style.display = "block";
+
+  document.getElementById("season-container").innerHTML = "";
+  document.getElementById("episodes").innerHTML = "";
 }
 
 // SEASONS
@@ -106,6 +133,7 @@ function closeModal() {
   document.getElementById("modal-video").style.display = "none";
   document.getElementById("playNow").style.display = "block";
 }
+
 // SEARCH
 document.getElementById("searchInput").addEventListener("input", async function() {
   const q = this.value;
@@ -148,13 +176,19 @@ async function init() {
     `url(${IMG_URL}${m.backdrop_path})`;
 
   document.getElementById("banner-title").textContent = m.title;
-  document.getElementById("watchBtn").onclick = () => openPlayer(m);
+
+  // 🔥 IMPORTANT: banner click = GOOGLE DRIVE MOVIE
+  document.getElementById("watchBtn").onclick = openDriveMovie;
 }
 
 init();
-document.getElementById("playNow").onclick = () => {
-  document.getElementById("modal-video").src = currentEmbed;
 
-  document.getElementById("modal-video").style.display = "block";
+// PLAY BUTTON
+document.getElementById("playNow").onclick = () => {
+  const iframe = document.getElementById("modal-video");
+
+  iframe.src = currentEmbed;
+  iframe.style.display = "block";
+
   document.getElementById("playNow").style.display = "none";
 };
