@@ -46,9 +46,8 @@ function displayList(items, id) {
 
 // 🎭 DISPLAY DRAMA
 function displayDramas() {
+function displayDramas() {
   const container = document.getElementById("drama-list");
-  if (!container) return;
-
   container.innerHTML = "";
 
   dramas.forEach(drama => {
@@ -57,11 +56,10 @@ function displayDramas() {
 
     img.onclick = () => {
       document.getElementById("modal-title").textContent = drama.title;
-      document.getElementById("modal-video").src =
-        drama.video + "?autoplay=1";
 
-      document.getElementById("season-container").innerHTML = "";
-      document.getElementById("episodes").innerHTML = "";
+      // 🔥 IMPORTANT FIX
+      document.getElementById("modal-video").src =
+        drama.video + "?autoplay=1&mute=0";
 
       document.getElementById("modal").style.display = "flex";
     };
@@ -177,12 +175,14 @@ async function init() {
   displayList(movies, "movies-list");
   displayList(tv, "tvshows-list");
   displayList(anime, "anime-list");
-  displayDramas(); // ✅ DRAMA
+  displayDramas();
 
-  // 🎯 BANNER (FIXED)
-  const m = movies[Math.floor(Math.random() * movies.length)];
+  // 🔥 FIXED BANNER (hanap may backdrop)
+  const withBackdrop = movies.filter(m => m.backdrop_path);
 
-  if (m && m.backdrop_path) {
+  const m = withBackdrop[Math.floor(Math.random() * withBackdrop.length)];
+
+  if (m) {
     document.getElementById("banner").style.backgroundImage =
       `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
 
