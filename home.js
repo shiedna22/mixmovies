@@ -8,7 +8,7 @@ let movies = [];
 const dramas = [
   {
     title: "Prison Born Avenger 🔥",
-    image: "https://i.imgur.com/8Km9tLL.jpg",
+    image: "https://drive.google.com/uc?export=view&id=1gNm3umtjDpZq8wtpJQi6qmCFtAt7NN_8/view?usp=drivesdk",
     video: "https://www.dailymotion.com/embed/video/xa3wpbk"
   }
 ];
