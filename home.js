@@ -1,133 +1,155 @@
-const API_KEY = "43c2413701b5c752d07b62acf8e57736";
-const IMG_URL = "https://image.tmdb.org/t/p/w500";
+const API_KEY = '43c2413701b5c752d07b62acf8e57736';
+const BASE_URL = 'https://api.themoviedb.org/3';
+const IMG_URL = 'https://image.tmdb.org/t/p/w500';
 
-// 🔥 GOOGLE DRIVE DRAMA
-const dramas = [
-  {
-    title: "Love Story 😭",
-    episodes: [
-      {
-        title: "Part 1",
-        video: "https://drive.google.com/file/d/1ABCxyz/preview"
-      },
-      {
-        title: "Part 2",
-        video: "https://drive.google.com/file/d/2ABCxyz/preview"
-      },
-      {
-        title: "Part 3",
-        video: "https://drive.google.com/file/d/3ABCxyz/preview"
-      }
-    ]
-  }
-];
+let movies = [];
 
-let currentEmbed = "";
-let currentDrama = null;
-let currentEpisode = 0;
-
-// 🎬 FETCH MOVIES
-async function fetchMovies() {
-  const res = await fetch(
-    `https://api.themoviedb.org/3/trending/movie/week?api_key=${API_KEY}`
-  );
+// FETCH
+async function fetchTrending(type) {
+  const res = await fetch(`${BASE_URL}/trending/${type}/week?api_key=${API_KEY}`);
   const data = await res.json();
   return data.results;
 }
 
-// 🎬 DISPLAY MOVIES
-function displayMovies(movies) {
-  const container = document.getElementById("movies-list");
+// 🔥 ANIME
+async function fetchAnime() {
+  const res = await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`);
+  const data = await res.json();
+  return data.results.filter(i => i.original_language === "ja");
+}
 
-  movies.forEach(movie => {
-    if (!movie.poster_path) return;
+// DISPLAY
+function displayList(items, id) {
+  const container = document.getElementById(id);
+  container.innerHTML = "";
+
+  items.forEach(item => {
+    if (!item.poster_path) return;
 
     const img = document.createElement("img");
-    img.src = IMG_URL + movie.poster_path;
+    img.src = IMG_URL + item.poster_path;
 
-    img.onclick = () => openMovie(movie);
+    img.onclick = () => openPlayer(item);
 
     container.appendChild(img);
   });
 }
 
-// 🎬 OPEN MOVIE
-function openMovie(movie) {
-  currentEmbed = `https://vidsrc.to/embed/movie/${movie.id}`;
+// PLAYER
+async function openPlayer(item) {
+  const type = item.title ? "movie" : "tv";
 
-  document.getElementById("modal-title").textContent = movie.title;
+  document.getElementById("modal-title").textContent =
+    item.title || item.name;
 
-  document.getElementById("modal-video").style.display = "none";
-  document.getElementById("playNow").style.display = "block";
+  if (type === "movie") {
+    document.getElementById("modal-video").src =
+      `https://vidsrc.cc/v2/embed/movie/${item.id}`;
+
+    document.getElementById("season-container").innerHTML = "";
+    document.getElementById("episodes").innerHTML = "";
+  } else {
+    document.getElementById("modal-video").src =
+      `https://vidsrc.cc/v2/embed/tv/${item.id}/1/1`;
+
+    loadSeasons(item.id);
+  }
 
   document.getElementById("modal").style.display = "flex";
 }
 
-// 🎬 DISPLAY DRAMA
-function displayDrama() {
-  const container = document.getElementById("drama-list");
+// SEASONS
+async function loadSeasons(id) {
+  const res = await fetch(`${BASE_URL}/tv/${id}?api_key=${API_KEY}`);
+  const data = await res.json();
 
-  dramas.forEach(drama => {
+  const container = document.getElementById("season-container");
+  container.innerHTML = "";
+
+  data.seasons.forEach(s => {
+    if (s.season_number === 0) return;
+
     const btn = document.createElement("button");
+    btn.textContent = "Season " + s.season_number;
 
-    btn.textContent = drama.title;
-    btn.style.padding = "10px";
-    btn.style.margin = "10px";
+    btn.onclick = () => loadEpisodes(id, s.season_number);
 
-    btn.onclick = () => playDrama(drama, 0);
+    container.appendChild(btn);
+  });
+
+  loadEpisodes(id, 1);
+}
+
+// EPISODES
+async function loadEpisodes(id, season) {
+  const res = await fetch(`${BASE_URL}/tv/${id}/season/${season}?api_key=${API_KEY}`);
+  const data = await res.json();
+
+  const container = document.getElementById("episodes");
+  container.innerHTML = "";
+
+  data.episodes.forEach(ep => {
+    const btn = document.createElement("button");
+    btn.textContent = "Ep " + ep.episode_number;
+
+    btn.onclick = () => {
+      document.getElementById("modal-video").src =
+        `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${ep.episode_number}`;
+    };
 
     container.appendChild(btn);
   });
 }
 
-// 🎬 PLAY DRAMA
-function playDrama(drama, index) {
-  currentDrama = drama;
-  currentEpisode = index;
-
-  const ep = drama.episodes[index];
-
-  currentEmbed = ep.video;
-
-  document.getElementById("modal-title").textContent =
-    drama.title + " - " + ep.title;
-
-  document.getElementById("modal-video").style.display = "none";
-  document.getElementById("playNow").style.display = "block";
-
-  document.getElementById("modal").style.display = "flex";
-}
-
-// ▶ PLAY BUTTON
-document.getElementById("playNow").onclick = () => {
-  document.getElementById("modal-video").src = currentEmbed;
-  document.getElementById("modal-video").style.display = "block";
-  document.getElementById("playNow").style.display = "none";
-
-  // 🔥 AUTO NEXT
-  setTimeout(() => {
-    if (!currentDrama) return;
-
-    currentEpisode++;
-
-    if (currentEpisode < currentDrama.episodes.length) {
-      playDrama(currentDrama, currentEpisode);
-    }
-  }, 30000);
-};
-
-// ❌ CLOSE
+// CLOSE
 function closeModal() {
   document.getElementById("modal").style.display = "none";
   document.getElementById("modal-video").src = "";
 }
 
-// 🚀 INIT
-async function init() {
-  const movies = await fetchMovies();
-  displayMovies(movies);
+// SEARCH
+document.getElementById("searchInput").addEventListener("input", async function() {
+  const q = this.value;
 
-  displayDrama();
+  if (!q) {
+    document.getElementById("search-results").innerHTML = "";
+    return;
+  }
+
+  const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${q}`);
+  const data = await res.json();
+
+  const container = document.getElementById("search-results");
+  container.innerHTML = "";
+
+  data.results.forEach(item => {
+    if (!item.poster_path) return;
+
+    const img = document.createElement("img");
+    img.src = IMG_URL + item.poster_path;
+    img.onclick = () => openPlayer(item);
+
+    container.appendChild(img);
+  });
+});
+
+// INIT
+async function init() {
+  movies = await fetchTrending("movie");
+  const tv = await fetchTrending("tv");
+  const anime = await fetchAnime();
+
+  displayList(movies, "movies-list");
+  displayList(tv, "tvshows-list");
+  displayList(anime, "anime-list");
+
+  const m = movies[Math.floor(Math.random() * movies.length)];
+
+  document.getElementById("banner").style.backgroundImage =
+    `url(${IMG_URL}${m.backdrop_path})`;
+
+  document.getElementById("banner-title").textContent = m.title;
+  document.getElementById("watchBtn").onclick = () => openPlayer(m);
 }
 
-init();
+init(); 
