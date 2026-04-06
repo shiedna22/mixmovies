@@ -141,6 +141,28 @@ img:hover {
 @media(max-width:600px){
   #modal-video { height:220px; }
 }
+  #ultra-container {
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+}
+
+.ultra-item {
+  height: 100vh;
+  scroll-snap-align: start;
+}
+
+.ultra-video iframe {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+  
+.ultra-video {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  }
 </style>
 </head>
 
@@ -178,6 +200,8 @@ img:hover {
 
 <h2 id="drama">🎭 Drama Series</h2>
 <div id="drama-list" class="list"></div>
+<h2>❤️ Favorites</h2>
+<div id="favorites-list" class="list"></div>
 
 <h2>📱 Ultra Mode</h2>
 <div id="ultra-container"></div>
