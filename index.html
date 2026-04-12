@@ -40,6 +40,7 @@ border-bottom:1px solid #333;
 cursor:pointer;
 }
 #suggestions div:hover{background:#222}
+mark{color:red}
 
 /* HERO */
 #hero{
@@ -152,8 +153,6 @@ cursor:pointer;
 <iframe id="trailer"></iframe>
 <h2 id="title"></h2>
 <p id="desc"></p>
-<div id="episodes"></div>
-
 <button onclick="play()">▶ Play</button>
 <button onclick="toggleMyList()">❤️ My List</button>
 </div>
@@ -170,7 +169,7 @@ const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
 
 let current=null,currentType="movie";
-let heroList=[],heroIndex=0,heroTimer;
+let heroList=[],heroIndex=0;
 let allMovies=[];
 let continueList=JSON.parse(localStorage.getItem("continue"))||[];
 let myList=JSON.parse(localStorage.getItem("myList"))||[];
@@ -202,22 +201,14 @@ async function setHero(m){
 current=m;
 currentType=m.title?"movie":"tv";
 
-hero-title.innerText=title(m);
-hero-desc.innerText=(m.overview||"").slice(0,120);
+document.getElementById("hero-title").innerText=title(m);
+document.getElementById("hero-desc").innerText=(m.overview||"").slice(0,120);
 
-heroVideo.src=await getTrailer(m.id,currentType);
+document.getElementById("heroVideo").src=
+await getTrailer(m.id,currentType);
 
-playHero.onclick=()=>play();
-infoHero.onclick=()=>openDetails(m,currentType);
-}
-
-/* AUTO HERO */
-function startHero(){
-clearInterval(heroTimer);
-heroTimer=setInterval(()=>{
-heroIndex=(heroIndex+1)%heroList.length;
-setHero(heroList[heroIndex]);
-},5000);
+document.getElementById("playHero").onclick=()=>play();
+document.getElementById("infoHero").onclick=()=>openDetails(m,currentType);
 }
 
 /* TRAILER */
@@ -230,9 +221,9 @@ return t?`https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1`:"";
 }catch{return "";}
 }
 
-/* SEARCH */
+/* SEARCH + SUGGESTIONS */
 search.oninput=(e)=>{
-const val=e.target.value.toLowerCase().trim();
+const val=e.target.value.toLowerCase();
 if(!val){searchRow.style.display="none";suggestions.style.display="none";return;}
 
 const results=allMovies.filter(m=>title(m).toLowerCase().includes(val));
@@ -240,8 +231,9 @@ const results=allMovies.filter(m=>title(m).toLowerCase().includes(val));
 searchRow.style.display="block";
 searchResults.innerHTML="";
 
+/* posters */
 results.slice(0,20).forEach(i=>{
-const img=document.createElement("img");
+let img=document.createElement("img");
 img.src=IMG+i.poster_path;
 img.onclick=()=>openDetails(i,i.title?"movie":"tv");
 searchResults.appendChild(img);
@@ -254,15 +246,21 @@ suggestions.style.display="block";
 results.slice(0,5).forEach(i=>{
 let t=title(i);
 let d=document.createElement("div");
-d.innerHTML=t;
-d.onclick=()=>{search.value=t;suggestions.style.display="none";}
+
+d.innerHTML=t.replace(new RegExp(val,"gi"),m=>`<mark>${m}</mark>`);
+
+d.onclick=()=>{
+search.value=t;
+suggestions.style.display="none";
+};
+
 suggestions.appendChild(d);
 });
-}
+};
 
 /* VOICE */
 function startVoice(){
-if(!('webkitSpeechRecognition' in window)) return alert("Not supported");
+if(!('webkitSpeechRecognition' in window)) return;
 let rec=new webkitSpeechRecognition();
 rec.onresult=(e)=>{
 search.value=e.results[0][0].transcript;
@@ -273,18 +271,19 @@ rec.start();
 
 /* DETAILS */
 async function openDetails(i,type){
-details.style.display="block";
-title.innerText=title(i);
-desc.innerText=i.overview||"";
-trailer.src=await getTrailer(i.id,type);
+document.getElementById("details").style.display="block";
+document.getElementById("title").innerText=title(i);
+document.getElementById("desc").innerText=i.overview||"";
+document.getElementById("trailer").src=await getTrailer(i.id,type);
 }
 
 /* PLAYER */
 function play(){
-player.style.display="block";
-full.src=currentType==="movie"
+document.getElementById("player").style.display="block";
+document.getElementById("full").src=currentType==="movie"
 ?`https://vidsrc.cc/v2/embed/movie/${current.id}`
 :`https://vidsrc.cc/v2/embed/tv/${current.id}/1/1`;
+
 saveContinue(current);
 }
 
@@ -343,7 +342,6 @@ show(anime,"anime","tv");
 
 heroList=trending.slice(0,10);
 setHero(heroList[0]);
-startHero();
 
 renderContinue();
 renderMyList();
