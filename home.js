@@ -1,12 +1,11 @@
-localStorage.clear();
-let isViewAll = false;
 const API_KEY = "43c2413701b5c752d07b62acf8e57736";
 const BASE_URL = "https://api.themoviedb.org/3";
 const IMG = "https://image.tmdb.org/t/p/w500";
 
 let movies = [];
+let isViewAll = false;
 
-// DRAMA
+// 🎭 DRAMA
 const dramas = [
   {
     title: "Batang Martial Arts 🔥",
@@ -19,20 +18,15 @@ const dramas = [
 async function fetchData(type) {
   const res = await fetch(`${BASE_URL}/trending/${type}/week?api_key=${API_KEY}`);
   const data = await res.json();
-  return data.results;
+  return data.results || [];
 }
 
-// SAVE LAST
+// SAVE LAST (MULTI CONTINUE)
 function saveLast(video, title, image) {
   let history = JSON.parse(localStorage.getItem("continueList")) || [];
 
-  // remove duplicate
   history = history.filter(item => item.video !== video);
-
-  // add sa unahan
   history.unshift({ video, title, image });
-
-  // limit to 10 items
   history = history.slice(0, 10);
 
   localStorage.setItem("continueList", JSON.stringify(history));
@@ -42,10 +36,9 @@ function saveLast(video, title, image) {
 function loadContinueWatching() {
   const list = JSON.parse(localStorage.getItem("continueList")) || [];
   const box = document.getElementById("continue-list");
+  if (!box) return;
 
   box.innerHTML = "";
-
-  if (list.length === 0) return;
 
   list.forEach(item => {
     const card = document.createElement("div");
@@ -79,6 +72,7 @@ function loadContinueWatching() {
 function loadFavorites() {
   const likes = JSON.parse(localStorage.getItem("likes")) || [];
   const box = document.getElementById("favorites-list");
+  if (!box) return;
 
   box.innerHTML = "";
 
@@ -98,9 +92,11 @@ function loadFavorites() {
   });
 }
 
-// DISPLAY
+// DISPLAY (WITH LABELS)
 function show(items, id) {
   const box = document.getElementById(id);
+  if (!box) return;
+
   box.innerHTML = "";
 
   items.forEach(i => {
@@ -108,21 +104,19 @@ function show(items, id) {
 
     const card = document.createElement("div");
     card.style.width = "120px";
+    card.style.textAlign = "center";
 
     const img = document.createElement("img");
     img.src = IMG + i.poster_path;
 
     img.onclick = () => openPlayer(i);
 
-    // 🎬 TITLE
     const title = document.createElement("p");
     title.innerText = i.title || i.name;
     title.style.fontSize = "12px";
-    title.style.margin = "5px 0 0";
 
-    // 📝 DESCRIPTION (short lang)
     const desc = document.createElement("p");
-    desc.innerText = i.overview?.slice(0, 40) + "...";
+    desc.innerText = i.overview ? i.overview.slice(0, 40) + "..." : "";
     desc.style.fontSize = "10px";
     desc.style.color = "gray";
 
@@ -137,6 +131,8 @@ function show(items, id) {
 // DRAMA
 function showDrama() {
   const box = document.getElementById("drama-list");
+  if (!box) return;
+
   box.innerHTML = "";
 
   dramas.forEach(d => {
@@ -144,18 +140,17 @@ function showDrama() {
     img.src = d.image;
 
     img.onclick = () => {
-  const player = document.getElementById("modal-video");
+      const player = document.getElementById("modal-video");
 
-  player.classList.add("portrait");
-  player.src = d.video;
+      player.classList.add("portrait");
+      player.src = d.video;
 
-  document.getElementById("modal-title").innerText = d.title;
-  document.getElementById("modal").style.display = "flex";
+      document.getElementById("modal-title").innerText = d.title;
+      document.getElementById("modal").style.display = "flex";
 
-  // 🔥 FIXED
-  saveLast(d.video, d.title, d.image);
-  loadContinueWatching();
-};
+      saveLast(d.video, d.title, d.image);
+      loadContinueWatching();
+    };
 
     box.appendChild(img);
   });
@@ -164,6 +159,7 @@ function showDrama() {
 // PLAYER
 function openPlayer(item) {
   const player = document.getElementById("modal-video");
+
   player.classList.remove("portrait");
 
   const title = item.title || item.name;
@@ -177,7 +173,6 @@ function openPlayer(item) {
   player.src = video;
   document.getElementById("modal").style.display = "flex";
 
-  // 🔥 FIXED
   saveLast(video, title, image);
   loadContinueWatching();
 }
@@ -188,9 +183,10 @@ function closeModal() {
   document.getElementById("modal-video").src = "";
 }
 
-// BANNER
+// SAFE BANNER
 function startBanner() {
   const valid = movies.filter(m => m.backdrop_path);
+  if (valid.length === 0) return;
 
   setInterval(() => {
     const m = valid[Math.floor(Math.random() * valid.length)];
@@ -203,60 +199,45 @@ function startBanner() {
   }, 3000);
 }
 
-//ViewAll
+// VIEW ALL (TOGGLE FIXED)
 function viewAll(type) {
   const box = document.getElementById("movies-list");
+  const btn = document.getElementById("viewBtn");
 
-  // 🔁 TOGGLE BACK
   if (isViewAll) {
     isViewAll = false;
-
-    box.style.flexWrap = "nowrap"; // balik scroll
+    box.style.flexWrap = "nowrap";
     box.style.overflowX = "auto";
-
-    show(movies, "movies-list"); // 🔥 reload original
+    show(movies, "movies-list");
+    if (btn) btn.innerText = "View All";
     return;
   }
 
-  // 🔥 VIEW ALL MODE
   isViewAll = true;
 
-  let list = [];
-  if (type === "movies") list = movies;
-
   box.innerHTML = "";
-
-  box.style.flexWrap = "wrap"; // grid
+  box.style.flexWrap = "wrap";
   box.style.overflowX = "hidden";
   box.style.justifyContent = "center";
 
-  list.forEach(i => {
+  movies.forEach(i => {
     if (!i.poster_path) return;
-
-    const card = document.createElement("div");
-    card.style.width = "120px";
-    card.style.margin = "5px";
-    card.style.textAlign = "center";
 
     const img = document.createElement("img");
     img.src = IMG + i.poster_path;
 
     img.onclick = () => openPlayer(i);
 
-    const title = document.createElement("p");
-    title.innerText = i.title || i.name;
-    title.style.fontSize = "12px";
-
-    card.appendChild(img);
-    card.appendChild(title);
-
-    box.appendChild(card);
+    box.appendChild(img);
   });
+
+  if (btn) btn.innerText = "Back";
 }
 
-// SEARCH
+// SEARCH (SAFE)
 document.addEventListener("DOMContentLoaded", () => {
   const search = document.getElementById("searchInput");
+  if (!search) return;
 
   search.addEventListener("input", async function () {
     const q = this.value;
@@ -298,4 +279,5 @@ async function init() {
 
 init();
 
-window.viewAll = viewAll; // 🔥 ADD THIS
+// 🔥 GLOBAL FIX
+window.viewAll = viewAll;
