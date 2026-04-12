@@ -211,6 +211,9 @@ function viewAll(type) {
   const box = document.getElementById("movies-list");
   box.innerHTML = "";
 
+  box.style.flexWrap = "wrap"; // 🔥 grid feel
+  box.style.justifyContent = "center";
+
   list.forEach(i => {
     if (!i.poster_path) return;
 
@@ -266,3 +269,5 @@ async function init() {
 }
 
 init();
+
+window.viewAll = viewAll; // 🔥 ADD THIS
