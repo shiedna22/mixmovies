@@ -474,6 +474,211 @@ renderMyList();
 }
 
 init();
+<script>
+const API_KEY="43c2413701b5c752d07b62acf8e57736";
+const BASE_URL="https://api.themoviedb.org/3";
+const IMG="https://image.tmdb.org/t/p/w500";
+
+let movies=[],tvshows=[],anime=[];
+let bannerTimer;
+
+/* FETCH */
+async function fetchData(type){
+try{
+const cache=localStorage.getItem("cache_"+type);
+if(cache) return JSON.parse(cache);
+
+const res=await fetch(`${BASE_URL}/trending/${type}/week?api_key=${API_KEY}`);
+const data=await res.json();
+
+localStorage.setItem("cache_"+type,JSON.stringify(data.results));
+return data.results||[];
+}catch{return[];}
+}
+
+/* CARD */
+function createCard(item){
+const card=document.createElement("div");
+card.className="card";
+
+const img=document.createElement("img");
+img.src=item.poster_path?IMG+item.poster_path:"https://via.placeholder.com/150x220";
+
+card.appendChild(img);
+
+/* CLICK */
+card.onclick=()=>openPlayer(item);
+
+/* HOVER */
+let t;
+card.onmouseenter=()=>{
+t=setTimeout(async()=>{
+try{
+const type=item.title?"movie":"tv";
+const res=await fetch(`${BASE_URL}/${type}/${item.id}/videos?api_key=${API_KEY}`);
+const data=await res.json();
+const v=data.results.find(x=>x.site==="YouTube");
+if(v) img.src=`https://img.youtube.com/vi/${v.key}/hqdefault.jpg`;
+}catch{}
+},800);
+};
+card.onmouseleave=()=>{
+clearTimeout(t);
+img.src=item.poster_path?IMG+item.poster_path:"https://via.placeholder.com/150x220";
+};
+
+return card;
+}
+
+/* SHOW */
+function show(list,id){
+const box=document.getElementById(id);
+if(!box)return;
+box.innerHTML="";
+list.forEach(i=>{
+if(i.poster_path) box.appendChild(createCard(i));
+});
+}
+
+/* PLAYER */
+function openPlayer(item){
+const video=document.getElementById("modal-video");
+if(!video)return;
+
+video.src=item.title
+?`https://vidsrc.cc/v2/embed/movie/${item.id}`
+:`https://vidsrc.cc/v2/embed/tv/${item.id}/1/1`;
+
+document.getElementById("modal").style.display="flex";
+localStorage.setItem("lastWatch",JSON.stringify(item));
+}
+
+/* CLOSE */
+function closeModal(){
+const m=document.getElementById("modal");
+const v=document.getElementById("modal-video");
+if(m)m.style.display="none";
+if(v)v.src="";
+}
+
+/* BANNER */
+function startBanner(){
+const b=document.getElementById("banner");
+if(!b)return;
+
+const valid=movies.filter(m=>m.backdrop_path);
+if(!valid.length)return;
+
+clearInterval(bannerTimer);
+
+bannerTimer=setInterval(()=>{
+const m=valid[Math.floor(Math.random()*valid.length)];
+
+b.style.backgroundImage=`url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
+
+const t=document.getElementById("banner-title");
+if(t)t.innerText=m.title;
+
+const btn=document.getElementById("watchBtn");
+if(btn)btn.onclick=()=>openPlayer(m);
+
+},4000);
+}
+
+/* SEARCH */
+function similarity(a,b){
+let same=0;
+for(let c of b){if(a.includes(c))same++;}
+return same/a.length;
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+const s=document.getElementById("searchInput");
+const sug=document.getElementById("suggestions");
+if(!s)return;
+
+function all(){return[...movies,...tvshows,...anime];}
+
+s.addEventListener("input",e=>{
+const v=e.target.value.toLowerCase();
+
+if(!v){
+show(movies,"movies-list");
+show(tvshows,"tvshows-list");
+show(anime,"anime-list");
+if(sug)sug.style.display="none";
+return;
+}
+
+const res=all().filter(m=>{
+let t=(m.title||m.name||"").toLowerCase();
+return t.includes(v)||similarity(t,v)>0.5;
+});
+
+show(res,"movies-list");
+
+const tv=document.getElementById("tvshows-list");
+const an=document.getElementById("anime-list");
+if(tv)tv.innerHTML="";
+if(an)an.innerHTML="";
+
+if(!sug)return;
+
+sug.innerHTML="";
+sug.style.display="block";
+
+res.slice(0,5).forEach(i=>{
+let t=i.title||i.name;
+let d=document.createElement("div");
+
+d.innerHTML=t.replace(new RegExp(v,"gi"),m=>`<mark>${m}</mark>`);
+
+d.onclick=()=>{
+s.value=t;
+sug.style.display="none";
+show([i],"movies-list");
+};
+
+sug.appendChild(d);
+});
+});
+});
+
+/* VOICE */
+function startVoice(){
+if(!('webkitSpeechRecognition'in window))return;
+let r=new webkitSpeechRecognition();
+r.onresult=e=>{
+const s=document.getElementById("searchInput");
+if(s){
+s.value=e.results[0][0].transcript;
+s.dispatchEvent(new Event("input"));
+}
+};
+r.start();
+}
+
+/* INIT */
+async function init(){
+movies=await fetchData("movie");
+tvshows=await fetchData("tv");
+anime=tvshows.filter(x=>x.original_language==="ja");
+
+show(movies,"movies-list");
+show(tvshows,"tvshows-list");
+show(anime,"anime-list");
+
+startBanner();
+
+/* CONTINUE */
+const last=JSON.parse(localStorage.getItem("lastWatch"));
+if(last)show([last],"continue-list");
+}
+
+init();
+
+window.closeModal=closeModal;
+</script>
 </script>
 
 </body>
