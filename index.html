@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShīedFlix PRO MAX</title>
+<title>ShiedFlix ULTRA FINAL</title>
 
 <style>
 body{margin:0;background:#000;color:white;font-family:Arial}
@@ -19,7 +19,6 @@ z-index:1000;
 #search{
 background:#222;border:none;color:white;
 padding:8px 15px;border-radius:20px;
-outline:none;
 }
 
 /* HERO */
@@ -30,76 +29,44 @@ align-items:flex-end;
 padding:20px;
 position:relative;
 overflow:hidden;
+transition:transform 0.4s, opacity 0.3s;
 }
 #hero iframe{
-position:absolute;
-width:100%;
-height:100%;
-top:0;
-left:0;
+position:absolute;width:100%;height:100%;
+top:0;left:0;
 pointer-events:none;
 filter:brightness(0.4);
 }
-.hero-content{z-index:2;max-width:400px}
-.hero-title{font-size:28px}
-.hero-desc{font-size:13px;color:#ccc}
-
-button{padding:10px 20px;border:none;border-radius:5px}
-.play{background:white;color:black}
-.info{background:gray;color:white}
+.hero-content{z-index:2}
 
 /* ROW */
 .row{margin-top:10px}
 .row h2{margin-left:10px}
 .row-posters{
-display:flex;
-overflow-x:auto;
-gap:10px;
-padding:10px;
+display:flex;overflow-x:auto;
+gap:10px;padding:10px;
 }
 .row-posters img{
-width:140px;border-radius:5px;
+width:140px;border-radius:6px;
 cursor:pointer;
-transition:0.3s;
 }
-.row-posters img:hover{transform:scale(1.2)}
 
 /* DETAILS */
 #details{
 display:none;
-position:fixed;
-width:100%;
-height:100%;
-top:0;
-background:black;
-z-index:9999;
-overflow:auto;
+position:fixed;width:100%;height:100%;
+top:0;background:black;z-index:9999;
 }
-#details iframe{
-width:100%;
-height:220px;
-max-height:40vh;
-border:none;
-}
-.details-content{padding:15px}
+#details iframe{width:100%;height:220px}
 
 /* PLAYER */
 #player{
 display:none;
-position:fixed;
-width:100%;
-height:100%;
-top:0;
-background:black;
-z-index:99999;
+position:fixed;width:100%;height:100%;
+top:0;background:black;z-index:99999;
 }
-#player iframe{
-width:100%;
-height:100%;
-border:none;
-}
+#player iframe{width:100%;height:100%}
 
-/* CLOSE */
 .close{
 position:absolute;
 right:20px;
@@ -108,14 +75,6 @@ font-size:30px;
 cursor:pointer;
 z-index:100000;
 }
-
-/* LOADING */
-.loading{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-}
 </style>
 </head>
 
@@ -123,59 +82,39 @@ transform:translate(-50%,-50%);
 
 <div class="navbar">
 <div class="logo">ShiedFlix</div>
-<input id="search" placeholder="Search movies...">
+<input id="search" placeholder="Search...">
 </div>
 
 <!-- HERO -->
 <div id="hero">
 <iframe id="heroVideo"></iframe>
 <div class="hero-content">
-<h1 id="hero-title">Loading...</h1>
+<h1 id="hero-title"></h1>
 <p id="hero-desc"></p>
-<button class="play" id="playHero">▶ Play</button>
-<button class="info" id="infoHero">ℹ Info</button>
+<button id="playHero">▶ Play</button>
+<button id="infoHero">ℹ Info</button>
 </div>
 </div>
 
-<!-- CONTINUE -->
+<!-- ROW -->
 <div class="row">
-<h2>▶ Continue Watching</h2>
-<div id="continue" class="row-posters"></div>
-</div>
-
-<!-- ROWS -->
-<div class="row">
-<h2>🔥 Trending</h2>
-<div id="trending" class="row-posters"></div>
-</div>
-
-<div class="row">
-<h2>🎬 Movies</h2>
+<h2>🔥 Movies</h2>
 <div id="movies" class="row-posters"></div>
-</div>
-
-<div class="row">
-<h2>📺 TV Shows</h2>
-<div id="tv" class="row-posters"></div>
 </div>
 
 <!-- DETAILS -->
 <div id="details">
 <span class="close" onclick="closeDetails()">✖</span>
-<div class="loading" id="loadingTrailer">Loading trailer...</div>
-<iframe id="trailer" allowfullscreen></iframe>
-
-<div class="details-content">
+<iframe id="trailer"></iframe>
 <h2 id="title"></h2>
 <p id="desc"></p>
-<button onclick="play()">▶ Play Full Movie</button>
-</div>
+<button onclick="play()">▶ Play</button>
 </div>
 
 <!-- PLAYER -->
 <div id="player">
 <span class="close" onclick="closePlayer()">✖</span>
-<iframe id="full" allow="autoplay; fullscreen"></iframe>
+<iframe id="full"></iframe>
 </div>
 
 <script>
@@ -184,61 +123,31 @@ const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
 
 let current=null;
-let allMovies=[];
+let heroList=[];
+let heroIndex=0;
+let heroInterval;
 
 /* FETCH */
-async function fetchData(url){
-const res=await fetch(url);
+async function getMovies(){
+const res=await fetch(`${API}/movie/popular?api_key=${KEY}`);
 return (await res.json()).results;
 }
 
-/* TRAILER FIX */
-async function getTrailer(id,type){
+/* TRAILER */
+async function getTrailer(id){
 try{
-const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
+const res=await fetch(`${API}/movie/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
 
-const trailer=data.results.find(v=>v.type==="Trailer" && v.site==="YouTube");
+const t=data.results.find(v=>v.type==="Trailer" && v.site==="YouTube");
 
-if(trailer){
-return `https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=0&controls=1`;
-}
-
-return "";
-}catch{
-return "";
-}
-}
-
-/* TITLE SAFE */
-function title(i){return i.title||i.name||"No Title"}
-
-/* CONTINUE */
-function saveContinue(i){
-let list=JSON.parse(localStorage.getItem("cont"))||[];
-list=list.filter(x=>x.id!==i.id);
-list.unshift(i);
-list=list.slice(0,10);
-localStorage.setItem("cont",JSON.stringify(list));
-loadContinue();
-}
-
-function loadContinue(){
-const list=JSON.parse(localStorage.getItem("cont"))||[];
-const box=document.getElementById("continue");
-box.innerHTML="";
-
-list.forEach(i=>{
-const img=document.createElement("img");
-img.src=IMG+i.poster_path;
-img.onclick=()=>{current=i;play()};
-box.appendChild(img);
-});
+return t?`https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1`:"";
+}catch{return "";}
 }
 
 /* SHOW */
-function show(list,id,type){
-const box=document.getElementById(id);
+function show(list){
+const box=document.getElementById("movies");
 box.innerHTML="";
 
 list.forEach(i=>{
@@ -247,109 +156,115 @@ if(!i.poster_path)return;
 const img=document.createElement("img");
 img.src=IMG+i.poster_path;
 
-img.onclick=async()=>{
+img.onclick=()=>{
 current=i;
-
-document.getElementById("details").style.display="block";
-document.getElementById("title").innerText=title(i);
-document.getElementById("desc").innerText=i.overview;
-
-document.getElementById("loadingTrailer").style.display="block";
-
-let trailer=await getTrailer(i.id,type);
-
-document.getElementById("trailer").src=trailer;
-document.getElementById("loadingTrailer").style.display="none";
+openDetails();
 };
 
 box.appendChild(img);
 });
-
-allMovies = [...allMovies, ...list];
 }
 
-/* PLAYER FIX */
-function play(){
-document.getElementById("details").style.display="none";
-document.getElementById("player").style.display="block";
+/* HERO */
+async function setHero(movie){
+current=movie;
 
-const isMovie=current.title!==undefined;
+const hero=document.getElementById("hero");
 
-const src=isMovie
-?`https://vidsrc.cc/v2/embed/movie/${current.id}?autoplay=1`
-:`https://vidsrc.cc/v2/embed/tv/${current.id}/1/1`;
+hero.style.opacity=0;
 
-document.getElementById("full").src=src;
+setTimeout(async()=>{
+document.getElementById("hero-title").innerText=movie.title;
+document.getElementById("hero-desc").innerText=movie.overview;
 
-goFullscreen();
-saveContinue(current);
+document.getElementById("heroVideo").src=
+await getTrailer(movie.id);
+
+hero.style.opacity=1;
+},200);
+
+document.getElementById("playHero").onclick=()=>play();
+document.getElementById("infoHero").onclick=()=>openDetails();
 }
 
-/* FULLSCREEN */
-function goFullscreen(){
-const el=document.getElementById("player");
+/* AUTO SLIDE */
+function startHero(){
+clearInterval(heroInterval);
 
-if(el.requestFullscreen) el.requestFullscreen();
-if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-
-screen.orientation?.lock("landscape").catch(()=>{});
+heroInterval=setInterval(()=>{
+heroIndex++;
+if(heroIndex>=heroList.length) heroIndex=0;
+setHero(heroList[heroIndex]);
+},5000);
 }
 
-/* CLOSE */
+/* SWIPE */
+let startX=0;
+const hero=document.getElementById("hero");
+
+hero.addEventListener("touchstart",(e)=>{
+startX=e.touches[0].clientX;
+clearInterval(heroInterval);
+});
+
+hero.addEventListener("touchend",(e)=>{
+let diff=e.changedTouches[0].clientX-startX;
+
+if(diff>80){
+heroIndex--;
+if(heroIndex<0) heroIndex=heroList.length-1;
+setHero(heroList[heroIndex]);
+}
+else if(diff<-80){
+heroIndex++;
+if(heroIndex>=heroList.length) heroIndex=0;
+setHero(heroList[heroIndex]);
+}
+
+setTimeout(()=>startHero(),4000);
+});
+
+/* DETAILS */
+function openDetails(){
+document.getElementById("details").style.display="block";
+document.getElementById("title").innerText=current.title;
+document.getElementById("desc").innerText=current.overview;
+document.getElementById("trailer").src=
+`https://www.youtube.com/embed?autoplay=1`;
+}
+
 function closeDetails(){
 document.getElementById("details").style.display="none";
 document.getElementById("trailer").src="";
 }
 
+/* PLAYER */
+function play(){
+document.getElementById("details").style.display="none";
+document.getElementById("player").style.display="block";
+
+document.getElementById("full").src=
+`https://vidsrc.cc/v2/embed/movie/${current.id}?autoplay=1`;
+
+document.getElementById("player").requestFullscreen?.();
+}
+
+/* CLOSE */
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
-
 document.exitFullscreen?.();
-screen.orientation?.lock("portrait").catch(()=>{});
 }
-
-/* HERO */
-async function setHero(movie){
-document.getElementById("hero-title").innerText=title(movie);
-document.getElementById("hero-desc").innerText=
-(movie.overview||"").slice(0,120)+"...";
-
-const vid=await getTrailer(movie.id,movie.title?"movie":"tv");
-
-document.getElementById("heroVideo").src=vid;
-
-document.getElementById("playHero").onclick=()=>{
-current=movie;play();
-};
-
-document.getElementById("infoHero").onclick=()=>{
-current=movie;
-document.getElementById("details").style.display="block";
-};
-}
-
-/* SEARCH */
-document.getElementById("search").addEventListener("input",(e)=>{
-const q=e.target.value.toLowerCase();
-
-const filtered=allMovies.filter(m=>title(m).toLowerCase().includes(q));
-
-show(filtered,"movies","movie");
-});
 
 /* INIT */
 async function init(){
-const trending=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
-const movies=await fetchData(`${API}/movie/popular?api_key=${KEY}`);
-const tv=await fetchData(`${API}/tv/popular?api_key=${KEY}`);
+const movies=await getMovies();
 
-show(trending,"trending","movie");
-show(movies,"movies","movie");
-show(tv,"tv","tv");
+show(movies);
 
-setHero(trending[0]);
-loadContinue();
+heroList=movies.slice(0,10);
+setHero(heroList[0]);
+startHero();
 }
 init();
 </script>
