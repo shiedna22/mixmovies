@@ -1,3 +1,4 @@
+localStorage.clear();
 const API_KEY = "43c2413701b5c752d07b62acf8e57736";
 const BASE_URL = "https://api.themoviedb.org/3";
 const IMG = "https://image.tmdb.org/t/p/w500";
