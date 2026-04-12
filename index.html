@@ -2,148 +2,153 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Final</title>
+<title>ShiedFlix PRO</title>
 
 <style>
-body{margin:0;background:#000;color:white;font-family:Arial}
+body{
+margin:0;
+background:#000;
+color:#fff;
+font-family:Arial;
+}
 
 /* NAV */
-.navbar{
-position:fixed;width:100%;top:0;
+.nav{
+position:fixed;
+top:0;
+width:100%;
 padding:15px;
-display:flex;justify-content:space-between;
 background:linear-gradient(to bottom,#000,transparent);
-z-index:1000;
+z-index:100;
 }
 .logo{color:red;font-weight:bold}
 
 /* HERO */
-#hero{
+.hero{
 height:70vh;
+background-size:cover;
 display:flex;
 align-items:flex-end;
 padding:20px;
-position:relative;
-overflow:hidden;
 }
-#hero iframe{
-position:absolute;
-width:100%;
-height:100%;
-top:0;
-left:0;
-pointer-events:none;
-filter:brightness(0.4);
+.hero h1{margin:0}
+.hero button{
+background:red;
+border:none;
+padding:10px 20px;
+color:#fff;
+margin-top:10px;
 }
-.hero-content{z-index:2;max-width:400px}
 
 /* ROW */
-.row-posters{
+.row{
+padding:20px;
+}
+.posters{
 display:flex;
 overflow-x:auto;
 gap:10px;
-padding:10px;
 }
-.row-posters img{
-width:140px;border-radius:5px;
+.posters img{
+width:140px;
+border-radius:6px;
 cursor:pointer;
 }
 
-/* DETAILS */
-#details{
-display:none;
-position:fixed;
-width:100%;
-height:100%;
-top:0;
-background:black;
-z-index:9999;
-overflow:auto;
-}
-#details iframe{
-width:100%;
-height:220px;
-}
-
 /* PLAYER */
-#player{
+.player{
 display:none;
 position:fixed;
-width:100%;
-height:100%;
 top:0;
 left:0;
-background:black;
-z-index:99999;
-}
-#player iframe{
 width:100%;
 height:100%;
+background:black;
+z-index:9999;
+}
+
+video{
+width:100%;
+height:100%;
+object-fit:contain;
+background:black;
+}
+
+/* CONTROLS */
+.controls{
+position:absolute;
+bottom:0;
+width:100%;
+background:linear-gradient(to top,black,transparent);
+padding:10px;
+}
+
+.progress{
+width:100%;
+}
+
+.btn{
+background:none;
 border:none;
-pointer-events:auto !important;
+color:white;
+font-size:18px;
+margin-right:10px;
 }
 
 /* CLOSE */
 .close{
 position:absolute;
-right:20px;
 top:10px;
+right:20px;
 font-size:30px;
 cursor:pointer;
-z-index:100000;
 }
 </style>
 </head>
 
 <body>
 
-<div class="navbar">
+<div class="nav">
 <div class="logo">ShiedFlix</div>
 </div>
 
-<!-- HERO -->
-<div id="hero">
-<iframe id="heroVideo"></iframe>
-<div class="hero-content">
-<h1 id="hero-title"></h1>
-<button onclick="play()">▶ Play</button>
+<div class="hero" id="hero">
+<div>
+<h1 id="heroTitle"></h1>
+<button onclick="playVideo()">▶ Play</button>
 </div>
 </div>
 
-<!-- MOVIES -->
-<div class="row-posters" id="movies"></div>
-
-<!-- DETAILS -->
-<div id="details">
-<span class="close" onclick="closeDetails()">✖</span>
-<iframe id="trailer" allowfullscreen></iframe>
-<h2 id="title"></h2>
-<p id="desc"></p>
-<button onclick="play()">▶ Play Full Movie</button>
+<div class="row">
+<h2>🔥 Movies</h2>
+<div class="posters" id="movies"></div>
 </div>
 
 <!-- PLAYER -->
-<div id="player">
+<div class="player" id="player">
 <span class="close" onclick="closePlayer()">✖</span>
 
-<iframe 
-id="full"
-allow="autoplay; fullscreen; encrypted-media"
-allowfullscreen>
-</iframe>
+<video id="video"></video>
 
-<button onclick="goFullscreen()" style="position:absolute;bottom:20px;right:20px;">
-⛶ Fullscreen
-</button>
+<div class="controls">
+<button class="btn" onclick="togglePlay()">⏯</button>
+<button class="btn" onclick="mute()">🔊</button>
+<button class="btn" onclick="fullscreen()">⛶</button>
+
+<input type="range" id="progress" class="progress">
+</div>
 
 </div>
 
 <script>
+const IMG="https://image.tmdb.org/t/p/w500";
 const API="https://api.themoviedb.org/3";
 const KEY="43c2413701b5c752d07b62acf8e57736";
-const IMG="https://image.tmdb.org/t/p/w500";
 
-let current=null;
+/* 🔥 SAMPLE VIDEO (PALITAN MO ITO) */
+const SAMPLE_VIDEO="https://www.w3schools.com/html/mov_bbb.mp4";
+
+let currentVideo=SAMPLE_VIDEO;
 
 /* FETCH */
 async function getMovies(){
@@ -154,67 +159,83 @@ return (await res.json()).results;
 /* SHOW */
 function show(list){
 const box=document.getElementById("movies");
-box.innerHTML="";
 
-list.forEach(i=>{
-if(!i.poster_path)return;
+list.forEach(m=>{
+if(!m.poster_path)return;
 
 const img=document.createElement("img");
-img.src=IMG+i.poster_path;
+img.src=IMG+m.poster_path;
 
 img.onclick=()=>{
-current=i;
-
-document.getElementById("details").style.display="block";
-document.getElementById("title").innerText=i.title;
-document.getElementById("desc").innerText=i.overview;
-
-document.getElementById("trailer").src=
-`https://www.youtube.com/embed?autoplay=1&mute=0`;
+currentVideo=SAMPLE_VIDEO; // 🔥 PALITAN MO PER MOVIE
+playVideo();
 };
 
 box.appendChild(img);
 });
 }
 
+/* HERO */
+function setHero(movie){
+document.getElementById("hero").style.backgroundImage=
+`url(${IMG+movie.backdrop_path})`;
+
+document.getElementById("heroTitle").innerText=movie.title;
+}
+
 /* PLAYER */
-function play(){
-document.getElementById("details").style.display="none";
-document.getElementById("player").style.display="block";
+function playVideo(){
+const player=document.getElementById("player");
+const video=document.getElementById("video");
 
-const src=`https://vidsrc.cc/v2/embed/movie/${current.id}?autoplay=1`;
-
-document.getElementById("full").src=src;
+player.style.display="block";
+video.src=currentVideo;
+video.play();
 }
 
-/* FULLSCREEN */
-function goFullscreen(){
-const iframe=document.getElementById("full");
-if(iframe.requestFullscreen) iframe.requestFullscreen();
+/* CONTROLS */
+function togglePlay(){
+const v=document.getElementById("video");
+if(v.paused) v.play(); else v.pause();
 }
+
+function mute(){
+const v=document.getElementById("video");
+v.muted=!v.muted;
+}
+
+function fullscreen(){
+const v=document.getElementById("video");
+if(v.requestFullscreen) v.requestFullscreen();
+}
+
+/* PROGRESS */
+const video=document.getElementById("video");
+const progress=document.getElementById("progress");
+
+video.ontimeupdate=()=>{
+progress.value=(video.currentTime/video.duration)*100;
+};
+
+progress.oninput=()=>{
+video.currentTime=(progress.value/100)*video.duration;
+};
 
 /* CLOSE */
-function closeDetails(){
-document.getElementById("details").style.display="none";
-document.getElementById("trailer").src="";
-}
-
 function closePlayer(){
-document.getElementById("player").style.display="none";
-document.getElementById("full").src="";
+const player=document.getElementById("player");
+const video=document.getElementById("video");
+
+player.style.display="none";
+video.pause();
+video.src="";
 }
 
 /* INIT */
 async function init(){
 const movies=await getMovies();
 show(movies);
-
-const hero=movies[0];
-current=hero;
-
-document.getElementById("hero-title").innerText=hero.title;
-document.getElementById("heroVideo").src=
-`https://www.youtube.com/embed?autoplay=1&mute=1`;
+setHero(movies[0]);
 }
 
 init();
