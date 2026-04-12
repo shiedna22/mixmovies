@@ -2,20 +2,10 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Fixed</title>
+<title>ShiedFlix Gesture Player</title>
 
 <style>
 body{margin:0;background:#000;color:white;font-family:Arial}
-
-/* NAV */
-.navbar{
-position:fixed;width:100%;top:0;
-padding:15px;
-display:flex;justify-content:space-between;
-background:linear-gradient(to bottom,#000,transparent);
-z-index:1000;
-}
-.logo{color:red;font-weight:bold}
 
 /* PLAYER */
 #player{
@@ -34,36 +24,54 @@ z-index:99999;
 width:100%;
 height:100%;
 border:none;
-pointer-events:auto !important;
+pointer-events:auto;
+}
+
+/* OVERLAY */
+#overlay{
+position:absolute;
+width:100%;
+height:100%;
+top:0;
+left:0;
+z-index:100000;
+}
+
+/* CENTER ICON */
+#centerIcon{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:40px;
+opacity:0;
+transition:0.3s;
 }
 
 /* TOP BAR */
-.player-top{
+.top{
 position:absolute;
 top:0;
 width:100%;
 display:flex;
 justify-content:space-between;
 padding:10px;
-z-index:100000;
 }
 
-/* BUTTONS */
+/* BUTTON */
 .btn{
 background:rgba(0,0,0,0.6);
 color:white;
 border:none;
 padding:8px 12px;
-font-size:16px;
 border-radius:5px;
 }
 
-/* FULLSCREEN BUTTON */
-.full-btn{
+/* FULL BTN */
+.full{
 position:absolute;
 bottom:20px;
 right:20px;
-z-index:100000;
 }
 </style>
 </head>
@@ -73,74 +81,115 @@ z-index:100000;
 <!-- PLAYER -->
 <div id="player">
 
-<div class="player-top">
-<button class="btn" onclick="exitPlayer()">← Back</button>
-<button class="btn" onclick="exitFullscreen()">⤢ Exit</button>
+<div class="top">
+<button class="btn" onclick="exitPlayer()">←</button>
+<button class="btn" onclick="exitFullscreen()">Exit</button>
 </div>
 
-<iframe 
-id="full"
-allow="autoplay; fullscreen; picture-in-picture"
-allowfullscreen
-webkitallowfullscreen
-mozallowfullscreen>
-</iframe>
+<iframe id="full"
+allow="autoplay; fullscreen"
+allowfullscreen></iframe>
 
-<button class="btn full-btn" onclick="goFull()">⛶ Fullscreen</button>
+<div id="overlay"></div>
+
+<div id="centerIcon">▶</div>
+
+<button class="btn full" onclick="goFull()">⛶</button>
 
 </div>
+
+<button onclick="start()">▶ START</button>
 
 <script>
-let current = { id: 550 }; // sample
+let current = {id:550};
+let lastTap = 0;
 
-/* ▶ PLAY */
-function play(){
+/* START */
+function start(){
 document.getElementById("player").style.display="block";
 
-/* 🔥 SOUND FIX (user interaction) */
-const src = `https://vidsrc.cc/v2/embed/movie/${current.id}?autoplay=1`;
-
-document.getElementById("full").src = src;
+document.getElementById("full").src =
+`https://vidsrc.cc/v2/embed/movie/${current.id}?autoplay=1`;
 }
 
-/* 🔥 FULLSCREEN + LANDSCAPE */
+/* FULLSCREEN */
 function goFull(){
-const player = document.getElementById("player");
+const el=document.getElementById("player");
+el.requestFullscreen?.();
 
-if(player.requestFullscreen){
-player.requestFullscreen();
-}else if(player.webkitRequestFullscreen){
-player.webkitRequestFullscreen();
+screen.orientation?.lock("landscape").catch(()=>{});
 }
 
-/* 🔥 ROTATE MOBILE */
-if(screen.orientation){
-screen.orientation.lock("landscape").catch(()=>{});
-}
-}
-
-/* 🔥 EXIT FULLSCREEN */
+/* EXIT */
 function exitFullscreen(){
-if(document.fullscreenElement){
-document.exitFullscreen();
+document.exitFullscreen?.();
+screen.orientation?.lock("portrait").catch(()=>{});
 }
 
-/* balik portrait */
-if(screen.orientation){
-screen.orientation.lock("portrait").catch(()=>{});
-}
-}
-
-/* 🔥 EXIT PLAYER */
 function exitPlayer(){
 exitFullscreen();
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
 }
-</script>
 
-<!-- TEST BUTTON -->
-<button onclick="play()" style="margin-top:100px">▶ Test Play</button>
+/* ICON SHOW */
+function showIcon(txt){
+const el=document.getElementById("centerIcon");
+el.innerText=txt;
+el.style.opacity=1;
+
+setTimeout(()=>{el.style.opacity=0},500);
+}
+
+/* TOUCH GESTURE */
+const overlay=document.getElementById("overlay");
+
+let startX=0,startY=0;
+
+overlay.addEventListener("touchstart",(e)=>{
+startX=e.touches[0].clientX;
+startY=e.touches[0].clientY;
+});
+
+/* DOUBLE TAP */
+overlay.addEventListener("touchend",(e)=>{
+let now=Date.now();
+let x=e.changedTouches[0].clientX;
+
+if(now-lastTap<300){
+if(x < window.innerWidth/2){
+showIcon("⏪ 10s");
+}else{
+showIcon("⏩ 10s");
+}
+}
+lastTap=now;
+});
+
+/* SWIPE */
+overlay.addEventListener("touchmove",(e)=>{
+let x=e.touches[0].clientX;
+let y=e.touches[0].clientY;
+
+let dx=x-startX;
+let dy=y-startY;
+
+/* LEFT SIDE = BRIGHTNESS */
+if(startX < window.innerWidth/2){
+if(Math.abs(dy)>20){
+document.body.style.filter =
+`brightness(${1 - dy/300})`;
+}
+}
+
+/* RIGHT SIDE = VOLUME (VISUAL ONLY) */
+else{
+if(Math.abs(dy)>20){
+showIcon("🔊");
+}
+}
+});
+</script>
 
 </body>
 </html>
