@@ -105,12 +105,31 @@ function show(items, id) {
   items.forEach(i => {
     if (!i.poster_path) return;
 
+    const card = document.createElement("div");
+    card.style.width = "120px";
+
     const img = document.createElement("img");
     img.src = IMG + i.poster_path;
 
     img.onclick = () => openPlayer(i);
 
-    box.appendChild(img);
+    // 🎬 TITLE
+    const title = document.createElement("p");
+    title.innerText = i.title || i.name;
+    title.style.fontSize = "12px";
+    title.style.margin = "5px 0 0";
+
+    // 📝 DESCRIPTION (short lang)
+    const desc = document.createElement("p");
+    desc.innerText = i.overview?.slice(0, 40) + "...";
+    desc.style.fontSize = "10px";
+    desc.style.color = "gray";
+
+    card.appendChild(img);
+    card.appendChild(title);
+    card.appendChild(desc);
+
+    box.appendChild(card);
   });
 }
 
@@ -181,6 +200,27 @@ function startBanner() {
     document.getElementById("banner-title").innerText = m.title;
     document.getElementById("watchBtn").onclick = () => openPlayer(m);
   }, 3000);
+}
+
+//ViewAll
+function viewAll(type) {
+  let list = [];
+
+  if (type === "movies") list = movies;
+
+  const box = document.getElementById("movies-list");
+  box.innerHTML = "";
+
+  list.forEach(i => {
+    if (!i.poster_path) return;
+
+    const img = document.createElement("img");
+    img.src = IMG + i.poster_path;
+
+    img.onclick = () => openPlayer(i);
+
+    box.appendChild(img);
+  });
 }
 
 // SEARCH
