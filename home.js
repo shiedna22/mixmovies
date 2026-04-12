@@ -103,26 +103,34 @@ function show(items, id) {
     if (!i.poster_path) return;
 
     const card = document.createElement("div");
-    card.style.width = "120px";
-    card.style.textAlign = "center";
+    card.className = "card";
 
     const img = document.createElement("img");
     img.src = IMG + i.poster_path;
 
     img.onclick = () => openPlayer(i);
 
-    const title = document.createElement("p");
-    title.innerText = i.title || i.name;
-    title.style.fontSize = "12px";
+    const overlay = document.createElement("div");
+    overlay.className = "card-overlay";
 
-    const desc = document.createElement("p");
+    const title = document.createElement("div");
+    title.className = "card-title";
+    title.innerText = i.title || i.name;
+
+    const rating = document.createElement("div");
+    rating.className = "card-rating";
+    rating.innerText = "⭐ " + (i.vote_average || "N/A");
+
+    const desc = document.createElement("div");
+    desc.className = "card-desc";
     desc.innerText = i.overview ? i.overview.slice(0, 40) + "..." : "";
-    desc.style.fontSize = "10px";
-    desc.style.color = "gray";
+
+    overlay.appendChild(title);
+    overlay.appendChild(rating);
+    overlay.appendChild(desc);
 
     card.appendChild(img);
-    card.appendChild(title);
-    card.appendChild(desc);
+    card.appendChild(overlay);
 
     box.appendChild(card);
   });
