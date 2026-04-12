@@ -143,6 +143,12 @@ border:none;
 <div id="mylist" class="row-posters"></div>
 </div>
 
+<!-- SEARCH RESULTS -->
+<div class="row" id="searchRow" style="display:none;">
+<h2>🔎 Search Results</h2>
+<div id="searchResults" class="row-posters"></div>
+</div>
+
 <!-- ROWS -->
 <div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
 <div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
@@ -225,15 +231,45 @@ box.appendChild(img);
 allMovies=[...allMovies,...list];
 }
 
-/* SEARCH */
-document.getElementById("search").addEventListener("input",(e)=>{
-const value=e.target.value.toLowerCase();
+/* 🔎 PRO SEARCH (WITH DEBOUNCE) */
+let debounceTimer;
 
-const filtered=allMovies.filter(m=>
+document.getElementById("search").addEventListener("input",(e)=>{
+clearTimeout(debounceTimer);
+
+debounceTimer=setTimeout(()=>{
+const value=e.target.value.toLowerCase().trim();
+const searchRow=document.getElementById("searchRow");
+
+if(value===""){
+searchRow.style.display="none";
+return;
+}
+
+const results=allMovies.filter(m=>
 title(m).toLowerCase().includes(value)
 );
 
-show(filtered.slice(0,20),"trending","movie");
+searchRow.style.display="block";
+
+const box=document.getElementById("searchResults");
+box.innerHTML="";
+
+results.slice(0,20).forEach(i=>{
+if(!i.poster_path)return;
+
+const img=document.createElement("img");
+img.src=IMG+i.poster_path;
+
+img.onclick=()=>{
+current=i;
+currentType=i.title?"movie":"tv";
+openDetails(i,currentType);
+};
+
+box.appendChild(img);
+});
+},300); // debounce delay
 });
 
 /* DETAILS */
@@ -420,4 +456,4 @@ init();
 </script>
 
 </body>
-</html>
+  </html>
