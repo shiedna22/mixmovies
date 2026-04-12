@@ -11,9 +11,13 @@ let bannerTimer;
 
 /* 🎬 FETCH */
 async function fetchData(type) {
-  const res = await fetch(`${BASE_URL}/trending/${type}/week?api_key=${API_KEY}`);
-  const data = await res.json();
-  return data.results || [];
+  try{
+    const res = await fetch(`${BASE_URL}/trending/${type}/week?api_key=${API_KEY}`);
+    const data = await res.json();
+    return data.results || [];
+  }catch{
+    return [];
+  }
 }
 
 /* 🎬 CREATE CARD */
@@ -67,26 +71,35 @@ function show(list, id) {
 /* ▶ PLAYER */
 function openPlayer(item) {
   const video = document.getElementById("modal-video");
+  if(!video) return;
 
   const src = item.title
     ? `https://vidsrc.cc/v2/embed/movie/${item.id}`
     : `https://vidsrc.cc/v2/embed/tv/${item.id}/1/1`;
 
-  document.getElementById("modal-title").innerText =
-    item.title || item.name;
+  const title = document.getElementById("modal-title");
+  if(title) title.innerText = item.title || item.name;
 
   video.src = src;
-  document.getElementById("modal").style.display = "flex";
+
+  const modal = document.getElementById("modal");
+  if(modal) modal.style.display = "flex";
 }
 
 /* ❌ CLOSE */
 function closeModal() {
-  document.getElementById("modal").style.display = "none";
-  document.getElementById("modal-video").src = "";
+  const modal = document.getElementById("modal");
+  const video = document.getElementById("modal-video");
+
+  if(modal) modal.style.display = "none";
+  if(video) video.src = "";
 }
 
-/* 🎬 BANNER FIX */
+/* 🎬 BANNER */
 function startBanner() {
+  const banner = document.getElementById("banner");
+  if (!banner) return;
+
   const valid = movies.filter(m => m.backdrop_path);
   if (valid.length === 0) return;
 
@@ -95,11 +108,15 @@ function startBanner() {
   bannerTimer = setInterval(() => {
     const m = valid[Math.floor(Math.random() * valid.length)];
 
-    document.getElementById("banner").style.backgroundImage =
+    banner.style.backgroundImage =
       `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
 
-    document.getElementById("banner-title").innerText = m.title;
-    document.getElementById("watchBtn").onclick = () => openPlayer(m);
+    const title = document.getElementById("banner-title");
+    if(title) title.innerText = m.title;
+
+    const btn = document.getElementById("watchBtn");
+    if(btn) btn.onclick = () => openPlayer(m);
+
   }, 4000);
 }
 
@@ -135,8 +152,7 @@ function viewAll() {
   if (btn) btn.innerText = "Back";
 }
 
-/* 🔥 LIVE + SMART SEARCH + SUGGESTIONS (FIXED FOR YOUR SYSTEM) */
-
+/* 🔥 SEARCH + SMART + SUGGESTIONS */
 function similarity(a,b){
 let longer=a.length>b.length?a:b;
 let shorter=a.length>b.length?b:a;
@@ -150,9 +166,10 @@ return same/longer.length;
 document.addEventListener("DOMContentLoaded", () => {
 
 const search = document.getElementById("searchInput");
+const suggestBox = document.getElementById("suggestions");
+
 if(!search) return;
 
-/* combine all */
 function getAll(){
 return [...movies,...tvshows,...anime];
 }
@@ -160,9 +177,6 @@ return [...movies,...tvshows,...anime];
 search.addEventListener("input",(e)=>{
 const value=e.target.value.toLowerCase().trim();
 
-const suggestBox=document.getElementById("suggestions");
-
-/* reset */
 if(value===""){
 show(movies,"movies-list");
 show(tvshows,"tvshows-list");
@@ -172,21 +186,21 @@ if(suggestBox) suggestBox.style.display="none";
 return;
 }
 
-const all = getAll();
+if(movies.length===0) return;
 
-const results = all.filter(m=>{
+const results = getAll().filter(m=>{
 let t=(m.title||m.name||"").toLowerCase();
 return t.includes(value) || similarity(t,value)>0.5;
 });
 
-/* show results */
 show(results,"movies-list");
 
-/* clear other rows */
-document.getElementById("tvshows-list").innerHTML="";
-document.getElementById("anime-list").innerHTML="";
+const tvBox=document.getElementById("tvshows-list");
+const animeBox=document.getElementById("anime-list");
 
-/* 🔽 SUGGESTIONS */
+if(tvBox) tvBox.innerHTML="";
+if(animeBox) animeBox.innerHTML="";
+
 if(!suggestBox) return;
 
 suggestBox.innerHTML="";
@@ -213,10 +227,33 @@ suggestBox.appendChild(div);
 
 });
 
+/* click outside = hide */
+document.addEventListener("click",(e)=>{
+if(!e.target.closest("#searchInput")){
+if(suggestBox) suggestBox.style.display="none";
+}
 });
 
+});
 
-/* 🎮 ULTRA GESTURES (SAFE VERSION) */
+/* 🎤 VOICE */
+function startVoice(){
+if(!('webkitSpeechRecognition' in window)){
+alert("Voice not supported");
+return;
+}
+let rec=new webkitSpeechRecognition();
+rec.onresult=(e)=>{
+const input=document.getElementById("searchInput");
+if(input){
+input.value=e.results[0][0].transcript;
+input.dispatchEvent(new Event("input"));
+}
+};
+rec.start();
+}
+
+/* 🎮 GESTURES */
 document.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("overlay");
   if (!overlay) return;
@@ -235,11 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let x = e.changedTouches[0].clientX;
 
     if (now - lastTap < 300) {
-      if (x < window.innerWidth / 2) {
-        showIcon("⏪ 10s");
-      } else {
-        showIcon("⏩ 10s");
-      }
+      showIcon(x < window.innerWidth / 2 ? "⏪ 10s" : "⏩ 10s");
     }
     lastTap = now;
   });
@@ -264,26 +297,7 @@ function showIcon(txt) {
   el.innerText = txt;
   el.style.opacity = 1;
 
-  setTimeout(() => {
-    el.style.opacity = 0;
-  }, 500);
-}
-
-/* 🎤 VOICE SEARCH */
-function startVoice(){
-if(!('webkitSpeechRecognition' in window)){
-alert("Voice not supported");
-return;
-}
-
-let rec=new webkitSpeechRecognition();
-
-rec.onresult=(e)=>{
-document.getElementById("searchInput").value=e.results[0][0].transcript;
-document.getElementById("searchInput").dispatchEvent(new Event("input"));
-};
-
-rec.start();
+  setTimeout(() => el.style.opacity = 0, 500);
 }
 
 /* 🚀 INIT */
