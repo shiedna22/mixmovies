@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Gesture Player PRO</title>
+<title>ShiedFlix Gesture Player FIXED</title>
 
 <style>
 body{margin:0;background:#000;color:white;font-family:Arial}
@@ -39,6 +39,7 @@ z-index:99999;
 width:100%;
 height:100%;
 border:none;
+pointer-events:auto;
 }
 
 /* OVERLAY */
@@ -51,7 +52,7 @@ left:0;
 z-index:100000;
 }
 
-/* CENTER ICON */
+/* ICON */
 #centerIcon{
 position:absolute;
 top:50%;
@@ -96,7 +97,6 @@ position:absolute;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-color:white;
 }
 </style>
 </head>
@@ -105,18 +105,17 @@ color:white;
 
 <button class="start" onclick="start()">▶ Start Player</button>
 
-<!-- PLAYER -->
 <div id="player">
 
 <div class="top">
-<button class="btn" onclick="exitPlayer()">← Back</button>
+<button class="btn" onclick="exitPlayer()">←</button>
 <button class="btn" onclick="exitFullscreen()">Exit</button>
 </div>
 
 <div id="loading">Loading...</div>
 
 <iframe id="full"
-allow="autoplay; fullscreen"
+allow="autoplay; fullscreen; encrypted-media"
 allowfullscreen></iframe>
 
 <div id="overlay"></div>
@@ -130,6 +129,8 @@ allowfullscreen></iframe>
 let current = {id:550};
 let lastTap = 0;
 
+const overlay = document.getElementById("overlay");
+
 /* START */
 function start(){
 document.querySelector(".start").style.display="none";
@@ -139,9 +140,10 @@ player.style.display="block";
 
 const iframe=document.getElementById("full");
 
-iframe.src=`https://vidsrc.cc/v2/embed/movie/${current.id}`;
+/* autoplay FIX */
+iframe.src = `https://vidsrc.cc/v2/embed/movie/${current.id}?autoplay=1&mute=0`;
 
-iframe.onload=()=>{
+iframe.onload = ()=>{
 document.getElementById("loading").style.display="none";
 };
 }
@@ -150,23 +152,36 @@ document.getElementById("loading").style.display="none";
 function goFull(){
 const el=document.getElementById("player");
 
-if(el.requestFullscreen) el.requestFullscreen();
-if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-
-screen.orientation?.lock("landscape").catch(()=>{});
+if(el.requestFullscreen){
+el.requestFullscreen();
+}else if(el.webkitRequestFullscreen){
+el.webkitRequestFullscreen();
 }
 
-/* EXIT */
+/* orientation fix */
+if(screen.orientation && screen.orientation.lock){
+screen.orientation.lock("landscape").catch(()=>{});
+}
+}
+
+/* EXIT FULL */
 function exitFullscreen(){
-if(document.exitFullscreen) document.exitFullscreen();
-
-screen.orientation?.lock("portrait").catch(()=>{});
+if(document.exitFullscreen){
+document.exitFullscreen();
 }
 
+if(screen.orientation && screen.orientation.lock){
+screen.orientation.lock("portrait").catch(()=>{});
+}
+}
+
+/* EXIT PLAYER */
 function exitPlayer(){
 exitFullscreen();
+
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
+
 document.querySelector(".start").style.display="block";
 }
 
@@ -176,13 +191,13 @@ const el=document.getElementById("centerIcon");
 el.innerText=txt;
 el.style.opacity=1;
 
-setTimeout(()=>{el.style.opacity=0},500);
+setTimeout(()=>{el.style.opacity=0},400);
 }
 
 /* TOUCH */
-const overlay=document.getElementById("overlay");
-
 let startX=0,startY=0;
+
+if(overlay){
 
 overlay.addEventListener("touchstart",(e)=>{
 startX=e.touches[0].clientX;
@@ -211,13 +226,16 @@ let dy=y-startY;
 
 /* brightness */
 if(startX < window.innerWidth/2){
-document.body.style.filter=`brightness(${1 - dy/300})`;
+document.body.style.filter =
+`brightness(${Math.max(0.3, 1 - dy/300)})`;
 }
 /* volume visual */
 else{
 showIcon("🔊");
 }
 });
+
+}
 </script>
 
 </body>
