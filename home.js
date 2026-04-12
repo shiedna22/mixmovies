@@ -253,13 +253,6 @@ function viewAll(type) {
     box.appendChild(card);
   });
 }
-const btn = document.getElementById("viewBtn");
-
-if (isViewAll) {
-  btn.innerText = "Back";
-} else {
-  btn.innerText = "View All";
-}
 
 // SEARCH
 document.addEventListener("DOMContentLoaded", () => {
