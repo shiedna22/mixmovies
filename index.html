@@ -2,127 +2,87 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Ultimate</title>
+<title>ShiedFlix Next Level</title>
 
 <style>
-body{
-  margin:0;
-  background:#000;
-  color:white;
-  font-family:Arial;
-}
+body{margin:0;background:#000;color:white;font-family:Arial}
 
-/* NAVBAR */
+/* NAV */
 .navbar{
-  position:fixed;
-  width:100%;
-  top:0;
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-  background:linear-gradient(to bottom,rgba(0,0,0,0.9),transparent);
-  z-index:1000;
+position:fixed;width:100%;top:0;
+padding:15px;
+display:flex;justify-content:space-between;
+background:linear-gradient(to bottom,#000,transparent);
+z-index:1000;
 }
-.logo{color:red;font-size:20px;font-weight:bold;}
-#search{
-  padding:6px 12px;
-  border-radius:20px;
-  border:none;
-  background:#222;
-  color:white;
-}
+.logo{color:red;font-weight:bold}
+#search{background:#222;border:none;color:white;padding:6px 12px;border-radius:20px}
 
 /* HERO */
 #hero{
-  height:70vh;
-  display:flex;
-  align-items:flex-end;
-  padding:20px;
-  background-size:cover;
-  position:relative;
+height:70vh;
+display:flex;
+align-items:flex-end;
+padding:20px;
+position:relative;
+overflow:hidden;
 }
-#hero::after{
-  content:"";
-  position:absolute;
-  bottom:0;
-  width:100%;
-  height:70%;
-  background:linear-gradient(to top,#000,transparent);
+#hero iframe{
+position:absolute;
+width:100%;
+height:100%;
+top:0;
+left:0;
+object-fit:cover;
+pointer-events:none;
+filter:brightness(0.5);
 }
+.hero-content{z-index:2;max-width:400px}
+.hero-title{font-size:28px}
+.hero-desc{font-size:13px;color:#ccc}
 
-.hero-content{
-  z-index:2;
-}
-.hero-title{font-size:30px;}
-.hero-buttons button{
-  margin-right:10px;
-  padding:10px 20px;
-  border:none;
-  border-radius:5px;
-}
-.play{background:white;color:black;}
-.info{background:gray;color:white;}
+button{padding:10px 20px;border:none;border-radius:5px}
+.play{background:white;color:black}
+.info{background:gray;color:white}
 
-/* ROWS */
-.row{
-  margin-top:10px;
-}
-.row h2{
-  margin-left:10px;
-}
+/* ROW */
+.row{margin-top:10px}
+.row h2{margin-left:10px}
 .row-posters{
-  display:flex;
-  overflow-x:auto;
-  padding:10px;
-  gap:10px;
+display:flex;
+overflow-x:auto;
+gap:10px;
+padding:10px;
 }
 .row-posters img{
-  width:140px;
-  border-radius:5px;
-  cursor:pointer;
-  transition:0.3s;
+width:140px;border-radius:5px;cursor:pointer;
+transition:0.3s;
 }
-.row-posters img:hover{
-  transform:scale(1.2);
-}
+.row-posters img:hover{transform:scale(1.2)}
 
 /* DETAILS */
-#details{
-  display:none;
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:black;
-  top:0;
-  z-index:9999;
+#details,#player{
+display:none;
+position:fixed;
+width:100%;
+height:100%;
+top:0;
+background:black;
+z-index:9999;
 }
-#details iframe{
-  width:100%;
-  height:250px;
-}
-.details-content{
-  padding:15px;
-}
+iframe{width:100%;height:100%}
+
 .close{
-  position:absolute;
-  right:20px;
-  top:10px;
-  font-size:30px;
+position:absolute;
+right:20px;
+top:10px;
+font-size:30px;
+cursor:pointer;
 }
 
-/* PLAYER */
-#player{
-  display:none;
-  position:fixed;
-  width:100%;
-  height:100%;
-  top:0;
-  background:black;
-  z-index:99999;
-}
-#player iframe{
-  width:100%;
-  height:100%;
+/* CONTINUE */
+#continue img{
+width:140px;border-radius:5px;
 }
 </style>
 </head>
@@ -130,44 +90,51 @@ body{
 <body>
 
 <div class="navbar">
-  <div class="logo">ShiedFlix</div>
-  <input id="search" placeholder="Search...">
+<div class="logo">ShiedFlix</div>
+<input id="search" placeholder="Search...">
 </div>
 
+<!-- HERO -->
 <div id="hero">
-  <div class="hero-content">
-    <h1 id="hero-title">Loading...</h1>
-    <div class="hero-buttons">
-      <button class="play" id="playHero">▶ Play</button>
-      <button class="info" id="infoHero">ℹ Info</button>
-    </div>
-  </div>
+<iframe id="heroVideo"></iframe>
+<div class="hero-content">
+<h1 id="hero-title">Loading...</h1>
+<p id="hero-desc"></p>
+<button class="play" id="playHero">▶ Play</button>
+<button class="info" id="infoHero">ℹ Info</button>
+</div>
+</div>
+
+<!-- CONTINUE -->
+<div class="row">
+<h2>▶ Continue Watching</h2>
+<div id="continue" class="row-posters"></div>
+</div>
+
+<!-- ROWS -->
+<div class="row">
+<h2>🔥 Trending</h2>
+<div id="trending" class="row-posters"></div>
 </div>
 
 <div class="row">
-  <h2>🔥 Trending</h2>
-  <div id="trending" class="row-posters"></div>
+<h2>🎬 Movies</h2>
+<div id="movies" class="row-posters"></div>
 </div>
 
 <div class="row">
-  <h2>🎬 Movies</h2>
-  <div id="movies" class="row-posters"></div>
-</div>
-
-<div class="row">
-  <h2>📺 TV Shows</h2>
-  <div id="tv" class="row-posters"></div>
+<h2>📺 TV</h2>
+<div id="tv" class="row-posters"></div>
 </div>
 
 <!-- DETAILS -->
 <div id="details">
 <span class="close" onclick="closeDetails()">✖</span>
 <iframe id="trailer"></iframe>
-
-<div class="details-content">
+<div style="padding:15px">
 <h2 id="title"></h2>
 <p id="desc"></p>
-<button onclick="play()">▶ Play Full Movie</button>
+<button onclick="play()">▶ Play Full</button>
 </div>
 </div>
 
@@ -195,7 +162,32 @@ async function getTrailer(id,type){
 const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
 const t=data.results.find(v=>v.type==="Trailer");
-return t?`https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1`:"";
+return t?`https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1&controls=0`:"";
+}
+
+/* TITLE SAFE */
+function title(i){return i.title||i.name||"No Title"}
+
+/* CONTINUE WATCH */
+function saveContinue(i){
+let list=JSON.parse(localStorage.getItem("cont"))||[];
+list=list.filter(x=>x.id!==i.id);
+list.unshift(i);
+list=list.slice(0,10);
+localStorage.setItem("cont",JSON.stringify(list));
+loadContinue();
+}
+
+function loadContinue(){
+const list=JSON.parse(localStorage.getItem("cont"))||[];
+const box=document.getElementById("continue");
+box.innerHTML="";
+list.forEach(i=>{
+const img=document.createElement("img");
+img.src=IMG+i.poster_path;
+img.onclick=()=>{current=i;play()};
+box.appendChild(img);
+});
 }
 
 /* SHOW */
@@ -204,7 +196,6 @@ const box=document.getElementById(id);
 box.innerHTML="";
 list.forEach(i=>{
 if(!i.poster_path)return;
-
 const img=document.createElement("img");
 img.src=IMG+i.poster_path;
 
@@ -212,7 +203,7 @@ img.onclick=async()=>{
 current=i;
 
 document.getElementById("details").style.display="block";
-document.getElementById("title").innerText=i.title||i.name;
+document.getElementById("title").innerText=title(i);
 document.getElementById("desc").innerText=i.overview;
 
 document.getElementById("trailer").src=
@@ -228,39 +219,41 @@ function play(){
 document.getElementById("details").style.display="none";
 document.getElementById("player").style.display="block";
 
-const src=current.title
+const isMovie=current.title!==undefined;
+const src=isMovie
 ?`https://vidsrc.cc/v2/embed/movie/${current.id}`
 :`https://vidsrc.cc/v2/embed/tv/${current.id}/1/1`;
 
 document.getElementById("full").src=src;
+
+saveContinue(current);
 }
 
 function closeDetails(){
 document.getElementById("details").style.display="none";
 document.getElementById("trailer").src="";
 }
-
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
 }
 
-/* HERO */
-function setHero(movie){
-document.getElementById("hero").style.backgroundImage=
-`url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
-document.getElementById("hero-title").innerText=movie.title;
+/* HERO AUTO TRAILER */
+async function setHero(movie){
+document.getElementById("hero-title").innerText=title(movie);
+document.getElementById("hero-desc").innerText=
+(movie.overview||"").slice(0,100)+"...";
+
+const vid=await getTrailer(movie.id,movie.title?"movie":"tv");
+document.getElementById("heroVideo").src=vid;
 
 document.getElementById("playHero").onclick=()=>{
-current=movie;
-play();
+current=movie;play();
 };
 
 document.getElementById("infoHero").onclick=()=>{
 current=movie;
 document.getElementById("details").style.display="block";
-document.getElementById("title").innerText=movie.title;
-document.getElementById("desc").innerText=movie.overview;
 };
 }
 
@@ -275,6 +268,7 @@ show(movies,"movies","movie");
 show(tv,"tv","tv");
 
 setHero(trending[0]);
+loadContinue();
 }
 init();
 </script>
