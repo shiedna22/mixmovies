@@ -2,15 +2,14 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Premium</title>
+<title>ShiedFlix Ultimate</title>
 
 <style>
 body{
   margin:0;
-  background:#0b0b0b;
+  background:#000;
   color:white;
   font-family:Arial;
-  overflow-x:hidden;
 }
 
 /* NAVBAR */
@@ -18,158 +17,112 @@ body{
   position:fixed;
   width:100%;
   top:0;
-  background:rgba(0,0,0,0.9);
-  padding:12px 15px;
+  padding:15px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
+  background:linear-gradient(to bottom,rgba(0,0,0,0.9),transparent);
   z-index:1000;
 }
-.logo{color:red;font-weight:bold;font-size:18px;}
-
-/* SEARCH */
-.search-box{position:relative;}
-#searchInput{
-  width:140px;
-  padding:8px 15px;
+.logo{color:red;font-size:20px;font-weight:bold;}
+#search{
+  padding:6px 12px;
   border-radius:20px;
   border:none;
-  outline:none;
-  background:rgba(255,255,255,0.1);
+  background:#222;
   color:white;
-  transition:0.3s;
-}
-#searchInput:focus{
-  width:220px;
-  background:rgba(255,255,255,0.2);
-}
-@media (min-width:768px){
-  #searchInput{width:200px;}
-  #searchInput:focus{width:300px;}
 }
 
-/* BANNER */
-#banner{
-  margin-top:60px;
-  height:55vh;
-  min-height:220px;
-  background-size:cover;
-  background-position:center;
+/* HERO */
+#hero{
+  height:70vh;
   display:flex;
   align-items:flex-end;
   padding:20px;
+  background-size:cover;
   position:relative;
 }
-#banner::after{
+#hero::after{
   content:"";
   position:absolute;
   bottom:0;
   width:100%;
-  height:60%;
-  background:linear-gradient(to top,#0b0b0b,transparent);
+  height:70%;
+  background:linear-gradient(to top,#000,transparent);
 }
 
-/* HEADINGS */
-h2{
-  padding:0 15px;
-  font-size:18px;
+.hero-content{
+  z-index:2;
 }
+.hero-title{font-size:30px;}
+.hero-buttons button{
+  margin-right:10px;
+  padding:10px 20px;
+  border:none;
+  border-radius:5px;
+}
+.play{background:white;color:black;}
+.info{background:gray;color:white;}
 
-/* LIST */
-.list{
+/* ROWS */
+.row{
+  margin-top:10px;
+}
+.row h2{
+  margin-left:10px;
+}
+.row-posters{
   display:flex;
-  gap:12px;
-  padding:10px 15px;
   overflow-x:auto;
+  padding:10px;
+  gap:10px;
 }
-.list::-webkit-scrollbar{display:none;}
-
-/* CARD */
-.card{
-  min-width:140px;
-  position:relative;
+.row-posters img{
+  width:140px;
+  border-radius:5px;
+  cursor:pointer;
   transition:0.3s;
 }
-.card img{
+.row-posters img:hover{
+  transform:scale(1.2);
+}
+
+/* DETAILS */
+#details{
+  display:none;
+  position:fixed;
   width:100%;
-  height:200px;
-  object-fit:cover;
-  border-radius:10px;
+  height:100%;
+  background:black;
+  top:0;
+  z-index:9999;
 }
-.card:hover{
-  transform:scale(1.15);
-  z-index:10;
+#details iframe{
+  width:100%;
+  height:250px;
 }
-
-/* DESKTOP */
-@media (min-width:768px){
-  .card{min-width:180px;}
-  .card img{height:260px;}
+.details-content{
+  padding:15px;
 }
-@media (min-width:1024px){
-  .card{min-width:220px;}
-}
-
-/* PLAY ICON */
-.card::after{
-  content:"▶";
+.close{
   position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
+  right:20px;
+  top:10px;
   font-size:30px;
-  opacity:0;
-}
-.card:hover::after{opacity:1;}
-
-/* OVERLAY */
-.overlay{
-  position:absolute;
-  bottom:0;
-  width:100%;
-  background:linear-gradient(to top,black,transparent);
-  padding:5px;
-}
-.title{font-size:12px;}
-.desc{font-size:10px;color:gray;}
-.rating{color:gold;font-size:11px;}
-
-/* FAVORITE */
-.fav{
-  position:absolute;
-  top:5px;
-  right:5px;
-  font-size:18px;
 }
 
-/* MODALS */
-#modal,#detailsModal{
+/* PLAYER */
+#player{
   display:none;
   position:fixed;
   width:100%;
   height:100%;
   top:0;
-  left:0;
-  background:rgba(0,0,0,0.95);
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  z-index:9999;
+  background:black;
+  z-index:99999;
 }
-
-.close{
-  position:absolute;
-  top:20px;
-  right:20px;
-  font-size:30px;
-  cursor:pointer;
-}
-
-button{
-  background:red;
-  border:none;
-  padding:10px 20px;
-  color:white;
-  border-radius:5px;
+#player iframe{
+  width:100%;
+  height:100%;
 }
 </style>
 </head>
@@ -177,51 +130,51 @@ button{
 <body>
 
 <div class="navbar">
-  <div class="logo">🎬 ShiedFlix</div>
-  <div class="search-box">
-    <input id="searchInput" placeholder="Search movies...">
+  <div class="logo">ShiedFlix</div>
+  <input id="search" placeholder="Search...">
+</div>
+
+<div id="hero">
+  <div class="hero-content">
+    <h1 id="hero-title">Loading...</h1>
+    <div class="hero-buttons">
+      <button class="play" id="playHero">▶ Play</button>
+      <button class="info" id="infoHero">ℹ Info</button>
+    </div>
   </div>
 </div>
 
-<div id="banner">
-  <div>
-    <h2 id="banner-title">Loading...</h2>
-    <button id="watchBtn">▶ Watch</button>
-  </div>
+<div class="row">
+  <h2>🔥 Trending</h2>
+  <div id="trending" class="row-posters"></div>
 </div>
 
-<h2>🔥 Movies <span onclick="viewAll()" style="float:right;color:red;">View All</span></h2>
-<div id="movies-list" class="list"></div>
+<div class="row">
+  <h2>🎬 Movies</h2>
+  <div id="movies" class="row-posters"></div>
+</div>
 
-<h2>▶ Continue Watching</h2>
-<div id="continue-list" class="list"></div>
-
-<h2>📺 TV Shows</h2>
-<div id="tvshows-list" class="list"></div>
-
-<h2>🎌 Anime</h2>
-<div id="anime-list" class="list"></div>
-
-<h2>❤️ Favorites</h2>
-<div id="favorites-list" class="list"></div>
-
-<!-- PLAYER -->
-<div id="modal">
-<span class="close" onclick="closeModal()">✖</span>
-<h3 id="modal-title"></h3>
-<iframe id="modal-video" style="width:95%;height:250px;"></iframe>
+<div class="row">
+  <h2>📺 TV Shows</h2>
+  <div id="tv" class="row-posters"></div>
 </div>
 
 <!-- DETAILS -->
-<div id="detailsModal">
+<div id="details">
 <span class="close" onclick="closeDetails()">✖</span>
+<iframe id="trailer"></iframe>
 
-<div style="width:95%;max-width:500px;">
-<iframe id="trailerFrame" style="width:100%;height:220px;"></iframe>
-<h2 id="detailTitle"></h2>
-<p id="detailDesc"></p>
-<button id="playBtn">▶ Play Full Movie</button>
+<div class="details-content">
+<h2 id="title"></h2>
+<p id="desc"></p>
+<button onclick="play()">▶ Play Full Movie</button>
 </div>
+</div>
+
+<!-- PLAYER -->
+<div id="player">
+<span class="close" onclick="closePlayer()">✖</span>
+<iframe id="full"></iframe>
 </div>
 
 <script>
@@ -229,135 +182,99 @@ const API="https://api.themoviedb.org/3";
 const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
 
-let movies=[],tv=[],anime=[];
-let isViewAll=false;
+let current=null;
 
-async function get(type){
-const res=await fetch(`${API}/trending/${type}/week?api_key=${KEY}`);
+/* FETCH */
+async function fetchData(url){
+const res=await fetch(url);
 return (await res.json()).results;
 }
 
-async function getTrailer(id,type="movie"){
-try{
+/* TRAILER */
+async function getTrailer(id,type){
 const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
 const t=data.results.find(v=>v.type==="Trailer");
-if(t)return `https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1`;
-}catch{}
-return "";
+return t?`https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1`:"";
 }
 
-function createCard(item){
-const card=document.createElement("div");
-card.className="card";
-
-const img=document.createElement("img");
-img.src=IMG+item.poster_path;
-
-const fav=document.createElement("div");
-fav.className="fav";
-fav.innerText="❤️";
-fav.onclick=(e)=>{
-e.stopPropagation();
-toggleFav(item);
-};
-
-const overlay=document.createElement("div");
-overlay.className="overlay";
-
-overlay.innerHTML=`
-<div class="title">${item.title||item.name}</div>
-<div class="rating">⭐ ${item.vote_average}</div>
-<div class="desc">${item.overview?.slice(0,40)}...</div>
-`;
-
-card.append(img,overlay,fav);
-card.onclick=()=>openDetails(item);
-
-return card;
-}
-
-function show(list,id){
+/* SHOW */
+function show(list,id,type){
 const box=document.getElementById(id);
 box.innerHTML="";
-list.forEach(i=>i.poster_path && box.appendChild(createCard(i)));
-}
+list.forEach(i=>{
+if(!i.poster_path)return;
 
-function toggleFav(item){
-let favs=JSON.parse(localStorage.getItem("favs"))||[];
-favs=favs.find(x=>x.id===item.id)?favs.filter(x=>x.id!==item.id):[...favs,item];
-localStorage.setItem("favs",JSON.stringify(favs));
-show(favs,"favorites-list");
-}
+const img=document.createElement("img");
+img.src=IMG+i.poster_path;
 
-async function openDetails(item){
-document.getElementById("detailsModal").style.display="flex";
-document.getElementById("detailTitle").innerText=item.title||item.name;
-document.getElementById("detailDesc").innerText=item.overview;
+img.onclick=async()=>{
+current=i;
 
-const trailer=await getTrailer(item.id,item.title?"movie":"tv");
-document.getElementById("trailerFrame").src=trailer;
+document.getElementById("details").style.display="block";
+document.getElementById("title").innerText=i.title||i.name;
+document.getElementById("desc").innerText=i.overview;
 
-document.getElementById("playBtn").onclick=()=>{
-closeDetails();
-openPlayer(item);
+document.getElementById("trailer").src=
+await getTrailer(i.id,type);
 };
+
+box.appendChild(img);
+});
 }
 
-function openPlayer(i){
-document.getElementById("modal").style.display="flex";
-document.getElementById("modal-title").innerText=i.title||i.name;
+/* PLAYER */
+function play(){
+document.getElementById("details").style.display="none";
+document.getElementById("player").style.display="block";
 
-const src=i.title
-?`https://vidsrc.cc/v2/embed/movie/${i.id}`
-:`https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
+const src=current.title
+?`https://vidsrc.cc/v2/embed/movie/${current.id}`
+:`https://vidsrc.cc/v2/embed/tv/${current.id}/1/1`;
 
-document.getElementById("modal-video").src=src;
-}
-
-function closeModal(){
-document.getElementById("modal").style.display="none";
-document.getElementById("modal-video").src="";
+document.getElementById("full").src=src;
 }
 
 function closeDetails(){
-document.getElementById("detailsModal").style.display="none";
-document.getElementById("trailerFrame").src="";
+document.getElementById("details").style.display="none";
+document.getElementById("trailer").src="";
 }
 
-function banner(){
-setInterval(()=>{
-const m=movies[Math.floor(Math.random()*movies.length)];
-document.getElementById("banner").style.backgroundImage=
-`url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
-document.getElementById("banner-title").innerText=m.title;
-document.getElementById("watchBtn").onclick=()=>openPlayer(m);
-},3000);
+function closePlayer(){
+document.getElementById("player").style.display="none";
+document.getElementById("full").src="";
 }
 
-function viewAll(){
-const box=document.getElementById("movies-list");
-isViewAll=!isViewAll;
-box.style.flexWrap=isViewAll?"wrap":"nowrap";
+/* HERO */
+function setHero(movie){
+document.getElementById("hero").style.backgroundImage=
+`url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
+document.getElementById("hero-title").innerText=movie.title;
+
+document.getElementById("playHero").onclick=()=>{
+current=movie;
+play();
+};
+
+document.getElementById("infoHero").onclick=()=>{
+current=movie;
+document.getElementById("details").style.display="block";
+document.getElementById("title").innerText=movie.title;
+document.getElementById("desc").innerText=movie.overview;
+};
 }
 
-document.getElementById("searchInput").addEventListener("input",async e=>{
-const q=e.target.value;
-if(!q)return show(movies,"movies-list");
-const res=await fetch(`${API}/search/multi?api_key=${KEY}&query=${q}`);
-show((await res.json()).results,"movies-list");
-});
-
+/* INIT */
 async function init(){
-movies=await get("movie");
-tv=await get("tv");
-anime=tv.filter(x=>x.original_language==="ja");
+const trending=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
+const movies=await fetchData(`${API}/movie/popular?api_key=${KEY}`);
+const tv=await fetchData(`${API}/tv/popular?api_key=${KEY}`);
 
-show(movies,"movies-list");
-show(tv,"tvshows-list");
-show(anime,"anime-list");
+show(trending,"trending","movie");
+show(movies,"movies","movie");
+show(tv,"tv","tv");
 
-banner();
+setHero(trending[0]);
 }
 init();
 </script>
