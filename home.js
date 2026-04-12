@@ -7,21 +7,24 @@ let tvshows = [];
 let anime = [];
 
 let isViewAll = false;
+let bannerTimer;
 
-// 🎬 FETCH
+/* 🎬 FETCH */
 async function fetchData(type) {
   const res = await fetch(`${BASE_URL}/trending/${type}/week?api_key=${API_KEY}`);
   const data = await res.json();
   return data.results || [];
 }
 
-// 🎬 DISPLAY CARD (PREMIUM)
+/* 🎬 CREATE CARD */
 function createCard(item) {
   const card = document.createElement("div");
   card.className = "card";
 
   const img = document.createElement("img");
-  img.src = IMG + item.poster_path;
+  img.src = item.poster_path
+    ? IMG + item.poster_path
+    : "https://via.placeholder.com/150x220?text=No+Image";
 
   const overlay = document.createElement("div");
   overlay.className = "overlay";
@@ -37,8 +40,8 @@ function createCard(item) {
   const desc = document.createElement("div");
   desc.className = "desc";
   desc.innerText = item.overview
-    ? item.overview.slice(0, 40) + "..."
-    : "";
+    ? item.overview.slice(0, 50) + "..."
+    : "No description";
 
   overlay.append(title, rating, desc);
   card.append(img, overlay);
@@ -48,7 +51,7 @@ function createCard(item) {
   return card;
 }
 
-// 🎬 SHOW LIST
+/* 🎬 SHOW */
 function show(list, id) {
   const box = document.getElementById(id);
   if (!box) return;
@@ -61,7 +64,7 @@ function show(list, id) {
   });
 }
 
-// ▶ PLAYER
+/* ▶ PLAYER */
 function openPlayer(item) {
   const video = document.getElementById("modal-video");
 
@@ -75,89 +78,32 @@ function openPlayer(item) {
   video.src = src;
   document.getElementById("modal").style.display = "flex";
 }
-let lastTap=0;
-let startX=0,startY=0;
 
-/* ICON */
-function showIcon(txt){
-const el=document.getElementById("centerIcon");
-el.innerText=txt;
-el.style.opacity=1;
-setTimeout(()=>el.style.opacity=0,500);
-}
-
-/* SKIP INTRO */
-function skipIntro(){
-showIcon("⏩ Intro Skipped");
-}
-
-/* GESTURE */
-const overlay=document.getElementById("overlay");
-
-/* TOUCH START */
-overlay.addEventListener("touchstart",(e)=>{
-startX=e.touches[0].clientX;
-startY=e.touches[0].clientY;
-});
-
-/* DOUBLE TAP SEEK */
-overlay.addEventListener("touchend",(e)=>{
-let now=Date.now();
-let x=e.changedTouches[0].clientX;
-
-if(now-lastTap<300){
-if(x < window.innerWidth/2){
-showIcon("⏪ 10s");
-}else{
-showIcon("⏩ 10s");
-}
-}
-lastTap=now;
-});
-
-/* SWIPE CONTROLS */
-overlay.addEventListener("touchmove",(e)=>{
-let x=e.touches[0].clientX;
-let y=e.touches[0].clientY;
-
-let dy=y-startY;
-
-/* LEFT = BRIGHTNESS */
-if(startX < window.innerWidth/2){
-document.body.style.filter=
-`brightness(${1 - dy/300})`;
-}
-
-/* RIGHT = VOLUME */
-else{
-showIcon("🔊");
-}
-});
-
-// ❌ CLOSE
+/* ❌ CLOSE */
 function closeModal() {
   document.getElementById("modal").style.display = "none";
   document.getElementById("modal-video").src = "";
 }
 
-// 🎬 BANNER
+/* 🎬 BANNER FIX */
 function startBanner() {
   const valid = movies.filter(m => m.backdrop_path);
   if (valid.length === 0) return;
 
-  setInterval(() => {
+  clearInterval(bannerTimer);
+
+  bannerTimer = setInterval(() => {
     const m = valid[Math.floor(Math.random() * valid.length)];
 
     document.getElementById("banner").style.backgroundImage =
       `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
 
     document.getElementById("banner-title").innerText = m.title;
-
     document.getElementById("watchBtn").onclick = () => openPlayer(m);
-  }, 3000);
+  }, 4000);
 }
 
-// 🔥 VIEW ALL (MOVIES ONLY)
+/* 🔥 VIEW ALL */
 function viewAll() {
   const box = document.getElementById("movies-list");
   const btn = document.getElementById("viewBtn");
@@ -166,18 +112,14 @@ function viewAll() {
 
   if (isViewAll) {
     isViewAll = false;
-
     box.style.flexWrap = "nowrap";
     box.style.overflowX = "auto";
-
     show(movies, "movies-list");
-
     if (btn) btn.innerText = "View All";
     return;
   }
 
   isViewAll = true;
-
   box.innerHTML = "";
   box.style.flexWrap = "wrap";
   box.style.overflowX = "hidden";
@@ -185,23 +127,22 @@ function viewAll() {
 
   movies.forEach(i => {
     if (!i.poster_path) return;
-
     const card = createCard(i);
     card.style.margin = "5px";
-
     box.appendChild(card);
   });
 
   if (btn) btn.innerText = "Back";
 }
 
-// 🔍 SEARCH (ALL TYPES)
+/* 🔍 SEARCH FIX */
 document.addEventListener("DOMContentLoaded", () => {
   const search = document.getElementById("searchInput");
+
   if (!search) return;
 
   search.addEventListener("input", async function () {
-    const q = this.value;
+    const q = this.value.toLowerCase();
 
     if (!q) {
       show(movies, "movies-list");
@@ -214,10 +155,67 @@ document.addEventListener("DOMContentLoaded", () => {
     const data = await res.json();
 
     show(data.results, "movies-list");
+
+    // 🔥 clear others
+    document.getElementById("tvshows-list").innerHTML = "";
+    document.getElementById("anime-list").innerHTML = "";
   });
 });
 
-// 🚀 INIT
+/* 🎮 ULTRA GESTURES (SAFE VERSION) */
+document.addEventListener("DOMContentLoaded", () => {
+  const overlay = document.getElementById("overlay");
+  if (!overlay) return;
+
+  let lastTap = 0;
+  let startX = 0;
+  let startY = 0;
+
+  overlay.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  });
+
+  overlay.addEventListener("touchend", (e) => {
+    let now = Date.now();
+    let x = e.changedTouches[0].clientX;
+
+    if (now - lastTap < 300) {
+      if (x < window.innerWidth / 2) {
+        showIcon("⏪ 10s");
+      } else {
+        showIcon("⏩ 10s");
+      }
+    }
+    lastTap = now;
+  });
+
+  overlay.addEventListener("touchmove", (e) => {
+    let y = e.touches[0].clientY;
+    let dy = y - startY;
+
+    if (startX < window.innerWidth / 2) {
+      document.body.style.filter = `brightness(${1 - dy / 300})`;
+    } else {
+      showIcon("🔊");
+    }
+  });
+});
+
+/* ICON */
+function showIcon(txt) {
+  const el = document.getElementById("centerIcon");
+  if (!el) return;
+
+  el.innerText = txt;
+  el.style.opacity = 1;
+
+  setTimeout(() => {
+    el.style.opacity = 0;
+  }, 500);
+}
+
+/* 🚀 INIT */
 async function init() {
   movies = await fetchData("movie");
   tvshows = await fetchData("tv");
@@ -232,6 +230,6 @@ async function init() {
 
 init();
 
-// GLOBAL
+/* GLOBAL */
 window.viewAll = viewAll;
 window.closeModal = closeModal;
