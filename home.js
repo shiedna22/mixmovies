@@ -63,6 +63,13 @@ function loadLast() {
   const btn = document.createElement("button");
   btn.innerText = "▶ Continue: " + title;
 
+  btn.style.background = "red";
+  btn.style.color = "white";
+  btn.style.border = "none";
+  btn.style.padding = "8px";
+  btn.style.marginRight = "10px";
+  btn.style.borderRadius = "5px";
+
   btn.onclick = () => {
     document.getElementById("modal-title").innerText = title;
     document.getElementById("modal-video").src = video;
@@ -112,7 +119,10 @@ function showDrama() {
   const box = document.getElementById("drama-list");
   box.innerHTML = "";
 
-  dramas.forEach((d, index) => {
+  dramas.forEach(d => {
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+
     const img = document.createElement("img");
     img.src = d.image;
 
@@ -120,7 +130,7 @@ function showDrama() {
       const player = document.getElementById("modal-video");
 
       player.classList.add("portrait");
-      player.src = d.video + "?autoplay=1";
+      player.src = d.video;
 
       document.getElementById("modal-title").innerText = d.title;
       document.getElementById("modal").style.display = "flex";
@@ -129,10 +139,6 @@ function showDrama() {
       saveHistory(d.title);
     };
 
-    // wrapper with play icon
-    const wrapper = document.createElement("div");
-    wrapper.style.position = "relative";
-
     const play = document.createElement("span");
     play.innerText = "▶";
     play.style.position = "absolute";
@@ -140,11 +146,9 @@ function showDrama() {
     play.style.left = "50%";
     play.style.transform = "translate(-50%, -50%)";
     play.style.fontSize = "30px";
-    play.style.color = "white";
 
     wrapper.appendChild(img);
     wrapper.appendChild(play);
-
     box.appendChild(wrapper);
   });
 }
@@ -187,19 +191,23 @@ function startBanner() {
       `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
 
     document.getElementById("banner-title").innerText = m.title;
-
     document.getElementById("watchBtn").onclick = () => openPlayer(m);
 
     bannerIndex++;
   }, 3000);
 }
 
-// 📱 ULTRA MODE
+// 📱 ULTRA MODE (FIXED)
 function ultraMode() {
   const container = document.getElementById("ultra-container");
   if (!container) return;
 
   container.innerHTML = "";
+
+  if (dramas.length === 0) {
+    container.innerHTML = "<p style='text-align:center'>No videos yet</p>";
+    return;
+  }
 
   dramas.forEach(d => {
     const div = document.createElement("div");
@@ -207,7 +215,7 @@ function ultraMode() {
 
     div.innerHTML = `
       <div class="ultra-video">
-        <iframe src="${d.video}?autoplay=1&mute=1"></iframe>
+        <iframe src="${d.video}" allow="autoplay"></iframe>
         <div class="ultra-overlay">
           <h3>${d.title}</h3>
           <button onclick="likeDrama('${d.title}')">❤️</button>
@@ -219,9 +227,11 @@ function ultraMode() {
   });
 }
 
-// 🔄 AUTO NEXT ULTRA
+// 🔄 AUTO NEXT (FIXED)
 function autoNextUltra() {
   const items = document.querySelectorAll(".ultra-item");
+
+  if (items.length <= 1) return; // 🔥 FIX NO BUG
 
   setInterval(() => {
     currentIndex++;
@@ -275,7 +285,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// INIT (HIWALAY NA!)
+// INIT
 async function init() {
   movies = await fetchData("movie");
   const tv = await fetchData("tv");
@@ -286,7 +296,6 @@ async function init() {
   show(anime, "anime-list");
   showDrama();
   loadFavorites();
-
   loadLast();
   startBanner();
   ultraMode();
