@@ -31,18 +31,23 @@ function saveLast(video, title, image) {
 function loadContinueWatching() {
   const video = localStorage.getItem("lastVideo");
   const title = localStorage.getItem("lastTitle");
-  const image = localStorage.getItem("lastImage");
+  let image = localStorage.getItem("lastImage");
 
   const box = document.getElementById("continue-list");
   box.innerHTML = "";
 
   if (!video) return;
 
+  // 🔥 AUTO FIX OLD DATA
+  if (!image) {
+    image = "https://i.imgur.com/8Km9tLL.jpg";
+  }
+
   const card = document.createElement("div");
   card.className = "continue-card";
 
   const img = document.createElement("img");
-  img.src = image || "https://i.imgur.com/8Km9tLL.jpg";
+  img.src = image;
 
   img.onclick = () => {
     document.getElementById("modal-title").innerText = title;
