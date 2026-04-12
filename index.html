@@ -43,7 +43,7 @@ body {
 #searchInput {
   margin-left:10px;
   padding:6px;
-  border-radius:5px;
+  border-radius:20px;
   border:none;
 }
 
@@ -63,7 +63,7 @@ body {
   position:absolute;
   width:100%;
   height:100%;
-  background:linear-gradient(to right, rgba(0,0,0,0.8), transparent);
+  background:linear-gradient(to top, rgba(0,0,0,0.9), transparent);
 }
 
 #banner div {
@@ -86,11 +86,15 @@ h2 { margin:15px; }
   display:flex;
   overflow-x:auto;
   padding:10px;
+  gap:10px;
+}
+
+.list::-webkit-scrollbar {
+  display:none;
 }
 
 img {
   width:120px;
-  margin-right:10px;
   border-radius:10px;
   transition:0.3s;
 }
@@ -141,10 +145,17 @@ img:hover {
 @media(max-width:600px){
   #modal-video { height:220px; }
 }
-  #ultra-container {
+
+/* 🔥 ULTRA MODE FIXED */
+#ultra-container {
   height: 100vh;
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+
+#ultra-container::-webkit-scrollbar {
+  display: none;
 }
 
 .ultra-item {
@@ -152,18 +163,20 @@ img:hover {
   scroll-snap-align: start;
 }
 
-.ultra-video iframe {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-  
 .ultra-video {
   position: relative;
   width: 100%;
   height: 100%;
-  }
-  .ultra-overlay {
+}
+
+.ultra-video iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* OVERLAY */
+.ultra-overlay {
   position: absolute;
   bottom: 20px;
   left: 15px;
@@ -178,11 +191,7 @@ img:hover {
   border-radius: 5px;
 }
 
-.ultra-video iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
+/* GRADIENT */
 .ultra-video::after {
   content:"";
   position:absolute;
@@ -190,7 +199,7 @@ img:hover {
   width:100%;
   height:50%;
   background:linear-gradient(to top, black, transparent);
-  }
+}
 </style>
 </head>
 
@@ -228,6 +237,7 @@ img:hover {
 
 <h2 id="drama">🎭 Drama Series</h2>
 <div id="drama-list" class="list"></div>
+
 <h2>❤️ Favorites</h2>
 <div id="favorites-list" class="list"></div>
 
