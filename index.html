@@ -110,14 +110,35 @@ background:#111;
 color:white;
 border:none;
 }
+/* SUGGESTIONS */
+#suggestions{
+position:absolute;
+top:60px;
+right:15px;
+background:#111;
+border-radius:10px;
+width:220px;
+display:none;
+z-index:999;
+}
+#suggestions div{
+padding:10px;
+border-bottom:1px solid #333;
+cursor:pointer;
+}
+#suggestions div:hover{background:#222}
+mark{color:red}
 </style>
 </head>
 
 <body>
 
+<!-- 🔥 ADD LANG SA NAVBAR -->
 <div class="navbar">
 <div class="logo">ShiedFlix</div>
 <input id="search" placeholder="Search...">
+<button onclick="startVoice()">🎤</button>
+<div id="suggestions"></div>
 </div>
 
 <!-- HERO -->
