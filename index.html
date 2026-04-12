@@ -75,7 +75,6 @@ width:100%;
 height:220px;
 max-height:40vh;
 }
-.details-content{padding:15px}
 
 /* PLAYER */
 #player{
@@ -84,17 +83,27 @@ position:fixed;
 width:100%;
 height:100%;
 top:0;
+left:0;
 background:black;
 z-index:99999;
 }
-#player iframe{width:100%;height:100%}
 
+/* 🔥 FIXED IFRAME */
+#player iframe{
+width:100%;
+height:100%;
+border:none;
+pointer-events:auto !important;
+}
+
+/* CLOSE */
 .close{
 position:absolute;
 right:20px;
 top:10px;
 font-size:30px;
 cursor:pointer;
+z-index:100000;
 }
 </style>
 </head>
@@ -144,7 +153,7 @@ cursor:pointer;
 <span class="close" onclick="closeDetails()">✖</span>
 <iframe id="trailer" allowfullscreen></iframe>
 
-<div class="details-content">
+<div style="padding:15px">
 <h2 id="title"></h2>
 <p id="desc"></p>
 <button onclick="play()">▶ Play Full Movie</button>
@@ -154,7 +163,22 @@ cursor:pointer;
 <!-- PLAYER -->
 <div id="player">
 <span class="close" onclick="closePlayer()">✖</span>
-<iframe id="full"></iframe>
+
+<!-- 🔥 FIXED PLAYER -->
+<iframe 
+id="full"
+allow="autoplay; fullscreen; picture-in-picture"
+allowfullscreen
+webkitallowfullscreen
+mozallowfullscreen>
+</iframe>
+
+<!-- 🔥 CUSTOM FULLSCREEN BUTTON -->
+<button onclick="goFull()" 
+style="position:absolute;bottom:20px;right:20px;z-index:100000;padding:10px;">
+⛶ Fullscreen
+</button>
+
 </div>
 
 <script>
@@ -178,7 +202,7 @@ const t=data.results.find(v=>v.type==="Trailer");
 return t?`https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1&controls=0`:"";
 }
 
-/* TITLE SAFE */
+/* TITLE */
 function title(i){return i.title||i.name||"No Title"}
 
 /* CONTINUE */
@@ -235,14 +259,28 @@ document.getElementById("player").style.display="block";
 
 const isMovie=current.title!==undefined;
 const src=isMovie
-?`https://vidsrc.cc/v2/embed/movie/${current.id}`
-:`https://vidsrc.cc/v2/embed/tv/${current.id}/1/1`;
+?`https://vidsrc.cc/v2/embed/movie/${current.id}?autoplay=1`
+:`https://vidsrc.cc/v2/embed/tv/${current.id}/1/1?autoplay=1`;
 
 document.getElementById("full").src=src;
 
 saveContinue(current);
 }
 
+/* 🔥 FULLSCREEN FIX */
+function goFull(){
+const player=document.getElementById("player");
+
+if(player.requestFullscreen){
+player.requestFullscreen();
+}else if(player.webkitRequestFullscreen){
+player.webkitRequestFullscreen();
+}else if(player.msRequestFullscreen){
+player.msRequestFullscreen();
+}
+}
+
+/* CLOSE */
 function closeDetails(){
 document.getElementById("details").style.display="none";
 document.getElementById("trailer").src="";
