@@ -2,10 +2,25 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Gesture Player</title>
+<title>ShiedFlix Gesture Player PRO</title>
 
 <style>
 body{margin:0;background:#000;color:white;font-family:Arial}
+
+/* START BUTTON */
+.start{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+padding:15px 25px;
+font-size:18px;
+background:red;
+border:none;
+border-radius:8px;
+color:white;
+z-index:999;
+}
 
 /* PLAYER */
 #player{
@@ -24,7 +39,6 @@ z-index:99999;
 width:100%;
 height:100%;
 border:none;
-pointer-events:auto;
 }
 
 /* OVERLAY */
@@ -43,7 +57,7 @@ position:absolute;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-font-size:40px;
+font-size:50px;
 opacity:0;
 transition:0.3s;
 }
@@ -56,11 +70,12 @@ width:100%;
 display:flex;
 justify-content:space-between;
 padding:10px;
+z-index:100001;
 }
 
 /* BUTTON */
 .btn{
-background:rgba(0,0,0,0.6);
+background:rgba(0,0,0,0.7);
 color:white;
 border:none;
 padding:8px 12px;
@@ -72,33 +87,44 @@ border-radius:5px;
 position:absolute;
 bottom:20px;
 right:20px;
+z-index:100001;
+}
+
+/* LOADING */
+#loading{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+color:white;
 }
 </style>
 </head>
 
 <body>
 
+<button class="start" onclick="start()">▶ Start Player</button>
+
 <!-- PLAYER -->
 <div id="player">
 
 <div class="top">
-<button class="btn" onclick="exitPlayer()">←</button>
+<button class="btn" onclick="exitPlayer()">← Back</button>
 <button class="btn" onclick="exitFullscreen()">Exit</button>
 </div>
+
+<div id="loading">Loading...</div>
 
 <iframe id="full"
 allow="autoplay; fullscreen"
 allowfullscreen></iframe>
 
 <div id="overlay"></div>
-
 <div id="centerIcon">▶</div>
 
 <button class="btn full" onclick="goFull()">⛶</button>
 
 </div>
-
-<button onclick="start()">▶ START</button>
 
 <script>
 let current = {id:550};
@@ -106,23 +132,34 @@ let lastTap = 0;
 
 /* START */
 function start(){
-document.getElementById("player").style.display="block";
+document.querySelector(".start").style.display="none";
 
-document.getElementById("full").src =
-`https://vidsrc.cc/v2/embed/movie/${current.id}?autoplay=1`;
+const player=document.getElementById("player");
+player.style.display="block";
+
+const iframe=document.getElementById("full");
+
+iframe.src=`https://vidsrc.cc/v2/embed/movie/${current.id}`;
+
+iframe.onload=()=>{
+document.getElementById("loading").style.display="none";
+};
 }
 
 /* FULLSCREEN */
 function goFull(){
 const el=document.getElementById("player");
-el.requestFullscreen?.();
+
+if(el.requestFullscreen) el.requestFullscreen();
+if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
 
 screen.orientation?.lock("landscape").catch(()=>{});
 }
 
 /* EXIT */
 function exitFullscreen(){
-document.exitFullscreen?.();
+if(document.exitFullscreen) document.exitFullscreen();
+
 screen.orientation?.lock("portrait").catch(()=>{});
 }
 
@@ -130,9 +167,10 @@ function exitPlayer(){
 exitFullscreen();
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
+document.querySelector(".start").style.display="block";
 }
 
-/* ICON SHOW */
+/* ICON */
 function showIcon(txt){
 const el=document.getElementById("centerIcon");
 el.innerText=txt;
@@ -141,7 +179,7 @@ el.style.opacity=1;
 setTimeout(()=>{el.style.opacity=0},500);
 }
 
-/* TOUCH GESTURE */
+/* TOUCH */
 const overlay=document.getElementById("overlay");
 
 let startX=0,startY=0;
@@ -158,9 +196,9 @@ let x=e.changedTouches[0].clientX;
 
 if(now-lastTap<300){
 if(x < window.innerWidth/2){
-showIcon("⏪ 10s");
+showIcon("⏪");
 }else{
-showIcon("⏩ 10s");
+showIcon("⏩");
 }
 }
 lastTap=now;
@@ -168,25 +206,16 @@ lastTap=now;
 
 /* SWIPE */
 overlay.addEventListener("touchmove",(e)=>{
-let x=e.touches[0].clientX;
 let y=e.touches[0].clientY;
-
-let dx=x-startX;
 let dy=y-startY;
 
-/* LEFT SIDE = BRIGHTNESS */
+/* brightness */
 if(startX < window.innerWidth/2){
-if(Math.abs(dy)>20){
-document.body.style.filter =
-`brightness(${1 - dy/300})`;
+document.body.style.filter=`brightness(${1 - dy/300})`;
 }
-}
-
-/* RIGHT SIDE = VOLUME (VISUAL ONLY) */
+/* volume visual */
 else{
-if(Math.abs(dy)>20){
 showIcon("🔊");
-}
 }
 });
 </script>
