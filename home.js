@@ -75,6 +75,64 @@ function openPlayer(item) {
   video.src = src;
   document.getElementById("modal").style.display = "flex";
 }
+let lastTap=0;
+let startX=0,startY=0;
+
+/* ICON */
+function showIcon(txt){
+const el=document.getElementById("centerIcon");
+el.innerText=txt;
+el.style.opacity=1;
+setTimeout(()=>el.style.opacity=0,500);
+}
+
+/* SKIP INTRO */
+function skipIntro(){
+showIcon("⏩ Intro Skipped");
+}
+
+/* GESTURE */
+const overlay=document.getElementById("overlay");
+
+/* TOUCH START */
+overlay.addEventListener("touchstart",(e)=>{
+startX=e.touches[0].clientX;
+startY=e.touches[0].clientY;
+});
+
+/* DOUBLE TAP SEEK */
+overlay.addEventListener("touchend",(e)=>{
+let now=Date.now();
+let x=e.changedTouches[0].clientX;
+
+if(now-lastTap<300){
+if(x < window.innerWidth/2){
+showIcon("⏪ 10s");
+}else{
+showIcon("⏩ 10s");
+}
+}
+lastTap=now;
+});
+
+/* SWIPE CONTROLS */
+overlay.addEventListener("touchmove",(e)=>{
+let x=e.touches[0].clientX;
+let y=e.touches[0].clientY;
+
+let dy=y-startY;
+
+/* LEFT = BRIGHTNESS */
+if(startX < window.innerWidth/2){
+document.body.style.filter=
+`brightness(${1 - dy/300})`;
+}
+
+/* RIGHT = VOLUME */
+else{
+showIcon("🔊");
+}
+});
 
 // ❌ CLOSE
 function closeModal() {
