@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix ULTRA FINAL</title>
+<title>ShiedFlix FINAL FIX</title>
 
 <style>
 body{margin:0;background:#000;color:white;font-family:Arial}
@@ -15,11 +15,8 @@ display:flex;justify-content:space-between;
 background:linear-gradient(to bottom,#000,transparent);
 z-index:1000;
 }
-.logo{color:red;font-weight:bold;font-size:18px}
-#search{
-background:#222;border:none;color:white;
-padding:8px 15px;border-radius:20px;
-}
+.logo{color:red;font-weight:bold}
+#search{background:#222;border:none;color:white;padding:8px 15px;border-radius:20px}
 
 /* HERO */
 #hero{
@@ -29,7 +26,7 @@ align-items:flex-end;
 padding:20px;
 position:relative;
 overflow:hidden;
-transition:transform 0.4s, opacity 0.3s;
+transition:0.3s;
 }
 #hero iframe{
 position:absolute;width:100%;height:100%;
@@ -41,7 +38,6 @@ filter:brightness(0.4);
 
 /* ROW */
 .row{margin-top:10px}
-.row h2{margin-left:10px}
 .row-posters{
 display:flex;overflow-x:auto;
 gap:10px;padding:10px;
@@ -54,16 +50,21 @@ cursor:pointer;
 /* DETAILS */
 #details{
 display:none;
-position:fixed;width:100%;height:100%;
-top:0;background:black;z-index:9999;
+position:fixed;
+width:100%;height:100%;
+top:0;background:black;
+z-index:9999;
+overflow:auto;
 }
 #details iframe{width:100%;height:220px}
 
 /* PLAYER */
 #player{
 display:none;
-position:fixed;width:100%;height:100%;
-top:0;background:black;z-index:99999;
+position:fixed;
+width:100%;height:100%;
+top:0;background:black;
+z-index:99999;
 }
 #player iframe{width:100%;height:100%}
 
@@ -73,7 +74,6 @@ right:20px;
 top:10px;
 font-size:30px;
 cursor:pointer;
-z-index:100000;
 }
 </style>
 </head>
@@ -96,7 +96,7 @@ z-index:100000;
 </div>
 </div>
 
-<!-- ROW -->
+<!-- MOVIES -->
 <div class="row">
 <h2>🔥 Movies</h2>
 <div id="movies" class="row-posters"></div>
@@ -125,7 +125,7 @@ const IMG="https://image.tmdb.org/t/p/w500";
 let current=null;
 let heroList=[];
 let heroIndex=0;
-let heroInterval;
+let heroInterval=[];
 
 /* FETCH */
 async function getMovies(){
@@ -133,19 +133,19 @@ const res=await fetch(`${API}/movie/popular?api_key=${KEY}`);
 return (await res.json()).results;
 }
 
-/* TRAILER */
+/* TRAILER (FIXED) */
 async function getTrailer(id){
 try{
 const res=await fetch(`${API}/movie/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
 
-const t=data.results.find(v=>v.type==="Trailer" && v.site==="YouTube");
+const vid=data.results.find(v=>v.site==="YouTube");
 
-return t?`https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1`:"";
+return vid ? `https://www.youtube.com/embed/${vid.key}?autoplay=1&mute=1` : "";
 }catch{return "";}
 }
 
-/* SHOW */
+/* SHOW MOVIES */
 function show(list){
 const box=document.getElementById("movies");
 box.innerHTML="";
@@ -167,21 +167,15 @@ box.appendChild(img);
 
 /* HERO */
 async function setHero(movie){
+if(!movie)return;
+
 current=movie;
 
-const hero=document.getElementById("hero");
+document.getElementById("hero-title").innerText=movie.title || "No Title";
+document.getElementById("hero-desc").innerText=movie.overview || "";
 
-hero.style.opacity=0;
-
-setTimeout(async()=>{
-document.getElementById("hero-title").innerText=movie.title;
-document.getElementById("hero-desc").innerText=movie.overview;
-
-document.getElementById("heroVideo").src=
-await getTrailer(movie.id);
-
-hero.style.opacity=1;
-},200);
+const vid=await getTrailer(movie.id);
+document.getElementById("heroVideo").src=vid;
 
 document.getElementById("playHero").onclick=()=>play();
 document.getElementById("infoHero").onclick=()=>openDetails();
@@ -221,16 +215,18 @@ if(heroIndex>=heroList.length) heroIndex=0;
 setHero(heroList[heroIndex]);
 }
 
-setTimeout(()=>startHero(),4000);
+setTimeout(startHero,4000);
 });
 
 /* DETAILS */
-function openDetails(){
+async function openDetails(){
 document.getElementById("details").style.display="block";
+
 document.getElementById("title").innerText=current.title;
 document.getElementById("desc").innerText=current.overview;
+
 document.getElementById("trailer").src=
-`https://www.youtube.com/embed?autoplay=1`;
+await getTrailer(current.id);
 }
 
 function closeDetails(){
@@ -262,7 +258,9 @@ const movies=await getMovies();
 
 show(movies);
 
+/* HERO LIST FIX */
 heroList=movies.slice(0,10);
+
 setHero(heroList[0]);
 startHero();
 }
