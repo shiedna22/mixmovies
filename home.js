@@ -135,32 +135,86 @@ function viewAll() {
   if (btn) btn.innerText = "Back";
 }
 
-/* 🔍 SEARCH FIX */
+/* 🔥 LIVE + SMART SEARCH + SUGGESTIONS (FIXED FOR YOUR SYSTEM) */
+
+function similarity(a,b){
+let longer=a.length>b.length?a:b;
+let shorter=a.length>b.length?b:a;
+let same=0;
+for(let i=0;i<shorter.length;i++){
+if(longer.includes(shorter[i])) same++;
+}
+return same/longer.length;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  const search = document.getElementById("searchInput");
 
-  if (!search) return;
+const search = document.getElementById("searchInput");
+if(!search) return;
 
-  search.addEventListener("input", async function () {
-    const q = this.value.toLowerCase();
+/* combine all */
+function getAll(){
+return [...movies,...tvshows,...anime];
+}
 
-    if (!q) {
-      show(movies, "movies-list");
-      show(tvshows, "tvshows-list");
-      show(anime, "anime-list");
-      return;
-    }
+search.addEventListener("input",(e)=>{
+const value=e.target.value.toLowerCase().trim();
 
-    const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${q}`);
-    const data = await res.json();
+const suggestBox=document.getElementById("suggestions");
 
-    show(data.results, "movies-list");
+/* reset */
+if(value===""){
+show(movies,"movies-list");
+show(tvshows,"tvshows-list");
+show(anime,"anime-list");
 
-    // 🔥 clear others
-    document.getElementById("tvshows-list").innerHTML = "";
-    document.getElementById("anime-list").innerHTML = "";
-  });
+if(suggestBox) suggestBox.style.display="none";
+return;
+}
+
+const all = getAll();
+
+const results = all.filter(m=>{
+let t=(m.title||m.name||"").toLowerCase();
+return t.includes(value) || similarity(t,value)>0.5;
 });
+
+/* show results */
+show(results,"movies-list");
+
+/* clear other rows */
+document.getElementById("tvshows-list").innerHTML="";
+document.getElementById("anime-list").innerHTML="";
+
+/* 🔽 SUGGESTIONS */
+if(!suggestBox) return;
+
+suggestBox.innerHTML="";
+suggestBox.style.display="block";
+
+results.slice(0,5).forEach(i=>{
+let t=i.title||i.name;
+
+let div=document.createElement("div");
+
+div.innerHTML=t.replace(
+new RegExp(value,"gi"),
+m=>`<mark>${m}</mark>`
+);
+
+div.onclick=()=>{
+search.value=t;
+suggestBox.style.display="none";
+show([i],"movies-list");
+};
+
+suggestBox.appendChild(div);
+});
+
+});
+
+});
+
 
 /* 🎮 ULTRA GESTURES (SAFE VERSION) */
 document.addEventListener("DOMContentLoaded", () => {
@@ -213,6 +267,23 @@ function showIcon(txt) {
   setTimeout(() => {
     el.style.opacity = 0;
   }, 500);
+}
+
+/* 🎤 VOICE SEARCH */
+function startVoice(){
+if(!('webkitSpeechRecognition' in window)){
+alert("Voice not supported");
+return;
+}
+
+let rec=new webkitSpeechRecognition();
+
+rec.onresult=(e)=>{
+document.getElementById("searchInput").value=e.results[0][0].transcript;
+document.getElementById("searchInput").dispatchEvent(new Event("input"));
+};
+
+rec.start();
 }
 
 /* 🚀 INIT */
