@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix FINAL FIX</title>
+<title>ShiedFlix Ultimate</title>
 
 <style>
 body{margin:0;background:#000;color:white;font-family:Arial}
@@ -26,7 +26,6 @@ align-items:flex-end;
 padding:20px;
 position:relative;
 overflow:hidden;
-transition:0.3s;
 }
 #hero iframe{
 position:absolute;width:100%;height:100%;
@@ -75,6 +74,15 @@ top:10px;
 font-size:30px;
 cursor:pointer;
 }
+
+/* EPISODES */
+#episodes button{
+margin:5px;
+padding:8px;
+background:#111;
+color:white;
+border:none;
+}
 </style>
 </head>
 
@@ -96,11 +104,17 @@ cursor:pointer;
 </div>
 </div>
 
-<!-- MOVIES -->
+<!-- CONTINUE -->
 <div class="row">
-<h2>🔥 Movies</h2>
-<div id="movies" class="row-posters"></div>
+<h2>▶ Continue Watching</h2>
+<div id="continue" class="row-posters"></div>
 </div>
+
+<!-- ROWS -->
+<div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
+<div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
+<div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
+<div class="row"><h2>🍥 Anime</h2><div id="anime" class="row-posters"></div></div>
 
 <!-- DETAILS -->
 <div id="details">
@@ -108,6 +122,9 @@ cursor:pointer;
 <iframe id="trailer"></iframe>
 <h2 id="title"></h2>
 <p id="desc"></p>
+
+<div id="episodes"></div>
+
 <button onclick="play()">▶ Play</button>
 </div>
 
@@ -123,31 +140,31 @@ const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
 
 let current=null;
-let heroList=[];
-let heroIndex=0;
-let heroInterval=[];
+let currentType="movie";
+let heroList=[],heroIndex=0,heroTimer;
+let allMovies=[];
 
 /* FETCH */
-async function getMovies(){
-const res=await fetch(`${API}/movie/popular?api_key=${KEY}`);
+async function fetchData(url){
+const res=await fetch(url);
 return (await res.json()).results;
 }
 
-/* TRAILER (FIXED) */
-async function getTrailer(id){
+/* TRAILER */
+async function getTrailer(id,type){
 try{
-const res=await fetch(`${API}/movie/${id}/videos?api_key=${KEY}`);
+const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
-
-const vid=data.results.find(v=>v.site==="YouTube");
-
-return vid ? `https://www.youtube.com/embed/${vid.key}?autoplay=1&mute=1` : "";
+const t=data.results.find(v=>v.site==="YouTube");
+return t?`https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1`:"";
 }catch{return "";}
 }
 
-/* SHOW MOVIES */
-function show(list){
-const box=document.getElementById("movies");
+function title(i){return i.title||i.name||"No Title"}
+
+/* SHOW */
+function show(list,id,type){
+const box=document.getElementById(id);
 box.innerHTML="";
 
 list.forEach(i=>{
@@ -158,34 +175,114 @@ img.src=IMG+i.poster_path;
 
 img.onclick=()=>{
 current=i;
-openDetails();
+currentType=type;
+openDetails(i,type);
 };
 
 box.appendChild(img);
 });
+
+allMovies=[...allMovies,...list];
+}
+
+/* DETAILS */
+async function openDetails(i,type){
+document.getElementById("details").style.display="block";
+document.getElementById("title").innerText=title(i);
+document.getElementById("desc").innerText=i.overview||"";
+
+document.getElementById("trailer").src=
+await getTrailer(i.id,type);
+
+/* TV Episodes */
+if(type==="tv"){
+loadEpisodes(i.id);
+}else{
+document.getElementById("episodes").innerHTML="";
+}
+}
+
+/* EPISODES */
+async function loadEpisodes(id){
+const res=await fetch(`${API}/tv/${id}?api_key=${KEY}`);
+const data=await res.json();
+
+let html="<h3>Episodes</h3>";
+
+for(let s=1;s<=Math.min(2,data.number_of_seasons);s++){
+html+=`<div>Season ${s}</div>`;
+
+for(let e=1;e<=5;e++){
+html+=`<button onclick="playEpisode(${id},${s},${e})">Ep ${e}</button>`;
+}
+}
+
+document.getElementById("episodes").innerHTML=html;
+}
+
+function playEpisode(id,s,e){
+document.getElementById("details").style.display="none";
+document.getElementById("player").style.display="block";
+
+document.getElementById("full").src=
+`https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}`;
+
+goFull();
+}
+
+/* PLAYER */
+function play(){
+document.getElementById("details").style.display="none";
+document.getElementById("player").style.display="block";
+
+const src=currentType==="movie"
+?`https://vidsrc.cc/v2/embed/movie/${current.id}?autoplay=1`
+:`https://vidsrc.cc/v2/embed/tv/${current.id}/1/1`;
+
+document.getElementById("full").src=src;
+
+goFull();
+}
+
+/* FULLSCREEN */
+function goFull(){
+document.getElementById("player").requestFullscreen?.();
+screen.orientation?.lock("landscape").catch(()=>{});
+}
+
+/* CLOSE */
+function closeDetails(){
+document.getElementById("details").style.display="none";
+document.getElementById("trailer").src="";
+}
+
+function closePlayer(){
+document.getElementById("player").style.display="none";
+document.getElementById("full").src="";
+document.exitFullscreen?.();
 }
 
 /* HERO */
 async function setHero(movie){
-if(!movie)return;
-
 current=movie;
+currentType=movie.title?"movie":"tv";
 
-document.getElementById("hero-title").innerText=movie.title || "No Title";
-document.getElementById("hero-desc").innerText=movie.overview || "";
+document.getElementById("hero-title").innerText=title(movie);
+document.getElementById("hero-desc").innerText=
+(movie.overview||"").slice(0,120)+"...";
 
-const vid=await getTrailer(movie.id);
-document.getElementById("heroVideo").src=vid;
+document.getElementById("heroVideo").src=
+await getTrailer(movie.id,currentType);
 
 document.getElementById("playHero").onclick=()=>play();
-document.getElementById("infoHero").onclick=()=>openDetails();
+document.getElementById("infoHero").onclick=()=>openDetails(movie,currentType);
 }
 
 /* AUTO SLIDE */
 function startHero(){
-clearInterval(heroInterval);
+clearInterval(heroTimer);
 
-heroInterval=setInterval(()=>{
+heroTimer=setInterval(()=>{
 heroIndex++;
 if(heroIndex>=heroList.length) heroIndex=0;
 setHero(heroList[heroIndex]);
@@ -194,76 +291,41 @@ setHero(heroList[heroIndex]);
 
 /* SWIPE */
 let startX=0;
-const hero=document.getElementById("hero");
-
 hero.addEventListener("touchstart",(e)=>{
 startX=e.touches[0].clientX;
-clearInterval(heroInterval);
+clearInterval(heroTimer);
 });
 
 hero.addEventListener("touchend",(e)=>{
 let diff=e.changedTouches[0].clientX-startX;
 
-if(diff>80){
-heroIndex--;
-if(heroIndex<0) heroIndex=heroList.length-1;
-setHero(heroList[heroIndex]);
-}
-else if(diff<-80){
-heroIndex++;
-if(heroIndex>=heroList.length) heroIndex=0;
-setHero(heroList[heroIndex]);
-}
+if(diff>80) heroIndex--;
+else if(diff<-80) heroIndex++;
 
+if(heroIndex<0) heroIndex=heroList.length-1;
+if(heroIndex>=heroList.length) heroIndex=0;
+
+setHero(heroList[heroIndex]);
 setTimeout(startHero,4000);
 });
 
-/* DETAILS */
-async function openDetails(){
-document.getElementById("details").style.display="block";
-
-document.getElementById("title").innerText=current.title;
-document.getElementById("desc").innerText=current.overview;
-
-document.getElementById("trailer").src=
-await getTrailer(current.id);
-}
-
-function closeDetails(){
-document.getElementById("details").style.display="none";
-document.getElementById("trailer").src="";
-}
-
-/* PLAYER */
-function play(){
-document.getElementById("details").style.display="none";
-document.getElementById("player").style.display="block";
-
-document.getElementById("full").src=
-`https://vidsrc.cc/v2/embed/movie/${current.id}?autoplay=1`;
-
-document.getElementById("player").requestFullscreen?.();
-}
-
-/* CLOSE */
-function closePlayer(){
-document.getElementById("player").style.display="none";
-document.getElementById("full").src="";
-document.exitFullscreen?.();
-}
-
 /* INIT */
 async function init(){
-const movies=await getMovies();
+const trending=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
+const movies=await fetchData(`${API}/movie/popular?api_key=${KEY}`);
+const tv=await fetchData(`${API}/tv/popular?api_key=${KEY}`);
+const anime=await fetchData(`${API}/discover/tv?api_key=${KEY}&with_genres=16`);
 
-show(movies);
+show(trending,"trending","movie");
+show(movies,"movies","movie");
+show(tv,"tv","tv");
+show(anime,"anime","tv");
 
-/* HERO LIST FIX */
-heroList=movies.slice(0,10);
-
+heroList=trending.slice(0,10);
 setHero(heroList[0]);
 startHero();
 }
+
 init();
 </script>
 
