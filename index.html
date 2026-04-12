@@ -5,106 +5,171 @@
 <title>ShiedFlix Premium</title>
 
 <style>
-body{margin:0;background:#0b0b0b;color:white;font-family:Arial;}
-
-/* NAV */
-.navbar{
-position:fixed;width:100%;top:0;
-background:rgba(0,0,0,0.9);
-padding:15px;display:flex;justify-content:space-between;
-z-index:1000;
+body{
+  margin:0;
+  background:#0b0b0b;
+  color:white;
+  font-family:Arial;
+  overflow-x:hidden;
 }
-.logo{color:red;font-weight:bold;}
-#searchInput{padding:6px;border-radius:20px;border:none;}
+
+/* NAVBAR */
+.navbar{
+  position:fixed;
+  width:100%;
+  top:0;
+  background:rgba(0,0,0,0.9);
+  padding:12px 15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  z-index:1000;
+}
+.logo{color:red;font-weight:bold;font-size:18px;}
+
+/* SEARCH */
+.search-box{position:relative;}
+#searchInput{
+  width:140px;
+  padding:8px 15px;
+  border-radius:20px;
+  border:none;
+  outline:none;
+  background:rgba(255,255,255,0.1);
+  color:white;
+  transition:0.3s;
+}
+#searchInput:focus{
+  width:220px;
+  background:rgba(255,255,255,0.2);
+}
+@media (min-width:768px){
+  #searchInput{width:200px;}
+  #searchInput:focus{width:300px;}
+}
 
 /* BANNER */
 #banner{
-margin-top:60px;height:260px;
-background-size:cover;
-display:flex;align-items:flex-end;padding:20px;
-position:relative;
+  margin-top:60px;
+  height:55vh;
+  min-height:220px;
+  background-size:cover;
+  background-position:center;
+  display:flex;
+  align-items:flex-end;
+  padding:20px;
+  position:relative;
 }
 #banner::after{
-content:"";
-position:absolute;bottom:0;width:100%;height:60%;
-background:linear-gradient(to top,#0b0b0b,transparent);
+  content:"";
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:60%;
+  background:linear-gradient(to top,#0b0b0b,transparent);
+}
+
+/* HEADINGS */
+h2{
+  padding:0 15px;
+  font-size:18px;
 }
 
 /* LIST */
-.list{display:flex;overflow-x:auto;gap:10px;padding:10px;}
-.card{
-min-width:130px;
-position:relative;
-transition:0.3s;
-cursor:pointer;
+.list{
+  display:flex;
+  gap:12px;
+  padding:10px 15px;
+  overflow-x:auto;
 }
-.card img{width:100%;border-radius:10px;}
+.list::-webkit-scrollbar{display:none;}
 
+/* CARD */
+.card{
+  min-width:140px;
+  position:relative;
+  transition:0.3s;
+}
+.card img{
+  width:100%;
+  height:200px;
+  object-fit:cover;
+  border-radius:10px;
+}
 .card:hover{
-transform:scale(1.15);
-z-index:10;
+  transform:scale(1.15);
+  z-index:10;
+}
+
+/* DESKTOP */
+@media (min-width:768px){
+  .card{min-width:180px;}
+  .card img{height:260px;}
+}
+@media (min-width:1024px){
+  .card{min-width:220px;}
 }
 
 /* PLAY ICON */
 .card::after{
-content:"▶";
-position:absolute;
-top:50%;left:50%;
-transform:translate(-50%,-50%);
-font-size:30px;
-opacity:0;
-transition:0.3s;
+  content:"▶";
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  font-size:30px;
+  opacity:0;
 }
 .card:hover::after{opacity:1;}
 
 /* OVERLAY */
 .overlay{
-position:absolute;bottom:0;width:100%;
-background:linear-gradient(to top,black,transparent);
-padding:5px;
+  position:absolute;
+  bottom:0;
+  width:100%;
+  background:linear-gradient(to top,black,transparent);
+  padding:5px;
 }
 .title{font-size:12px;}
 .desc{font-size:10px;color:gray;}
-.rating{font-size:11px;color:gold;}
+.rating{color:gold;font-size:11px;}
 
 /* FAVORITE */
 .fav{
-position:absolute;
-top:5px;
-right:5px;
-font-size:18px;
-cursor:pointer;
+  position:absolute;
+  top:5px;
+  right:5px;
+  font-size:18px;
 }
 
 /* MODALS */
 #modal,#detailsModal{
-display:none;
-position:fixed;width:100%;height:100%;
-top:0;left:0;
-background:rgba(0,0,0,0.95);
-justify-content:center;
-align-items:center;
-flex-direction:column;
-z-index:9999;
+  display:none;
+  position:fixed;
+  width:100%;
+  height:100%;
+  top:0;
+  left:0;
+  background:rgba(0,0,0,0.95);
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:9999;
 }
 
-/* CLOSE */
 .close{
-position:absolute;
-top:20px;
-right:20px;
-font-size:30px;
-cursor:pointer;
+  position:absolute;
+  top:20px;
+  right:20px;
+  font-size:30px;
+  cursor:pointer;
 }
 
-/* BUTTON */
 button{
-background:red;
-border:none;
-padding:10px 20px;
-color:white;
-border-radius:5px;
-cursor:pointer;
+  background:red;
+  border:none;
+  padding:10px 20px;
+  color:white;
+  border-radius:5px;
 }
 </style>
 </head>
@@ -112,15 +177,17 @@ cursor:pointer;
 <body>
 
 <div class="navbar">
-<div class="logo">🎬 ShiedFlix</div>
-<input id="searchInput" placeholder="Search...">
+  <div class="logo">🎬 ShiedFlix</div>
+  <div class="search-box">
+    <input id="searchInput" placeholder="Search movies...">
+  </div>
 </div>
 
 <div id="banner">
-<div>
-<h2 id="banner-title">Loading...</h2>
-<button id="watchBtn">▶ Watch</button>
-</div>
+  <div>
+    <h2 id="banner-title">Loading...</h2>
+    <button id="watchBtn">▶ Watch</button>
+  </div>
 </div>
 
 <h2>🔥 Movies <span onclick="viewAll()" style="float:right;color:red;">View All</span></h2>
@@ -150,11 +217,9 @@ cursor:pointer;
 <span class="close" onclick="closeDetails()">✖</span>
 
 <div style="width:95%;max-width:500px;">
-<iframe id="trailerFrame" style="width:100%;height:220px;border:none;"></iframe>
-
+<iframe id="trailerFrame" style="width:100%;height:220px;"></iframe>
 <h2 id="detailTitle"></h2>
 <p id="detailDesc"></p>
-
 <button id="playBtn">▶ Play Full Movie</button>
 </div>
 </div>
@@ -167,14 +232,11 @@ const IMG="https://image.tmdb.org/t/p/w500";
 let movies=[],tv=[],anime=[];
 let isViewAll=false;
 
-// FETCH
 async function get(type){
 const res=await fetch(`${API}/trending/${type}/week?api_key=${KEY}`);
-const data=await res.json();
-return data.results||[];
+return (await res.json()).results;
 }
 
-// TRAILER
 async function getTrailer(id,type="movie"){
 try{
 const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
@@ -185,51 +247,6 @@ if(t)return `https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1`;
 return "";
 }
 
-// CONTINUE
-function saveContinue(item,video){
-let list=JSON.parse(localStorage.getItem("continue"))||[];
-list=list.filter(x=>x.id!==item.id);
-list.unshift({id:item.id,title:item.title,image:IMG+item.poster_path,video});
-list=list.slice(0,10);
-localStorage.setItem("continue",JSON.stringify(list));
-}
-
-function loadContinue(){
-const list=JSON.parse(localStorage.getItem("continue"))||[];
-const box=document.getElementById("continue-list");
-box.innerHTML="";
-list.forEach(i=>{
-const img=document.createElement("img");
-img.src=i.image;
-img.style.width="120px";
-img.onclick=()=>{
-document.getElementById("modal").style.display="flex";
-document.getElementById("modal-video").src=i.video;
-};
-box.appendChild(img);
-});
-}
-
-// FAVORITES TOGGLE
-function toggleFav(item){
-let favs=JSON.parse(localStorage.getItem("favs"))||[];
-
-if(favs.find(x=>x.id===item.id)){
-favs=favs.filter(x=>x.id!==item.id);
-}else{
-favs.push(item);
-}
-
-localStorage.setItem("favs",JSON.stringify(favs));
-loadFav();
-}
-
-function loadFav(){
-const favs=JSON.parse(localStorage.getItem("favs"))||[];
-show(favs,"favorites-list");
-}
-
-// CARD
 function createCard(item){
 const card=document.createElement("div");
 card.className="card";
@@ -248,55 +265,31 @@ toggleFav(item);
 const overlay=document.createElement("div");
 overlay.className="overlay";
 
-const title=document.createElement("div");
-title.className="title";
-title.innerText=item.title||item.name;
-
-const rating=document.createElement("div");
-rating.className="rating";
-rating.innerText="⭐ "+item.vote_average;
-
-const desc=document.createElement("div");
-desc.className="desc";
-desc.innerText=item.overview?.slice(0,40)+"...";
-
-overlay.append(title,rating,desc);
+overlay.innerHTML=`
+<div class="title">${item.title||item.name}</div>
+<div class="rating">⭐ ${item.vote_average}</div>
+<div class="desc">${item.overview?.slice(0,40)}...</div>
+`;
 
 card.append(img,overlay,fav);
-
-// LONG PRESS = TRAILER
-let timer;
-card.addEventListener("touchstart",async ()=>{
-timer=setTimeout(async ()=>{
-const trailer=await getTrailer(item.id,item.title?"movie":"tv");
-if(trailer){
-img.style.display="none";
-const iframe=document.createElement("iframe");
-iframe.src=trailer;
-iframe.style.width="100%";
-iframe.style.height="180px";
-card.appendChild(iframe);
-}
-},600);
-});
-
-card.addEventListener("touchend",()=>clearTimeout(timer));
-
 card.onclick=()=>openDetails(item);
 
 return card;
 }
 
-// SHOW
 function show(list,id){
 const box=document.getElementById(id);
 box.innerHTML="";
-list.forEach(i=>{
-if(i.poster_path) box.appendChild(createCard(i));
-});
+list.forEach(i=>i.poster_path && box.appendChild(createCard(i)));
 }
 
-// DETAILS
+function toggleFav(item){
+let favs=JSON.parse(localStorage.getItem("favs"))||[];
+favs=favs.find(x=>x.id===item.id)?favs.filter(x=>x.id!==item.id):[...favs,item];
+localStorage.setItem("favs",JSON.stringify(favs));
+show(favs,"favorites-list");
+}
+
 async function openDetails(item){
 document.getElementById("detailsModal").style.display="flex";
 document.getElementById("detailTitle").innerText=item.title||item.name;
@@ -311,7 +304,6 @@ openPlayer(item);
 };
 }
 
-// PLAYER
 function openPlayer(i){
 document.getElementById("modal").style.display="flex";
 document.getElementById("modal-title").innerText=i.title||i.name;
@@ -321,12 +313,8 @@ const src=i.title
 :`https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
 
 document.getElementById("modal-video").src=src;
-
-saveContinue(i,src);
-loadContinue();
 }
 
-// CLOSE
 function closeModal(){
 document.getElementById("modal").style.display="none";
 document.getElementById("modal-video").src="";
@@ -337,12 +325,9 @@ document.getElementById("detailsModal").style.display="none";
 document.getElementById("trailerFrame").src="";
 }
 
-// BANNER
 function banner(){
-const valid=movies.filter(m=>m.backdrop_path);
-
 setInterval(()=>{
-const m=valid[Math.floor(Math.random()*valid.length)];
+const m=movies[Math.floor(Math.random()*movies.length)];
 document.getElementById("banner").style.backgroundImage=
 `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
 document.getElementById("banner-title").innerText=m.title;
@@ -350,35 +335,19 @@ document.getElementById("watchBtn").onclick=()=>openPlayer(m);
 },3000);
 }
 
-// VIEW ALL
 function viewAll(){
 const box=document.getElementById("movies-list");
-
-if(isViewAll){
-isViewAll=false;
-box.style.flexWrap="nowrap";
-}else{
-isViewAll=true;
-box.style.flexWrap="wrap";
-}
+isViewAll=!isViewAll;
+box.style.flexWrap=isViewAll?"wrap":"nowrap";
 }
 
-// SEARCH
 document.getElementById("searchInput").addEventListener("input",async e=>{
 const q=e.target.value;
-
-if(!q){
-show(movies,"movies-list");
-return;
-}
-
+if(!q)return show(movies,"movies-list");
 const res=await fetch(`${API}/search/multi?api_key=${KEY}&query=${q}`);
-const data=await res.json();
-
-show(data.results,"movies-list");
+show((await res.json()).results,"movies-list");
 });
 
-// INIT
 async function init(){
 movies=await get("movie");
 tv=await get("tv");
@@ -388,8 +357,6 @@ show(movies,"movies-list");
 show(tv,"tvshows-list");
 show(anime,"anime-list");
 
-loadFav();
-loadContinue();
 banner();
 }
 init();
