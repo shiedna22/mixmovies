@@ -5,8 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body { background:#0b0b0b; color:white; font-family:Arial; margin:0; }
+body {
+  background:#0b0b0b;
+  color:white;
+  font-family:Arial;
+  margin:0;
+}
 
+/* NAVBAR */
 .navbar {
   position:sticky;
   top:0;
@@ -21,7 +27,12 @@ body { background:#0b0b0b; color:white; font-family:Arial; margin:0; }
 
 .menu { display:flex; align-items:center; }
 
-.menu a { color:white; margin-left:10px; text-decoration:none; }
+.menu a {
+  color:white;
+  margin-left:10px;
+  text-decoration:none;
+}
+
 .menu a:hover { color:red; }
 
 #searchInput {
@@ -49,9 +60,22 @@ body { background:#0b0b0b; color:white; font-family:Arial; margin:0; }
   border-radius:5px;
 }
 
-/* LIST */
-h2 { margin:15px; }
+/* HEADER SECTION */
+.section-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 15px;
+}
 
+.view-btn {
+  background:none;
+  color:red;
+  border:none;
+  cursor:pointer;
+}
+
+/* LIST */
 .list {
   display:flex;
   overflow-x:auto;
@@ -59,17 +83,24 @@ h2 { margin:15px; }
   gap:10px;
 }
 
-.list::-webkit-scrollbar { display:none; }
+.list::-webkit-scrollbar {
+  display:none;
+}
 
 img {
   width:120px;
   border-radius:10px;
-  transition:0.3s;
 }
 
-img:hover {
-  transform:scale(1.1);
-  box-shadow:0 0 10px red;
+/* CONTINUE */
+.continue-card { position:relative; }
+
+.play-icon {
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:30px;
 }
 
 /* MODAL */
@@ -103,37 +134,12 @@ img:hover {
   font-size:25px;
   cursor:pointer;
 }
-
-/* CONTINUE CARD */
-.continue-card { position:relative; }
-.continue-card p { font-size:12px; margin-top:5px; }
-
-.play-icon {
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  font-size:30px;
-}
-.section-header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:0 15px;
-}
-
-.view-btn {
-  background:none;
-  color:red;
-  border:none;
-  cursor:pointer;
-  font-size:14px;
-}
 </style>
 </head>
 
 <body>
 
+<!-- NAVBAR -->
 <div class="navbar">
   <div class="logo">🎬 ShiedFlix</div>
 
@@ -147,34 +153,42 @@ img:hover {
   </div>
 </div>
 
+<!-- BANNER -->
 <div id="banner">
   <div>
     <h2 id="banner-title">Loading...</h2>
     <button id="watchBtn">▶ Watch</button>
   </div>
 </div>
-  <div class="section-header">
-  <h2 id="movies">🔥 Movies</h2>
-  <button onclick="viewAll('movies')" class="view-btn">View All</button>
-</div>
 
+<!-- MOVIES -->
+<div class="section-header">
+  <h2 id="movies">🔥 Movies</h2>
+  <button id="viewBtn" onclick="viewAll('movies')" class="view-btn">View All</button>
+</div>
 <div id="movies-list" class="list"></div>
 
-<h2>▶ Continue Watching</h2>
+<!-- CONTINUE -->
+<h2 style="padding-left:15px;">▶ Continue Watching</h2>
 <div id="continue-list" class="list"></div>
 
-<h2 id="tv">📺 TV Shows</h2>
+<!-- TV -->
+<h2 id="tv" style="padding-left:15px;">📺 TV Shows</h2>
 <div id="tvshows-list" class="list"></div>
 
-<h2 id="anime">🎌 Anime</h2>
+<!-- ANIME -->
+<h2 id="anime" style="padding-left:15px;">🎌 Anime</h2>
 <div id="anime-list" class="list"></div>
 
-<h2 id="drama">🎭 Drama Series</h2>
+<!-- DRAMA -->
+<h2 id="drama" style="padding-left:15px;">🎭 Drama Series</h2>
 <div id="drama-list" class="list"></div>
 
-<h2>❤️ Favorites</h2>
+<!-- FAVORITES -->
+<h2 style="padding-left:15px;">❤️ Favorites</h2>
 <div id="favorites-list" class="list"></div>
 
+<!-- MODAL -->
 <div id="modal">
   <span class="close" onclick="closeModal()">✖</span>
   <h3 id="modal-title"></h3>
@@ -182,5 +196,6 @@ img:hover {
 </div>
 
 <script src="home.js"></script>
+
 </body>
 </html>
