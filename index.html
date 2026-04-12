@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix</title>
+<title>ShiedFlix Premium</title>
 
 <style>
 body{margin:0;background:#0b0b0b;color:white;font-family:Arial;}
@@ -10,26 +10,54 @@ body{margin:0;background:#0b0b0b;color:white;font-family:Arial;}
 /* NAV */
 .navbar{
 position:fixed;width:100%;top:0;
-background:rgba(0,0,0,0.8);
+background:rgba(0,0,0,0.9);
 padding:15px;display:flex;justify-content:space-between;
 z-index:1000;
 }
 .logo{color:red;font-weight:bold;}
-#searchInput{padding:5px;border-radius:20px;border:none;}
+#searchInput{padding:6px;border-radius:20px;border:none;}
 
 /* BANNER */
 #banner{
 margin-top:60px;height:260px;
 background-size:cover;
 display:flex;align-items:flex-end;padding:20px;
+position:relative;
+}
+#banner::after{
+content:"";
+position:absolute;bottom:0;width:100%;height:60%;
+background:linear-gradient(to top,#0b0b0b,transparent);
 }
 
 /* LIST */
 .list{display:flex;overflow-x:auto;gap:10px;padding:10px;}
-.card{min-width:140px;position:relative;cursor:pointer;}
+.card{
+min-width:130px;
+position:relative;
+transition:0.3s;
+cursor:pointer;
+}
 .card img{width:100%;border-radius:10px;}
 
-/* INFO */
+.card:hover{
+transform:scale(1.15);
+z-index:10;
+}
+
+/* PLAY ICON */
+.card::after{
+content:"▶";
+position:absolute;
+top:50%;left:50%;
+transform:translate(-50%,-50%);
+font-size:30px;
+opacity:0;
+transition:0.3s;
+}
+.card:hover::after{opacity:1;}
+
+/* OVERLAY */
 .overlay{
 position:absolute;bottom:0;width:100%;
 background:linear-gradient(to top,black,transparent);
@@ -37,15 +65,21 @@ padding:5px;
 }
 .title{font-size:12px;}
 .desc{font-size:10px;color:gray;}
+.rating{font-size:11px;color:gold;}
 
 /* FAVORITE */
-.fav{position:absolute;top:5px;right:5px;font-size:18px;}
+.fav{
+position:absolute;
+top:5px;
+right:5px;
+font-size:18px;
+cursor:pointer;
+}
 
 /* MODALS */
 #modal,#detailsModal{
 display:none;
-position:fixed;
-width:100%;height:100%;
+position:fixed;width:100%;height:100%;
 top:0;left:0;
 background:rgba(0,0,0,0.95);
 justify-content:center;
@@ -119,9 +153,9 @@ cursor:pointer;
 <iframe id="trailerFrame" style="width:100%;height:220px;border:none;"></iframe>
 
 <h2 id="detailTitle"></h2>
-<p id="detailDesc" style="color:gray;"></p>
+<p id="detailDesc"></p>
 
-<button id="playBtn">▶ Play</button>
+<button id="playBtn">▶ Play Full Movie</button>
 </div>
 </div>
 
@@ -146,33 +180,24 @@ try{
 const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
 const t=data.results.find(v=>v.type==="Trailer");
-if(t)return `https://www.youtube.com/embed/${t.key}?autoplay=1`;
+if(t)return `https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1`;
 }catch{}
 return "";
 }
 
-// CONTINUE SAVE
+// CONTINUE
 function saveContinue(item,video){
 let list=JSON.parse(localStorage.getItem("continue"))||[];
-
 list=list.filter(x=>x.id!==item.id);
-list.unshift({
-id:item.id,
-title:item.title||item.name,
-image:IMG+item.poster_path,
-video:video
-});
-
+list.unshift({id:item.id,title:item.title,image:IMG+item.poster_path,video});
 list=list.slice(0,10);
 localStorage.setItem("continue",JSON.stringify(list));
 }
 
-// LOAD CONTINUE
 function loadContinue(){
 const list=JSON.parse(localStorage.getItem("continue"))||[];
 const box=document.getElementById("continue-list");
 box.innerHTML="";
-
 list.forEach(i=>{
 const img=document.createElement("img");
 img.src=i.image;
@@ -183,6 +208,25 @@ document.getElementById("modal-video").src=i.video;
 };
 box.appendChild(img);
 });
+}
+
+// FAVORITES TOGGLE
+function toggleFav(item){
+let favs=JSON.parse(localStorage.getItem("favs"))||[];
+
+if(favs.find(x=>x.id===item.id)){
+favs=favs.filter(x=>x.id!==item.id);
+}else{
+favs.push(item);
+}
+
+localStorage.setItem("favs",JSON.stringify(favs));
+loadFav();
+}
+
+function loadFav(){
+const favs=JSON.parse(localStorage.getItem("favs"))||[];
+show(favs,"favorites-list");
 }
 
 // CARD
@@ -198,7 +242,7 @@ fav.className="fav";
 fav.innerText="❤️";
 fav.onclick=(e)=>{
 e.stopPropagation();
-addFav(item);
+toggleFav(item);
 };
 
 const overlay=document.createElement("div");
@@ -208,13 +252,35 @@ const title=document.createElement("div");
 title.className="title";
 title.innerText=item.title||item.name;
 
+const rating=document.createElement("div");
+rating.className="rating";
+rating.innerText="⭐ "+item.vote_average;
+
 const desc=document.createElement("div");
 desc.className="desc";
 desc.innerText=item.overview?.slice(0,40)+"...";
 
-overlay.append(title,desc);
+overlay.append(title,rating,desc);
 
 card.append(img,overlay,fav);
+
+// LONG PRESS = TRAILER
+let timer;
+card.addEventListener("touchstart",async ()=>{
+timer=setTimeout(async ()=>{
+const trailer=await getTrailer(item.id,item.title?"movie":"tv");
+if(trailer){
+img.style.display="none";
+const iframe=document.createElement("iframe");
+iframe.src=trailer;
+iframe.style.width="100%";
+iframe.style.height="180px";
+card.appendChild(iframe);
+}
+},600);
+});
+
+card.addEventListener("touchend",()=>clearTimeout(timer));
 
 card.onclick=()=>openDetails(item);
 
@@ -232,25 +298,17 @@ if(i.poster_path) box.appendChild(createCard(i));
 
 // DETAILS
 async function openDetails(item){
-const type=item.title?"movie":"tv";
-
 document.getElementById("detailsModal").style.display="flex";
 document.getElementById("detailTitle").innerText=item.title||item.name;
 document.getElementById("detailDesc").innerText=item.overview;
 
-const trailer=await getTrailer(item.id,type);
+const trailer=await getTrailer(item.id,item.title?"movie":"tv");
 document.getElementById("trailerFrame").src=trailer;
 
 document.getElementById("playBtn").onclick=()=>{
 closeDetails();
 openPlayer(item);
 };
-}
-
-// CLOSE DETAILS
-function closeDetails(){
-document.getElementById("detailsModal").style.display="none";
-document.getElementById("trailerFrame").src="";
 }
 
 // PLAYER
@@ -264,30 +322,19 @@ const src=i.title
 
 document.getElementById("modal-video").src=src;
 
-// SAVE CONTINUE
 saveContinue(i,src);
 loadContinue();
 }
 
-// CLOSE PLAYER
+// CLOSE
 function closeModal(){
 document.getElementById("modal").style.display="none";
 document.getElementById("modal-video").src="";
 }
 
-// FAVORITES
-function addFav(item){
-let favs=JSON.parse(localStorage.getItem("favs"))||[];
-if(!favs.find(x=>x.id===item.id)){
-favs.push(item);
-localStorage.setItem("favs",JSON.stringify(favs));
-loadFav();
-}
-}
-
-function loadFav(){
-const favs=JSON.parse(localStorage.getItem("favs"))||[];
-show(favs,"favorites-list");
+function closeDetails(){
+document.getElementById("detailsModal").style.display="none";
+document.getElementById("trailerFrame").src="";
 }
 
 // BANNER
