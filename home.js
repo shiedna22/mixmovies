@@ -1,4 +1,5 @@
 localStorage.clear();
+let isViewAll = false;
 const API_KEY = "43c2413701b5c752d07b62acf8e57736";
 const BASE_URL = "https://api.themoviedb.org/3";
 const IMG = "https://image.tmdb.org/t/p/w500";
@@ -204,26 +205,60 @@ function startBanner() {
 
 //ViewAll
 function viewAll(type) {
-  let list = [];
+  const box = document.getElementById("movies-list");
 
+  // 🔁 TOGGLE BACK
+  if (isViewAll) {
+    isViewAll = false;
+
+    box.style.flexWrap = "nowrap"; // balik scroll
+    box.style.overflowX = "auto";
+
+    show(movies, "movies-list"); // 🔥 reload original
+    return;
+  }
+
+  // 🔥 VIEW ALL MODE
+  isViewAll = true;
+
+  let list = [];
   if (type === "movies") list = movies;
 
-  const box = document.getElementById("movies-list");
   box.innerHTML = "";
 
-  box.style.flexWrap = "wrap"; // 🔥 grid feel
+  box.style.flexWrap = "wrap"; // grid
+  box.style.overflowX = "hidden";
   box.style.justifyContent = "center";
 
   list.forEach(i => {
     if (!i.poster_path) return;
+
+    const card = document.createElement("div");
+    card.style.width = "120px";
+    card.style.margin = "5px";
+    card.style.textAlign = "center";
 
     const img = document.createElement("img");
     img.src = IMG + i.poster_path;
 
     img.onclick = () => openPlayer(i);
 
-    box.appendChild(img);
+    const title = document.createElement("p");
+    title.innerText = i.title || i.name;
+    title.style.fontSize = "12px";
+
+    card.appendChild(img);
+    card.appendChild(title);
+
+    box.appendChild(card);
   });
+}
+const btn = document.getElementById("viewBtn");
+
+if (isViewAll) {
+  btn.innerText = "Back";
+} else {
+  btn.innerText = "View All";
 }
 
 // SEARCH
