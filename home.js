@@ -3,9 +3,8 @@ const BASE_URL = "https://api.themoviedb.org/3";
 const IMG = "https://image.tmdb.org/t/p/w500";
 
 let movies = [];
-let currentIndex = 0;
 
-// 🎭 DRAMA
+// DRAMA
 const dramas = [
   {
     title: "Batang Martial Arts 🔥",
@@ -25,6 +24,46 @@ async function fetchData(type) {
 function saveLast(video, title) {
   localStorage.setItem("lastVideo", video);
   localStorage.setItem("lastTitle", title);
+}
+
+// CONTINUE WATCHING
+function loadContinueWatching() {
+  const video = localStorage.getItem("lastVideo");
+  const title = localStorage.getItem("lastTitle");
+  const box = document.getElementById("continue-list");
+
+  box.innerHTML = "";
+  if (!video) return;
+
+  const card = document.createElement("div");
+  card.style.position = "relative";
+
+  const img = document.createElement("img");
+  img.src = "https://i.imgur.com/8Km9tLL.jpg";
+
+  img.onclick = () => {
+    document.getElementById("modal-title").innerText = title;
+    document.getElementById("modal-video").src = video;
+    document.getElementById("modal").style.display = "flex";
+  };
+
+  const play = document.createElement("div");
+  play.innerText = "▶";
+  play.style.position = "absolute";
+  play.style.top = "50%";
+  play.style.left = "50%";
+  play.style.transform = "translate(-50%, -50%)";
+  play.style.fontSize = "30px";
+
+  const label = document.createElement("p");
+  label.innerText = title;
+  label.style.fontSize = "12px";
+
+  card.appendChild(img);
+  card.appendChild(play);
+  card.appendChild(label);
+
+  box.appendChild(card);
 }
 
 // FAVORITES
@@ -48,34 +87,6 @@ function loadFavorites() {
       box.appendChild(img);
     }
   });
-}
-
-// CONTINUE
-function loadLast() {
-  const video = localStorage.getItem("lastVideo");
-  const title = localStorage.getItem("lastTitle");
-
-  if (!video) return;
-
-  const box = document.getElementById("movies-list");
-
-  const btn = document.createElement("button");
-  btn.innerText = "▶ Continue: " + title;
-
-  btn.style.background = "red";
-  btn.style.color = "white";
-  btn.style.border = "none";
-  btn.style.padding = "8px";
-  btn.style.marginRight = "10px";
-  btn.style.borderRadius = "5px";
-
-  btn.onclick = () => {
-    document.getElementById("modal-title").innerText = title;
-    document.getElementById("modal-video").src = video;
-    document.getElementById("modal").style.display = "flex";
-  };
-
-  box.prepend(btn);
 }
 
 // DISPLAY
@@ -113,6 +124,7 @@ function showDrama() {
       document.getElementById("modal").style.display = "flex";
 
       saveLast(player.src, d.title);
+      loadContinueWatching(); // 🔥 update agad
     };
 
     box.appendChild(img);
@@ -135,6 +147,7 @@ function openPlayer(item) {
   document.getElementById("modal").style.display = "flex";
 
   saveLast(player.src, title);
+  loadContinueWatching(); // 🔥 update agad
 }
 
 // CLOSE
@@ -148,15 +161,13 @@ function startBanner() {
   const valid = movies.filter(m => m.backdrop_path);
 
   setInterval(() => {
-    const m = valid[currentIndex % valid.length];
+    const m = valid[Math.floor(Math.random() * valid.length)];
 
     document.getElementById("banner").style.backgroundImage =
       `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
 
     document.getElementById("banner-title").innerText = m.title;
     document.getElementById("watchBtn").onclick = () => openPlayer(m);
-
-    currentIndex++;
   }, 3000);
 }
 
@@ -198,7 +209,7 @@ async function init() {
   show(anime, "anime-list");
   showDrama();
   loadFavorites();
-  loadLast();
+  loadContinueWatching();
   startBanner();
 }
 
