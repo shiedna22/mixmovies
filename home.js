@@ -36,10 +36,12 @@ function loadContinueWatching() {
   if (!video) return;
 
   const card = document.createElement("div");
-  card.style.position = "relative";
+  card.className = "continue-card";
 
   const img = document.createElement("img");
-  img.src = "https://i.imgur.com/8Km9tLL.jpg";
+  img.src = movies[0]?.poster_path
+    ? IMG + movies[0].poster_path
+    : "https://i.imgur.com/8Km9tLL.jpg";
 
   img.onclick = () => {
     document.getElementById("modal-title").innerText = title;
@@ -48,16 +50,11 @@ function loadContinueWatching() {
   };
 
   const play = document.createElement("div");
+  play.className = "play-icon";
   play.innerText = "▶";
-  play.style.position = "absolute";
-  play.style.top = "50%";
-  play.style.left = "50%";
-  play.style.transform = "translate(-50%, -50%)";
-  play.style.fontSize = "30px";
 
   const label = document.createElement("p");
   label.innerText = title;
-  label.style.fontSize = "12px";
 
   card.appendChild(img);
   card.appendChild(play);
@@ -117,14 +114,16 @@ function showDrama() {
 
     img.onclick = () => {
       const player = document.getElementById("modal-video");
+
       player.classList.add("portrait");
       player.src = d.video;
 
       document.getElementById("modal-title").innerText = d.title;
       document.getElementById("modal").style.display = "flex";
 
-      saveLast(player.src, d.title);
-      loadContinueWatching(); // 🔥 update agad
+      // 🔥 FIXED
+      saveLast(d.video, d.title);
+      loadContinueWatching();
     };
 
     box.appendChild(img);
@@ -138,16 +137,17 @@ function openPlayer(item) {
 
   const title = item.title || item.name;
 
-  document.getElementById("modal-title").innerText = title;
-
-  player.src = item.title
+  const video = item.title
     ? `https://vidsrc.cc/v2/embed/movie/${item.id}`
     : `https://vidsrc.cc/v2/embed/tv/${item.id}/1/1`;
 
+  document.getElementById("modal-title").innerText = title;
+  player.src = video;
   document.getElementById("modal").style.display = "flex";
 
-  saveLast(player.src, title);
-  loadContinueWatching(); // 🔥 update agad
+  // 🔥 FIXED
+  saveLast(video, title);
+  loadContinueWatching();
 }
 
 // CLOSE
