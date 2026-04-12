@@ -23,51 +23,55 @@ async function fetchData(type) {
 
 // SAVE LAST
 function saveLast(video, title, image) {
-  localStorage.setItem("lastVideo", video);
-  localStorage.setItem("lastTitle", title);
-  localStorage.setItem("lastImage", image);
+  let history = JSON.parse(localStorage.getItem("continueList")) || [];
+
+  // remove duplicate
+  history = history.filter(item => item.video !== video);
+
+  // add sa unahan
+  history.unshift({ video, title, image });
+
+  // limit to 10 items
+  history = history.slice(0, 10);
+
+  localStorage.setItem("continueList", JSON.stringify(history));
 }
 
 // CONTINUE WATCHING
 function loadContinueWatching() {
-  const video = localStorage.getItem("lastVideo");
-  const title = localStorage.getItem("lastTitle");
-  let image = localStorage.getItem("lastImage");
-
+  const list = JSON.parse(localStorage.getItem("continueList")) || [];
   const box = document.getElementById("continue-list");
+
   box.innerHTML = "";
 
-  if (!video) return;
+  if (list.length === 0) return;
 
-  // 🔥 AUTO FIX OLD DATA
-  if (!image) {
-    image = "https://i.imgur.com/8Km9tLL.jpg";
-  }
+  list.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "continue-card";
 
-  const card = document.createElement("div");
-  card.className = "continue-card";
+    const img = document.createElement("img");
+    img.src = item.image;
 
-  const img = document.createElement("img");
-  img.src = image;
+    img.onclick = () => {
+      document.getElementById("modal-title").innerText = item.title;
+      document.getElementById("modal-video").src = item.video;
+      document.getElementById("modal").style.display = "flex";
+    };
 
-  img.onclick = () => {
-    document.getElementById("modal-title").innerText = title;
-    document.getElementById("modal-video").src = video;
-    document.getElementById("modal").style.display = "flex";
-  };
+    const play = document.createElement("div");
+    play.className = "play-icon";
+    play.innerText = "▶";
 
-  const play = document.createElement("div");
-  play.className = "play-icon";
-  play.innerText = "▶";
+    const label = document.createElement("p");
+    label.innerText = item.title;
 
-  const label = document.createElement("p");
-  label.innerText = title;
+    card.appendChild(img);
+    card.appendChild(play);
+    card.appendChild(label);
 
-  card.appendChild(img);
-  card.appendChild(play);
-  card.appendChild(label);
-
-  box.appendChild(card);
+    box.appendChild(card);
+  });
 }
 
 // FAVORITES
