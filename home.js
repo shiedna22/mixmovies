@@ -214,17 +214,34 @@ function ultraMode() {
     div.className = "ultra-item";
 
     div.innerHTML = `
-      <div class="ultra-video">
-        <iframe src="${d.video}" allow="autoplay"></iframe>
-        <div class="ultra-overlay">
-          <h3>${d.title}</h3>
-          <button onclick="likeDrama('${d.title}')">❤️</button>
-        </div>
-      </div>
-    `;
+  <div class="ultra-video" onclick="playUltra('${d.video}', '${d.title}')">
+    
+    <img src="${d.image}" style="width:100%; height:100%; object-fit:cover;">
+    
+    <div class="ultra-overlay">
+      <h3>${d.title}</h3>
+      <button onclick="likeDrama('${d.title}')">❤️</button>
+    </div>
+
+    <div style="
+      position:absolute;
+      top:50%;
+      left:50%;
+      transform:translate(-50%, -50%);
+      font-size:30px;
+    ">▶</div>
+
+  </div>
+`;
 
     container.appendChild(div);
   });
+}
+
+function playUltra(video, title) {
+  document.getElementById("modal-title").innerText = title;
+  document.getElementById("modal-video").src = video;
+  document.getElementById("modal").style.display = "flex";
 }
 
 // 🔄 AUTO NEXT (FIXED)
