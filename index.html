@@ -12,7 +12,6 @@ body {
   margin:0;
 }
 
-/* NAVBAR */
 .navbar {
   position:sticky;
   top:0;
@@ -21,15 +20,11 @@ body {
   display:flex;
   justify-content:space-between;
   align-items:center;
-  z-index:1000;
 }
 
 .logo { color:red; font-weight:bold; }
 
-.menu {
-  display:flex;
-  align-items:center;
-}
+.menu { display:flex; align-items:center; }
 
 .menu a {
   color:white;
@@ -39,7 +34,6 @@ body {
 
 .menu a:hover { color:red; }
 
-/* SEARCH */
 #searchInput {
   margin-left:10px;
   padding:6px;
@@ -55,20 +49,6 @@ body {
   display:flex;
   align-items:flex-end;
   padding:20px;
-  position:relative;
-}
-
-#banner::before {
-  content:"";
-  position:absolute;
-  width:100%;
-  height:100%;
-  background:linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-}
-
-#banner div {
-  position:relative;
-  z-index:2;
 }
 
 #watchBtn {
@@ -89,9 +69,7 @@ h2 { margin:15px; }
   gap:10px;
 }
 
-.list::-webkit-scrollbar {
-  display:none;
-}
+.list::-webkit-scrollbar { display:none; }
 
 img {
   width:120px;
@@ -112,11 +90,9 @@ img:hover {
   height:100%;
   background:rgba(0,0,0,0.95);
   top:0;
-  left:0;
   justify-content:center;
   align-items:center;
   flex-direction:column;
-  z-index:2000;
 }
 
 #modal-video {
@@ -136,10 +112,6 @@ img:hover {
   right:20px;
   font-size:25px;
   cursor:pointer;
-}
-
-@media(max-width:600px){
-  #modal-video { height:220px; }
 }
 </style>
 </head>
@@ -169,6 +141,9 @@ img:hover {
 
 <h2 id="movies">🔥 Movies</h2>
 <div id="movies-list" class="list"></div>
+
+<h2>▶ Continue Watching</h2>
+<div id="continue-list" class="list"></div>
 
 <h2 id="tv">📺 TV Shows</h2>
 <div id="tvshows-list" class="list"></div>
