@@ -119,20 +119,17 @@ img:hover {
   z-index:2000;
 }
 
-/* VIDEO */
 #modal-video {
   width:95%;
   height:250px;
 }
 
-/* 📱 PORTRAIT DRAMA */
 #modal-video.portrait {
   width:60%;
   height:70vh;
   max-width:300px;
 }
 
-/* CLOSE BUTTON */
 .close {
   position:absolute;
   top:20px;
@@ -141,70 +138,8 @@ img:hover {
   cursor:pointer;
 }
 
-/* MOBILE */
 @media(max-width:600px){
   #modal-video { height:220px; }
-}
-
-/* 🔥 ULTRA MODE FIXED */
-##ultra-container {
-  height: auto;
-  overflow-x: auto;
-  display: flex;
-  gap: 10px;
-  padding: 10px;
-}
-
-.ultra-item {
-  width: 180px;
-  height: 320px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  overflow: hidden; /* 🔥 IMPORTANT */
-  background: #111;
-}
-  
-#ultra-container::-webkit-scrollbar {
-  display: none;
-}
-
-.ultra-video {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.ultra-video iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  pointer-events: none; /* 🔥 para hindi clickable */
-}
-
-/* OVERLAY */
-.ultra-overlay {
-  position: absolute;
-  bottom: 20px;
-  left: 15px;
-  color: white;
-  z-index: 2;
-}
-
-.ultra-overlay button {
-  background: red;
-  border: none;
-  padding: 8px;
-  border-radius: 5px;
-}
-
-/* GRADIENT */
-.ultra-video::after {
-  content:"";
-  position:absolute;
-  bottom:0;
-  width:100%;
-  height:50%;
-  background:linear-gradient(to top, black, transparent);
 }
 </style>
 </head>
@@ -246,9 +181,6 @@ img:hover {
 
 <h2>❤️ Favorites</h2>
 <div id="favorites-list" class="list"></div>
-
-<h2>📱 Ultra Mode</h2>
-<div id="ultra-container"></div>
 
 <!-- MODAL -->
 <div id="modal">
