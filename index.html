@@ -6,17 +6,17 @@
 
 <style>
 body{
+  margin:0;
   background:#0b0b0b;
   color:white;
   font-family:Arial;
-  margin:0;
 }
 
 /* NAVBAR */
 .navbar{
   position:fixed;
-  width:100%;
   top:0;
+  width:100%;
   background:rgba(0,0,0,0.8);
   backdrop-filter:blur(10px);
   padding:15px;
@@ -24,8 +24,12 @@ body{
   justify-content:space-between;
   z-index:1000;
 }
-
 .logo{color:red;font-weight:bold;}
+
+.menu{
+  display:flex;
+  align-items:center;
+}
 
 .menu a{
   color:white;
@@ -34,6 +38,7 @@ body{
 }
 
 #searchInput{
+  margin-left:10px;
   padding:5px;
   border-radius:20px;
   border:none;
@@ -64,16 +69,14 @@ body{
   border:none;
   padding:10px;
   border-radius:5px;
+  color:white;
 }
 
 /* SECTION */
-.section{
-  padding:10px;
-}
-
 .section-header{
   display:flex;
   justify-content:space-between;
+  padding:0 15px;
 }
 
 .view-btn{
@@ -87,8 +90,8 @@ body{
   display:flex;
   overflow-x:auto;
   gap:10px;
+  padding:10px;
 }
-
 .list::-webkit-scrollbar{display:none;}
 
 /* CARD */
@@ -97,12 +100,10 @@ body{
   position:relative;
   transition:0.3s;
 }
-
 .card img{
   width:100%;
   border-radius:10px;
 }
-
 .card:hover{
   transform:scale(1.1);
   z-index:10;
@@ -118,10 +119,7 @@ body{
   opacity:0;
   transition:0.3s;
 }
-
-.card:hover .overlay{
-  opacity:1;
-}
+.card:hover .overlay{opacity:1;}
 
 .title{font-size:12px;}
 .desc{font-size:10px;color:gray;}
@@ -138,9 +136,10 @@ body{
   justify-content:center;
   align-items:center;
   flex-direction:column;
+  z-index:2000;
 }
 
-#modal iframe{
+#modal-video{
   width:95%;
   height:250px;
 }
@@ -150,20 +149,26 @@ body{
   top:20px;
   right:20px;
   font-size:25px;
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
+<!-- NAVBAR -->
 <div class="navbar">
   <div class="logo">🎬 ShiedFlix</div>
   <div class="menu">
     <a href="#">Home</a>
+    <a href="#movies">Movies</a>
+    <a href="#tv">TV</a>
+    <a href="#anime">Anime</a>
     <input id="searchInput" placeholder="Search...">
   </div>
 </div>
 
+<!-- BANNER -->
 <div id="banner">
   <div>
     <h2 id="banner-title">Loading...</h2>
@@ -171,18 +176,26 @@ body{
   </div>
 </div>
 
-<div class="section">
-  <div class="section-header">
-    <h2>🔥 Movies</h2>
-    <button class="view-btn" onclick="viewAll()">View All</button>
-  </div>
-  <div id="movies" class="list"></div>
+<!-- MOVIES -->
+<div class="section-header">
+  <h2 id="movies">🔥 Movies</h2>
+  <button id="viewBtn" class="view-btn" onclick="viewAll()">View All</button>
 </div>
+<div id="movies-list" class="list"></div>
 
+<!-- TV -->
+<h2 style="padding-left:15px;" id="tv">📺 TV Shows</h2>
+<div id="tvshows-list" class="list"></div>
+
+<!-- ANIME -->
+<h2 style="padding-left:15px;" id="anime">🎌 Anime</h2>
+<div id="anime-list" class="list"></div>
+
+<!-- MODAL -->
 <div id="modal">
   <span class="close" onclick="closeModal()">✖</span>
   <h3 id="modal-title"></h3>
-  <iframe id="video"></iframe>
+  <iframe id="modal-video" allowfullscreen></iframe>
 </div>
 
 <script>
@@ -190,110 +203,139 @@ const API_KEY="43c2413701b5c752d07b62acf8e57736";
 const BASE="https://api.themoviedb.org/3";
 const IMG="https://image.tmdb.org/t/p/w500";
 
-let movies=[];
-let isAll=false;
+let movies=[],tvshows=[],anime=[];
+let isViewAll=false;
 
 // FETCH
-async function getMovies(){
-  const res=await fetch(`${BASE}/trending/movie/week?api_key=${API_KEY}`);
+async function fetchData(type){
+  const res=await fetch(`${BASE}/trending/${type}/week?api_key=${API_KEY}`);
   const data=await res.json();
-  movies=data.results;
-  showMovies(movies);
-  banner();
+  return data.results||[];
+}
+
+// CARD
+function createCard(i){
+  const card=document.createElement("div");
+  card.className="card";
+
+  const img=document.createElement("img");
+  img.src=IMG+i.poster_path;
+
+  const overlay=document.createElement("div");
+  overlay.className="overlay";
+
+  const title=document.createElement("div");
+  title.className="title";
+  title.innerText=i.title||i.name;
+
+  const rating=document.createElement("div");
+  rating.className="rating";
+  rating.innerText="⭐ "+(i.vote_average||"N/A");
+
+  const desc=document.createElement("div");
+  desc.className="desc";
+  desc.innerText=i.overview?i.overview.slice(0,40)+"...":"";
+
+  overlay.append(title,rating,desc);
+  card.append(img,overlay);
+
+  card.onclick=()=>openPlayer(i);
+
+  return card;
 }
 
 // SHOW
-function showMovies(list){
-  const box=document.getElementById("movies");
+function show(list,id){
+  const box=document.getElementById(id);
   box.innerHTML="";
-
   list.forEach(i=>{
-    if(!i.poster_path)return;
-
-    const card=document.createElement("div");
-    card.className="card";
-
-    const img=document.createElement("img");
-    img.src=IMG+i.poster_path;
-
-    const overlay=document.createElement("div");
-    overlay.className="overlay";
-
-    const title=document.createElement("div");
-    title.className="title";
-    title.innerText=i.title;
-
-    const rating=document.createElement("div");
-    rating.className="rating";
-    rating.innerText="⭐ "+i.vote_average;
-
-    const desc=document.createElement("div");
-    desc.className="desc";
-    desc.innerText=i.overview.slice(0,40)+"...";
-
-    overlay.append(title,rating,desc);
-    card.append(img,overlay);
-
-    card.onclick=()=>openMovie(i);
-
-    box.appendChild(card);
+    if(i.poster_path) box.appendChild(createCard(i));
   });
 }
 
 // PLAYER
-function openMovie(i){
+function openPlayer(i){
   document.getElementById("modal").style.display="flex";
-  document.getElementById("modal-title").innerText=i.title;
-  document.getElementById("video").src=
-  `https://vidsrc.cc/v2/embed/movie/${i.id}`;
+  document.getElementById("modal-title").innerText=i.title||i.name;
+
+  const src=i.title
+  ? `https://vidsrc.cc/v2/embed/movie/${i.id}`
+  : `https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
+
+  document.getElementById("modal-video").src=src;
 }
 
 // CLOSE
 function closeModal(){
   document.getElementById("modal").style.display="none";
-  document.getElementById("video").src="";
+  document.getElementById("modal-video").src="";
 }
 
 // BANNER
-function banner(){
+function startBanner(){
+  const valid=movies.filter(m=>m.backdrop_path);
+  if(valid.length===0)return;
+
   setInterval(()=>{
-    const m=movies[Math.floor(Math.random()*movies.length)];
-    if(!m.backdrop_path)return;
+    const m=valid[Math.floor(Math.random()*valid.length)];
 
     document.getElementById("banner").style.backgroundImage=
     `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
 
     document.getElementById("banner-title").innerText=m.title;
-    document.getElementById("watchBtn").onclick=()=>openMovie(m);
+    document.getElementById("watchBtn").onclick=()=>openPlayer(m);
   },3000);
 }
 
 // VIEW ALL
 function viewAll(){
-  const box=document.getElementById("movies");
+  const box=document.getElementById("movies-list");
+  const btn=document.getElementById("viewBtn");
 
-  if(!isAll){
+  if(isViewAll){
+    isViewAll=false;
+    box.style.flexWrap="nowrap";
+    show(movies,"movies-list");
+    btn.innerText="View All";
+  }else{
+    isViewAll=true;
     box.style.flexWrap="wrap";
     box.style.justifyContent="center";
-    isAll=true;
-  }else{
-    box.style.flexWrap="nowrap";
-    isAll=false;
+    show(movies,"movies-list");
+    btn.innerText="Back";
   }
 }
 
 // SEARCH
 document.getElementById("searchInput").addEventListener("input",async e=>{
   const q=e.target.value;
-  if(!q)return showMovies(movies);
 
-  const res=await fetch(`${BASE}/search/movie?api_key=${API_KEY}&query=${q}`);
+  if(!q){
+    show(movies,"movies-list");
+    show(tvshows,"tvshows-list");
+    show(anime,"anime-list");
+    return;
+  }
+
+  const res=await fetch(`${BASE}/search/multi?api_key=${API_KEY}&query=${q}`);
   const data=await res.json();
-  showMovies(data.results);
+
+  show(data.results,"movies-list");
 });
 
 // INIT
-getMovies();
+async function init(){
+  movies=await fetchData("movie");
+  tvshows=await fetchData("tv");
+  anime=tvshows.filter(x=>x.original_language==="ja");
+
+  show(movies,"movies-list");
+  show(tvshows,"tvshows-list");
+  show(anime,"anime-list");
+
+  startBanner();
+}
+init();
 </script>
 
 </body>
