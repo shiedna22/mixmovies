@@ -55,6 +55,7 @@ padding:5px;opacity:0;transition:0.3s;
 .fav{
 position:absolute;top:5px;right:5px;
 font-size:18px;cursor:pointer;
+z-index:5;
 }
 
 /* TRAILER */
@@ -64,15 +65,44 @@ width:100%;height:100%;
 top:0;left:0;
 border-radius:10px;
 display:none;
+z-index:3;
 }
 
 /* MODAL */
 #modal{
-display:none;position:fixed;width:100%;height:100%;
-background:black;top:0;justify-content:center;align-items:center;flex-direction:column;
+display:none;
+position:fixed;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.95);
+top:0;
+left:0;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+z-index:9998;
 }
-#modal-video{width:95%;height:250px;}
-.close{position:absolute;top:20px;right:20px;font-size:25px;}
+
+/* VIDEO */
+#modal-video{
+width:95%;
+height:250px;
+border:none;
+}
+
+/* CLOSE BUTTON FIXED */
+.close{
+position:absolute;
+top:20px;
+right:20px;
+font-size:30px;
+color:white;
+z-index:9999;
+background:rgba(0,0,0,0.6);
+padding:5px 10px;
+border-radius:5px;
+cursor:pointer;
+}
 </style>
 </head>
 
@@ -105,10 +135,11 @@ background:black;top:0;justify-content:center;align-items:center;flex-direction:
 <h2 style="padding-left:15px;">❤️ Favorites</h2>
 <div id="favorites-list" class="list"></div>
 
+<!-- MODAL -->
 <div id="modal">
 <span class="close" onclick="closeModal()">✖</span>
 <h3 id="modal-title"></h3>
-<iframe id="modal-video"></iframe>
+<iframe id="modal-video" allowfullscreen></iframe>
 </div>
 
 <script>
@@ -145,24 +176,7 @@ card.className="card";
 const img=document.createElement("img");
 img.src=IMG+item.poster_path;
 
-const overlay=document.createElement("div");
-overlay.className="overlay";
-
-const title=document.createElement("div");
-title.className="title";
-title.innerText=item.title||item.name;
-
-const rating=document.createElement("div");
-rating.className="rating";
-rating.innerText="⭐ "+(item.vote_average||"N/A");
-
-const desc=document.createElement("div");
-desc.className="desc";
-desc.innerText=item.overview?item.overview.slice(0,40)+"...":"";
-
-overlay.append(title,rating,desc);
-
-// ❤️ FAVORITE
+// FAVORITE
 const fav=document.createElement("div");
 fav.className="fav";
 fav.innerText="❤️";
@@ -171,7 +185,7 @@ e.stopPropagation();
 addFav(item);
 };
 
-// 🎬 TRAILER
+// TRAILER
 const video=document.createElement("iframe");
 video.className="preview";
 
@@ -191,6 +205,24 @@ tapped=true;
 openPlayer(item);
 }
 };
+
+// OVERLAY
+const overlay=document.createElement("div");
+overlay.className="overlay";
+
+const title=document.createElement("div");
+title.className="title";
+title.innerText=item.title||item.name;
+
+const rating=document.createElement("div");
+rating.className="rating";
+rating.innerText="⭐ "+(item.vote_average||"N/A");
+
+const desc=document.createElement("div");
+desc.className="desc";
+desc.innerText=item.overview?item.overview.slice(0,40)+"...":"";
+
+overlay.append(title,rating,desc);
 
 card.append(img,video,overlay,fav);
 return card;
@@ -222,6 +254,11 @@ function closeModal(){
 document.getElementById("modal").style.display="none";
 document.getElementById("modal-video").src="";
 }
+
+// TAP OUTSIDE CLOSE
+document.getElementById("modal").onclick = (e) => {
+if (e.target.id === "modal") closeModal();
+};
 
 // FAVORITES
 function addFav(item){
