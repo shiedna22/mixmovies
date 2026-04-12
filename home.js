@@ -21,27 +21,28 @@ async function fetchData(type) {
 }
 
 // SAVE LAST
-function saveLast(video, title) {
+function saveLast(video, title, image) {
   localStorage.setItem("lastVideo", video);
   localStorage.setItem("lastTitle", title);
+  localStorage.setItem("lastImage", image);
 }
 
 // CONTINUE WATCHING
 function loadContinueWatching() {
   const video = localStorage.getItem("lastVideo");
   const title = localStorage.getItem("lastTitle");
-  const box = document.getElementById("continue-list");
+  const image = localStorage.getItem("lastImage");
 
+  const box = document.getElementById("continue-list");
   box.innerHTML = "";
+
   if (!video) return;
 
   const card = document.createElement("div");
   card.className = "continue-card";
 
   const img = document.createElement("img");
-  img.src = movies[0]?.poster_path
-    ? IMG + movies[0].poster_path
-    : "https://i.imgur.com/8Km9tLL.jpg";
+  img.src = image || "https://i.imgur.com/8Km9tLL.jpg";
 
   img.onclick = () => {
     document.getElementById("modal-title").innerText = title;
@@ -113,18 +114,18 @@ function showDrama() {
     img.src = d.image;
 
     img.onclick = () => {
-      const player = document.getElementById("modal-video");
+  const player = document.getElementById("modal-video");
 
-      player.classList.add("portrait");
-      player.src = d.video;
+  player.classList.add("portrait");
+  player.src = d.video;
 
-      document.getElementById("modal-title").innerText = d.title;
-      document.getElementById("modal").style.display = "flex";
+  document.getElementById("modal-title").innerText = d.title;
+  document.getElementById("modal").style.display = "flex";
 
-      // 🔥 FIXED
-      saveLast(d.video, d.title);
-      loadContinueWatching();
-    };
+  // 🔥 FIXED
+  saveLast(d.video, d.title, d.image);
+  loadContinueWatching();
+};
 
     box.appendChild(img);
   });
@@ -136,6 +137,7 @@ function openPlayer(item) {
   player.classList.remove("portrait");
 
   const title = item.title || item.name;
+  const image = IMG + item.poster_path;
 
   const video = item.title
     ? `https://vidsrc.cc/v2/embed/movie/${item.id}`
@@ -146,7 +148,7 @@ function openPlayer(item) {
   document.getElementById("modal").style.display = "flex";
 
   // 🔥 FIXED
-  saveLast(video, title);
+  saveLast(video, title, image);
   loadContinueWatching();
 }
 
