@@ -314,14 +314,7 @@ box.innerHTML="";
 list.forEach(i=>{
 if(!i.poster_path)return;
 
-const card = document.createElement("div");
-card.style.position = "relative";
-card.style.minWidth = "130px";
-
-const img = document.createElement("img");
-img.src = IMG + i.poster_path;
-
-/* 🔥 TITLE LABEL */
+/* CARD */
 const card = document.createElement("div");
 card.style.minWidth = "130px";
 card.style.display = "flex";
@@ -329,7 +322,9 @@ card.style.flexDirection = "column";
 
 /* IMAGE */
 const img = document.createElement("img");
-img.src = IMG + i.poster_path;
+img.src = i.poster_path
+  ? IMG + i.poster_path
+  : "https://via.placeholder.com/150x220?text=No+Image";
 
 /* TITLE SA LABAS */
 const label = document.createElement("div");
@@ -386,7 +381,27 @@ box.innerHTML="<p style='color:white'>No results</p>";
 return;
 }
 
-results.slice(0,20).forEach(i=>{
+
+
+img.onclick=()=>{
+current=i;
+currentType=i.media_type === "movie" ? "movie" : "tv";
+openDetails(i,currentType);
+};
+});
+
+}catch(err){
+console.log("Search error:", err);
+}
+
+},400);
+});
+
+/* DETAILS */
+async function openDetails(i,type){
+document.getElementById("details").style.display="block";
+document.getElementById("title").innerText=title(i);
+documentresults.slice(0,20).forEach(i=>{
 if(!i.poster_path) return;
 
 const card = document.createElement("div");
@@ -412,28 +427,9 @@ card.appendChild(img);
 card.appendChild(label);
 
 box.appendChild(card);
-
-img.onclick=()=>{
-current=i;
-currentType=i.media_type === "movie" ? "movie" : "tv";
-openDetails(i,currentType);
-};
-
-box.appendChild(img);
 });
 
-}catch(err){
-console.log("Search error:", err);
-}
-
-},400);
-});
-
-/* DETAILS */
-async function openDetails(i,type){
-document.getElementById("details").style.display="block";
-document.getElementById("title").innerText=title(i);
-document.getElementById("desc").innerText=i.overview||"";
+.getElementById("desc").innerText=i.overview||"";
 document.getElementById("trailer").src=await getTrailer(i.id,type);
 document.getElementById("episodes").innerHTML="";
 if(type==="tv") loadEpisodes(i.id);
