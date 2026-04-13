@@ -154,8 +154,31 @@ border:none;
 width:110px;
 height:160px;
 }
-
+#banner{
+height:60vh;
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+display:flex;
+align-items:flex-end;
+padding:20px;
+margin-top:60px;
+position:relative;
 }
+
+#banner::after{
+content:"";
+position:absolute;
+bottom:0;
+width:100%;
+height:120px;
+background:linear-gradient(to top,#000,transparent);
+}
+  
+#banner{
+filter:brightness(0.8);
+}
+  
 </style>
 </head>
 
