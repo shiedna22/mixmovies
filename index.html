@@ -46,7 +46,7 @@ background:linear-gradient(to top,#000,transparent);
 }
 
 /* ROW */
-.row{margin-top:10px}
+.row{margin-top:15px}
 .row h2{padding-left:10px}
 .row-posters{
 display:flex;overflow-x:auto;
@@ -64,6 +64,15 @@ cursor:pointer;
 width:130px;height:190px;
 object-fit:cover;
 border-radius:8px;
+transition:0.3s;
+}
+.card img:hover{
+transform:scale(1.08);
+box-shadow:0 0 15px rgba(255,0,0,0.7);
+}
+.card div{
+font-size:12px;
+margin-top:5px;
 }
 
 /* PREVIEW */
@@ -72,8 +81,9 @@ display:none;
 position:fixed;
 top:0;left:0;
 width:100vw;height:100vh;
-z-index:99999;
 background:black;
+z-index:99999;
+overflow:hidden;
 }
 .preview-bg{
 position:absolute;
@@ -82,26 +92,37 @@ background-size:cover;
 background-position:center;
 filter:brightness(0.5);
 }
-.preview-content{
+#preview::after{
+content:"";
 position:absolute;
-bottom:40px;
-left:20px;
-max-width:90%;
+bottom:0;
+width:100%;
+height:200px;
+background:linear-gradient(to top,rgba(0,0,0,0.9),transparent);
 }
-.preview-content h2{font-size:22px}
-.preview-content p{font-size:13px}
-
-.play-big{
+.preview-center{
 position:absolute;
 top:50%;left:50%;
 transform:translate(-50%,-50%);
+z-index:2;
+}
+.play-big{
 font-size:50px;
 padding:20px 30px;
-border:none;
 border-radius:50%;
+border:none;
 background:rgba(0,0,0,0.6);
 color:white;
 }
+.preview-info{
+position:absolute;
+bottom:40px;
+left:20px;
+z-index:2;
+max-width:90%;
+}
+.preview-info h2{font-size:20px}
+.preview-info p{font-size:13px}
 
 /* PLAYER */
 #player{
@@ -122,7 +143,6 @@ position:absolute;
 right:20px;
 top:10px;
 font-size:30px;
-z-index:3;
 cursor:pointer;
 }
 </style></head><body><div class="navbar">
@@ -135,10 +155,13 @@ cursor:pointer;
 <p id="hero-desc"></p>
 <button id="playHero">▶ Play</button>
 </div>
-</div><!-- ROW --><div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div><!-- PREVIEW --><div id="preview">
-<div class="preview-bg" id="previewBg"></div><button class="play-big" onclick="startPlay()">▶</button>
-
-<div class="preview-content">
+</div><!-- ROWS --><div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
+<div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
+<div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
+<div class="row"><h2>🍥 Anime</h2><div id="anime" class="row-posters"></div></div><!-- PREVIEW --><div id="preview">
+<div class="preview-bg" id="previewBg"></div><div class="preview-center">
+<button class="play-big" onclick="startPlay()">▶</button>
+</div><div class="preview-info">
 <h2 id="previewTitle"></h2>
 <p id="previewDesc"></p>
 <button onclick="startPlay()">▶ Play</button>
@@ -153,6 +176,7 @@ const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
 
 let current=null,currentType="movie";
+let heroList=[],heroIndex=0;
 
 /* FETCH */
 async function fetchData(url){
@@ -178,11 +202,16 @@ const card=document.createElement("div");
 card.className="card";
 
 const img=document.createElement("img");
-img.src=IMG+i.poster_path;
+img.src=i.poster_path?IMG+i.poster_path:"https://via.placeholder.com/150x220?text=No+Image";
+
+const label=document.createElement("div");
+label.innerText=title(i);
 
 card.onclick=()=>openPreview(i,type);
 
 card.appendChild(img);
+card.appendChild(label);
+
 return card;
 }
 
@@ -202,11 +231,16 @@ current=i;
 currentType=type;
 
 document.getElementById("preview").style.display="block";
+
 document.getElementById("previewTitle").innerText=title(i);
 document.getElementById("previewDesc").innerText=i.overview||"No description";
 
+if(i.backdrop_path){
 document.getElementById("previewBg").style.backgroundImage=
 `url(https://image.tmdb.org/t/p/original${i.backdrop_path})`;
+}else{
+document.getElementById("previewBg").style.background="#000";
+}
 }
 function closePreview(){
 document.getElementById("preview").style.display="none";
@@ -230,29 +264,56 @@ document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
 }
 
+/* HERO */
+async function setHero(m){
+current=m;
+currentType=m.title?"movie":"tv";
+
+document.getElementById("hero-title").innerText=title(m);
+document.getElementById("hero-desc").innerText=(m.overview||"").slice(0,100)+"...";
+
+const trailer=await getTrailer(m.id,currentType);
+const heroVideo=document.getElementById("heroVideo");
+
+if(trailer){
+heroVideo.style.display="block";
+heroVideo.src=trailer;
+document.getElementById("hero").style.backgroundImage="none";
+}else{
+heroVideo.style.display="none";
+if(m.backdrop_path){
+document.getElementById("hero").style.backgroundImage=
+`url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
+}
+}
+
+document.getElementById("playHero").onclick=()=>openPreview(m,currentType);
+}
+
+/* HERO SLIDER */
+function startHeroSlider(){
+setInterval(()=>{
+heroIndex++;
+if(heroIndex>=heroList.length) heroIndex=0;
+setHero(heroList[heroIndex]);
+},5000);
+}
+
 /* INIT */
 async function init(){
 const trending=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
+const movies=await fetchData(`${API}/movie/popular?api_key=${KEY}`);
+const tv=await fetchData(`${API}/tv/popular?api_key=${KEY}`);
+const anime=await fetchData(`${API}/discover/tv?api_key=${KEY}&with_genres=16`);
 
 show(trending,"trending","movie");
+show(movies,"movies","movie");
+show(tv,"tv","tv");
+show(anime,"anime","tv");
 
-const hero=trending[0];
-
-document.getElementById("hero-title").innerText=title(hero);
-document.getElementById("hero-desc").innerText=hero.overview||"";
-
-document.getElementById("playHero").onclick=()=>openPreview(hero,"movie");
-
-/* FIX HERO (NO BLACK SCREEN) */
-const trailer=await getTrailer(hero.id, hero.title?"movie":"tv");
-
-if(trailer){
-document.getElementById("heroVideo").src=trailer;
-}else{
-document.getElementById("heroVideo").style.display="none";
-document.getElementById("hero").style.backgroundImage=
-`url(https://image.tmdb.org/t/p/original${hero.backdrop_path})`;
-}
+heroList=trending;
+setHero(trending[0]);
+startHeroSlider();
 }
 init();
 </script></body>
