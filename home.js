@@ -54,12 +54,16 @@ function createCard(item) {
     : "No description";
 
   overlay.append(title, rating, desc);
-  
-card.style.position = "relative";
 
-/* LABEL (always visible) */
+  card.style.position = "relative";
+
+/* IMAGE */
+card.appendChild(img);
+
+/* 🔥 LABEL (VISIBLE ALWAYS) */
 const label = document.createElement("div");
 label.innerText = item.title || item.name;
+
 label.style.position = "absolute";
 label.style.bottom = "0";
 label.style.left = "0";
@@ -68,14 +72,23 @@ label.style.padding = "6px";
 label.style.fontSize = "12px";
 label.style.background = "linear-gradient(to top, rgba(0,0,0,0.95), transparent)";
 label.style.color = "white";
-label.style.zIndex = "2"; // 🔥 important
+label.style.zIndex = "5";
 
-/* overlay nasa ilalim */
-overlay.style.zIndex = "1";
+card.appendChild(label);
 
-card.append(img, overlay, label);
+/* OPTIONAL: overlay (hover only) */
+overlay.style.opacity = "0";
+overlay.style.transition = "0.3s";
 
-  card.onclick = () => openPlayer(item);
+card.onmouseenter = () => overlay.style.opacity = "1";
+card.onmouseleave = () => overlay.style.opacity = "0";
+
+card.appendChild(overlay);
+
+/* CLICK */
+card.onclick = () => openPlayer(item);
+  
+
 
   return card;
 }
