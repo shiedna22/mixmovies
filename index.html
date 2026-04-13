@@ -28,8 +28,11 @@ background:black;
 }
 #hero iframe{
 position:absolute;
-top:0;left:0;
-width:100%;height:100%;
+top:50%;
+left:50%;
+width:177.77vh; /* 16:9 ratio */
+height:100vh;
+transform:translate(-50%, -50%);
 opacity:0.4;
 pointer-events:none;
 }
@@ -209,7 +212,18 @@ currentType=m.title?"movie":"tv";
 
 document.getElementById("hero-title").innerText=title(m);
 document.getElementById("hero-desc").innerText=(m.overview||"").slice(0,100)+"...";
-document.getElementById("heroVideo").src=await getTrailer(m.id,currentType);
+const trailer = await getTrailer(m.id,currentType);
+const hero = document.getElementById("heroVideo");
+
+if(trailer){
+  hero.src = trailer;
+}else{
+  hero.src = "";
+  document.getElementById("hero").style.backgroundImage =
+    `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
+  document.getElementById("hero").style.backgroundSize = "cover";
+  document.getElementById("hero").style.backgroundPosition = "center";
+}
 document.getElementById("playHero").onclick=()=>openPlayer(m);
 }
 
