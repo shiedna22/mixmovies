@@ -225,6 +225,8 @@ console.log("Search error:", err);
 }
 });
 
+});
+
 /* click outside = hide */
 document.addEventListener("click",(e)=>{
 if(!e.target.closest("#searchInput")){
