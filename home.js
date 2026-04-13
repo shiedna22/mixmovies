@@ -54,7 +54,23 @@ function createCard(item) {
     : "No description";
 
   overlay.append(title, rating, desc);
-  card.append(img, overlay);
+  /* ADD LABEL */
+const label = document.createElement("div");
+label.innerText = item.title || item.name;
+label.style.position = "absolute";
+label.style.bottom = "0";
+label.style.left = "0";
+label.style.width = "100%";
+label.style.padding = "5px";
+label.style.fontSize = "12px";
+label.style.background = "linear-gradient(to top, rgba(0,0,0,0.9), transparent)";
+label.style.color = "white";
+
+/* IMPORTANT: gawin relative ang card */
+card.style.position = "relative";
+
+/* UPDATE append */
+card.append(img, overlay, label);
 
   card.onclick = () => openPlayer(item);
 
