@@ -308,37 +308,58 @@ box.appendChild(img);
 allMovies=[...allMovies,...list];
 }
 
-/* SEARCH */
+/* 🔥 SEARCH (FIXED) */
 let debounce;
+
 document.getElementById("search").addEventListener("input",(e)=>{
 clearTimeout(debounce);
-debounce=setTimeout(()=>{
-const v=e.target.value.toLowerCase().trim();
-const row=document.getElementById("searchRow");
 
-if(!v){row.style.display="none";return;}
+debounce = setTimeout(async ()=>{
 
-const res=allMovies.filter(m=>title(m).toLowerCase().includes(v));
+const v = e.target.value.trim();
+const row = document.getElementById("searchRow");
+const box = document.getElementById("searchResults");
+
+if(!v){
+row.style.display="none";
+box.innerHTML="";
+return;
+}
+
+try{
+
+const res = await fetch(`${API}/search/multi?api_key=${KEY}&query=${v}`);
+const data = await res.json();
+const results = data.results || [];
+
 row.style.display="block";
-
-const box=document.getElementById("searchResults");
 box.innerHTML="";
 
-res.slice(0,20).forEach(i=>{
-if(!i.poster_path)return;
+if(results.length === 0){
+box.innerHTML="<p style='color:white'>No results</p>";
+return;
+}
+
+results.slice(0,20).forEach(i=>{
+if(!i.poster_path) return;
 
 const img=document.createElement("img");
 img.src=IMG+i.poster_path;
 
 img.onclick=()=>{
 current=i;
-currentType=i.title?"movie":"tv";
+currentType=i.media_type === "movie" ? "movie" : "tv";
 openDetails(i,currentType);
 };
 
 box.appendChild(img);
 });
-},300);
+
+}catch(err){
+console.log("Search error:", err);
+}
+
+},400);
 });
 
 /* DETAILS */
