@@ -4,6 +4,7 @@
 <title>ShiedFlix Ultimate</title><style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:white;font-family:Arial}
+html{scroll-behavior:smooth}
 
 /* NAV */
 .navbar{
@@ -25,17 +26,29 @@ padding:20px;
 margin-top:60px;
 position:relative;
 background:black;
+overflow:hidden;
 }
+
 #hero iframe{
 position:absolute;
 top:50%;
 left:50%;
-width:177.77vh; /* 16:9 ratio */
+width:177.77vh;
 height:100vh;
 transform:translate(-50%, -50%);
 opacity:0.4;
 pointer-events:none;
 }
+
+#hero::after{
+content:"";
+position:absolute;
+bottom:0;
+width:100%;
+height:150px;
+background:linear-gradient(to top,#000,transparent);
+}
+
 .hero-content{z-index:2}
 
 /* ROW */
@@ -56,6 +69,11 @@ flex-direction:column;
 width:130px;height:190px;
 object-fit:cover;
 border-radius:8px;
+transition:0.3s;
+}
+.card img:hover{
+transform:scale(1.08);
+box-shadow:0 0 15px rgba(255,0,0,0.7);
 }
 .card div{
 font-size:12px;
@@ -105,6 +123,9 @@ const IMG="https://image.tmdb.org/t/p/w500";
 let current=null,currentType="movie";
 let continueList=JSON.parse(localStorage.getItem("continue"))||[];
 let myList=JSON.parse(localStorage.getItem("myList"))||[];
+
+let heroList=[];
+let heroIndex=0;
 
 /* FETCH */
 async function fetchData(url){
@@ -212,19 +233,35 @@ currentType=m.title?"movie":"tv";
 
 document.getElementById("hero-title").innerText=title(m);
 document.getElementById("hero-desc").innerText=(m.overview||"").slice(0,100)+"...";
+
 const trailer = await getTrailer(m.id,currentType);
 const hero = document.getElementById("heroVideo");
 
 if(trailer){
-  hero.src = trailer;
+hero.src = trailer;
+document.getElementById("hero").style.backgroundImage = "none";
 }else{
-  hero.src = "";
-  document.getElementById("hero").style.backgroundImage =
-    `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
-  document.getElementById("hero").style.backgroundSize = "cover";
-  document.getElementById("hero").style.backgroundPosition = "center";
+hero.src = "";
+if(m.backdrop_path){
+document.getElementById("hero").style.backgroundImage =
+`url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
+document.getElementById("hero").style.backgroundSize = "cover";
+document.getElementById("hero").style.backgroundPosition = "center";
+}else{
+document.getElementById("hero").style.background = "#000";
 }
+}
+
 document.getElementById("playHero").onclick=()=>openPlayer(m);
+}
+
+/* HERO AUTO SLIDE */
+function startHeroSlider(){
+setInterval(()=>{
+heroIndex++;
+if(heroIndex>=heroList.length) heroIndex=0;
+setHero(heroList[heroIndex]);
+},5000);
 }
 
 /* SEARCH */
@@ -267,7 +304,10 @@ show(movies,"movies","movie");
 show(tv,"tv","tv");
 show(anime,"anime","tv");
 
+heroList = trending;
 setHero(trending[0]);
+startHeroSlider();
+
 renderContinue();
 renderMyList();
 }
