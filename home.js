@@ -155,7 +155,7 @@ function startBanner() {
 
 /* 🔥 VIEW ALL */
 function viewAll() {
-  const box = document.getElementById("movies-list");
+  const box = document.getElementById("movies");
   const btn = document.getElementById("viewBtn");
 
   if (!box) return;
@@ -198,9 +198,9 @@ async function searchMulti(value) {
     const moviesRes = results.filter(i => i.media_type === "movie");
     const tvRes = results.filter(i => i.media_type === "tv");
 
-    show(moviesRes, "movies-list");
-    show(tvRes, "tvshows-list");
-    show(tvRes.filter(x => x.original_language === "ja"), "anime-list");
+    show(moviesRes, "movies");
+    show(tvRes, "tvshows");
+    show(tvRes.filter(x => x.original_language === "ja"), "anime");
 
     /* suggestions */
     if (!suggestBox) return;
@@ -217,7 +217,7 @@ async function searchMulti(value) {
       div.onclick = () => {
         document.getElementById("searchInput").value = t;
         suggestBox.style.display = "none";
-        show([i], "movies-list");
+        show([i], "movies");
       };
 
       suggestBox.appendChild(div);
@@ -243,9 +243,9 @@ document.addEventListener("DOMContentLoaded", () => {
       debounceTimer = setTimeout(() => {
 
         if (value.trim() === "") {
-          show(movies, "movies-list");
-          show(tvshows, "tvshows-list");
-          show(anime, "anime-list");
+          show(movies, "movies");
+          show(tvshows, "tvshows");
+          show(anime, "anime");
           if (suggestBox) suggestBox.style.display = "none";
           return;
         }
@@ -338,9 +338,9 @@ async function init() {
   tvshows = await fetchData("tv");
   anime = tvshows.filter(x => x.original_language === "ja");
 
-  show(movies, "movies-list");
-  show(tvshows, "tvshows-list");
-  show(anime, "anime-list");
+  show(movies, "movies");
+  show(tvshows, "tvshows");
+  show(anime, "anime");
 
   startBanner();
 }
