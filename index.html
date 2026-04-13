@@ -311,16 +311,36 @@ box.innerHTML="";
 list.forEach(i=>{
 if(!i.poster_path)return;
 
-const img=document.createElement("img");
-img.src=IMG+i.poster_path;
+const card = document.createElement("div");
+card.style.position = "relative";
+card.style.minWidth = "130px";
 
-img.onclick=()=>{
-current=i;
-currentType=type;
-openDetails(i,type);
+const img = document.createElement("img");
+img.src = IMG + i.poster_path;
+
+/* 🔥 TITLE LABEL */
+const label = document.createElement("div");
+label.innerText = title(i);
+label.style.position = "absolute";
+label.style.bottom = "0";
+label.style.left = "0";
+label.style.width = "100%";
+label.style.padding = "6px";
+label.style.fontSize = "12px";
+label.style.background = "linear-gradient(to top, rgba(0,0,0,0.95), transparent)";
+label.style.color = "white";
+
+/* CLICK */
+card.onclick = () => {
+  current = i;
+  currentType = type;
+  openDetails(i, type);
 };
 
-box.appendChild(img);
+card.appendChild(img);
+card.appendChild(label);
+
+box.appendChild(card);
 });
 
 allMovies=[...allMovies,...list];
@@ -361,8 +381,34 @@ return;
 results.slice(0,20).forEach(i=>{
 if(!i.poster_path) return;
 
-const img=document.createElement("img");
-img.src=IMG+i.poster_path;
+const card = document.createElement("div");
+card.style.position = "relative";
+card.style.minWidth = "130px";
+
+const img = document.createElement("img");
+img.src = IMG + i.poster_path;
+
+const label = document.createElement("div");
+label.innerText = title(i);
+label.style.position = "absolute";
+label.style.bottom = "0";
+label.style.left = "0";
+label.style.width = "100%";
+label.style.padding = "6px";
+label.style.fontSize = "12px";
+label.style.background = "linear-gradient(to top, rgba(0,0,0,0.95), transparent)";
+label.style.color = "white";
+
+card.onclick = () => {
+  current = i;
+  currentType = i.media_type === "movie" ? "movie" : "tv";
+  openDetails(i, currentType);
+};
+
+card.appendChild(img);
+card.appendChild(label);
+
+box.appendChild(card);
 
 img.onclick=()=>{
 current=i;
