@@ -24,9 +24,12 @@ async function fetchData(type) {
 
 /* 🎬 CREATE CARD */
 function createCard(item) {
+
   const card = document.createElement("div");
   card.className = "card";
+  card.style.position = "relative";
 
+  /* IMAGE */
   const img = document.createElement("img");
   img.src = item.poster_path
     ? IMG + item.poster_path
@@ -36,63 +39,48 @@ function createCard(item) {
     img.src = "https://via.placeholder.com/150x220?text=No+Image";
   };
 
-  const overlay = document.createElement("div");
-  overlay.className = "overlay";
+  /* 🔥 LABEL (ITO YUNG HINAHANAP MO) */
+  const label = document.createElement("div");
+  label.innerText = item.title || item.name;
+  label.style.position = "absolute";
+  label.style.bottom = "0";
+  label.style.left = "0";
+  label.style.width = "100%";
+  label.style.padding = "6px";
+  label.style.fontSize = "12px";
+  label.style.background = "linear-gradient(to top, rgba(0,0,0,0.95), transparent)";
+  label.style.color = "white";
+  label.style.zIndex = "10";
 
-  const title = document.createElement("div");
-  title.className = "title";
-  title.innerText = item.title || item.name;
+  /* OPTIONAL OVERLAY (hover/tap info) */
+  const overlay = document.createElement("div");
+  overlay.style.position = "absolute";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.background = "rgba(0,0,0,0.6)";
+  overlay.style.opacity = "0";
+  overlay.style.transition = "0.3s";
 
   const rating = document.createElement("div");
-  rating.className = "rating";
   rating.innerText = "⭐ " + (item.vote_average || "N/A");
+  rating.style.padding = "10px";
 
-  const desc = document.createElement("div");
-  desc.className = "desc";
-  desc.innerText = item.overview
-    ? item.overview.slice(0, 50) + "..."
-    : "No description";
+  overlay.appendChild(rating);
 
-  overlay.append(title, rating, desc);
+  card.appendChild(img);
+  card.appendChild(label);
+  card.appendChild(overlay);
 
-  card.style.position = "relative";
+  /* HOVER / TAP */
+  card.onmouseenter = () => overlay.style.opacity = "1";
+  card.onmouseleave = () => overlay.style.opacity = "0";
 
-/* IMAGE */
-card.appendChild(img);
-
-/* 🔥 LABEL (VISIBLE ALWAYS) */
-const label = document.createElement("div");
-label.innerText = item.title || item.name;
-
-label.style.position = "absolute";
-label.style.bottom = "0";
-label.style.left = "0";
-label.style.width = "100%";
-label.style.padding = "6px";
-label.style.fontSize = "12px";
-label.style.background = "linear-gradient(to top, rgba(0,0,0,0.95), transparent)";
-label.style.color = "white";
-label.style.zIndex = "5";
-
-card.appendChild(label);
-
-/* OPTIONAL: overlay (hover only) */
-overlay.style.opacity = "0";
-overlay.style.transition = "0.3s";
-
-card.onmouseenter = () => overlay.style.opacity = "1";
-card.onmouseleave = () => overlay.style.opacity = "0";
-
-card.appendChild(overlay);
-
-/* CLICK */
-card.onclick = () => openPlayer(item);
-  
-
+  card.onclick = () => openPlayer(item);
 
   return card;
 }
-
 /* 🎬 SHOW */
 function show(list, id) {
   const box = document.getElementById(id);
