@@ -174,8 +174,8 @@ function getAll(){
 return [...movies,...tvshows,...anime];
 }
 
-search.addEventListener("input",(e)=>{
-const value=e.target.value.toLowerCase().trim();
+search.addEventListener("input", async (e)=>{
+const value = e.target.value.trim();
 
 if(value===""){
 show(movies,"movies-list");
@@ -186,12 +186,11 @@ if(suggestBox) suggestBox.style.display="none";
 return;
 }
 
-if(movies.length===0) return;
+try{
+const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${value}`);
+const data = await res.json();
 
-const results = getAll().filter(m=>{
-let t=(m.title||m.name||"").toLowerCase();
-return t.includes(value) || similarity(t,value)>0.5;
-});
+const results = data.results || [];
 
 show(results,"movies-list");
 
@@ -207,14 +206,10 @@ suggestBox.innerHTML="";
 suggestBox.style.display="block";
 
 results.slice(0,5).forEach(i=>{
-let t=i.title||i.name;
+let t=i.title||i.name||"No title";
 
 let div=document.createElement("div");
-
-div.innerHTML=t.replace(
-new RegExp(value,"gi"),
-m=>`<mark>${m}</mark>`
-);
+div.innerText=t;
 
 div.onclick=()=>{
 search.value=t;
@@ -225,6 +220,9 @@ show([i],"movies-list");
 suggestBox.appendChild(div);
 });
 
+}catch(err){
+console.log("Search error:", err);
+}
 });
 
 /* click outside = hide */
