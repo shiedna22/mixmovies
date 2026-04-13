@@ -8,14 +8,16 @@ let anime = [];
 
 let isViewAll = false;
 let bannerTimer;
+let suggestBox;
+let debounceTimer;
 
 /* 🎬 FETCH */
 async function fetchData(type) {
-  try{
+  try {
     const res = await fetch(`${BASE_URL}/trending/${type}/week?api_key=${API_KEY}`);
     const data = await res.json();
     return data.results || [];
-  }catch{
+  } catch {
     return [];
   }
 }
@@ -29,6 +31,10 @@ function createCard(item) {
   img.src = item.poster_path
     ? IMG + item.poster_path
     : "https://via.placeholder.com/150x220?text=No+Image";
+
+  img.onerror = () => {
+    img.src = "https://via.placeholder.com/150x220?text=No+Image";
+  };
 
   const overlay = document.createElement("div");
   overlay.className = "overlay";
@@ -62,6 +68,11 @@ function show(list, id) {
 
   box.innerHTML = "";
 
+  if (list.length === 0) {
+    box.innerHTML = "<p style='color:white'>No results</p>";
+    return;
+  }
+
   list.forEach(i => {
     if (!i.poster_path) return;
     box.appendChild(createCard(i));
@@ -71,19 +82,21 @@ function show(list, id) {
 /* ▶ PLAYER */
 function openPlayer(item) {
   const video = document.getElementById("modal-video");
-  if(!video) return;
+  if (!video) return;
 
-  const src = item.title
+  const isMovie = item.media_type === "movie" || item.title;
+
+  const src = isMovie
     ? `https://vidsrc.cc/v2/embed/movie/${item.id}`
     : `https://vidsrc.cc/v2/embed/tv/${item.id}/1/1`;
 
   const title = document.getElementById("modal-title");
-  if(title) title.innerText = item.title || item.name;
+  if (title) title.innerText = item.title || item.name;
 
   video.src = src;
 
   const modal = document.getElementById("modal");
-  if(modal) modal.style.display = "flex";
+  if (modal) modal.style.display = "flex";
 }
 
 /* ❌ CLOSE */
@@ -91,8 +104,8 @@ function closeModal() {
   const modal = document.getElementById("modal");
   const video = document.getElementById("modal-video");
 
-  if(modal) modal.style.display = "none";
-  if(video) video.src = "";
+  if (modal) modal.style.display = "none";
+  if (video) video.src = "";
 }
 
 /* 🎬 BANNER */
@@ -112,10 +125,10 @@ function startBanner() {
       `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
 
     const title = document.getElementById("banner-title");
-    if(title) title.innerText = m.title;
+    if (title) title.innerText = m.title;
 
     const btn = document.getElementById("watchBtn");
-    if(btn) btn.onclick = () => openPlayer(m);
+    if (btn) btn.onclick = () => openPlayer(m);
 
   }, 4000);
 }
@@ -152,105 +165,104 @@ function viewAll() {
   if (btn) btn.innerText = "Back";
 }
 
-/* 🔥 SEARCH + SMART + SUGGESTIONS */
-function similarity(a,b){
-let longer=a.length>b.length?a:b;
-let shorter=a.length>b.length?b:a;
-let same=0;
-for(let i=0;i<shorter.length;i++){
-if(longer.includes(shorter[i])) same++;
-}
-return same/longer.length;
+/* 🔥 SEARCH */
+async function searchMulti(value) {
+  if (!value.trim()) return;
+
+  try {
+    const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${value}`);
+    const data = await res.json();
+
+    const results = data.results || [];
+
+    const moviesRes = results.filter(i => i.media_type === "movie");
+    const tvRes = results.filter(i => i.media_type === "tv");
+
+    show(moviesRes, "movies-list");
+    show(tvRes, "tvshows-list");
+    show(tvRes.filter(x => x.original_language === "ja"), "anime-list");
+
+    /* suggestions */
+    if (!suggestBox) return;
+
+    suggestBox.innerHTML = "";
+    suggestBox.style.display = "block";
+
+    results.slice(0, 5).forEach(i => {
+      let t = i.title || i.name || "No title";
+
+      let div = document.createElement("div");
+      div.innerText = t;
+
+      div.onclick = () => {
+        document.getElementById("searchInput").value = t;
+        suggestBox.style.display = "none";
+        show([i], "movies-list");
+      };
+
+      suggestBox.appendChild(div);
+    });
+
+  } catch (err) {
+    console.log("Search error:", err);
+  }
 }
 
+/* 🚀 INIT DOM */
 document.addEventListener("DOMContentLoaded", () => {
 
-const search = document.getElementById("searchInput");
-const suggestBox = document.getElementById("suggestions");
+  const search = document.getElementById("searchInput");
+  suggestBox = document.getElementById("suggestions");
 
-if(!search) return;
+  if (search) {
+    search.addEventListener("input", (e) => {
+      const value = e.target.value;
 
-function getAll(){
-return [...movies,...tvshows,...anime];
-}
+      clearTimeout(debounceTimer);
 
-search.addEventListener("input", async (e)=>{
-const value = e.target.value.trim();
+      debounceTimer = setTimeout(() => {
 
-if(value===""){
-show(movies,"movies-list");
-show(tvshows,"tvshows-list");
-show(anime,"anime-list");
+        if (value.trim() === "") {
+          show(movies, "movies-list");
+          show(tvshows, "tvshows-list");
+          show(anime, "anime-list");
+          if (suggestBox) suggestBox.style.display = "none";
+          return;
+        }
 
-if(suggestBox) suggestBox.style.display="none";
-return;
-}
+        searchMulti(value);
 
-try{
-const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${value}`);
-const data = await res.json();
+      }, 400);
+    });
+  }
 
-const results = data.results || [];
-
-show(results,"movies-list");
-
-const tvBox=document.getElementById("tvshows-list");
-const animeBox=document.getElementById("anime-list");
-
-if(tvBox) tvBox.innerHTML="";
-if(animeBox) animeBox.innerHTML="";
-
-if(!suggestBox) return;
-
-suggestBox.innerHTML="";
-suggestBox.style.display="block";
-
-results.slice(0,5).forEach(i=>{
-let t=i.title||i.name||"No title";
-
-let div=document.createElement("div");
-div.innerText=t;
-
-div.onclick=()=>{
-search.value=t;
-suggestBox.style.display="none";
-show([i],"movies-list");
-};
-
-suggestBox.appendChild(div);
-});
-
-}catch(err){
-console.log("Search error:", err);
-}
-});
-
-});
-
-/* click outside = hide */
-document.addEventListener("click",(e)=>{
-if(!e.target.closest("#searchInput")){
-if(suggestBox) suggestBox.style.display="none";
-}
-});
+  /* click outside */
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#searchInput")) {
+      if (suggestBox) suggestBox.style.display = "none";
+    }
+  });
 
 });
 
 /* 🎤 VOICE */
-function startVoice(){
-if(!('webkitSpeechRecognition' in window)){
-alert("Voice not supported");
-return;
-}
-let rec=new webkitSpeechRecognition();
-rec.onresult=(e)=>{
-const input=document.getElementById("searchInput");
-if(input){
-input.value=e.results[0][0].transcript;
-input.dispatchEvent(new Event("input"));
-}
-};
-rec.start();
+function startVoice() {
+  if (!('webkitSpeechRecognition' in window)) {
+    alert("Voice not supported");
+    return;
+  }
+
+  let rec = new webkitSpeechRecognition();
+
+  rec.onresult = (e) => {
+    const input = document.getElementById("searchInput");
+    if (input) {
+      input.value = e.results[0][0].transcript;
+      input.dispatchEvent(new Event("input"));
+    }
+  };
+
+  rec.start();
 }
 
 /* 🎮 GESTURES */
