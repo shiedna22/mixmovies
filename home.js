@@ -6,10 +6,8 @@ let movies = [];
 let tvshows = [];
 let anime = [];
 
-let isViewAll = false;
-let bannerTimer;
-let suggestBox;
 let debounceTimer;
+let bannerTimer;
 
 /* 🎬 FETCH */
 async function fetchData(type) {
@@ -22,24 +20,21 @@ async function fetchData(type) {
   }
 }
 
-/* 🎬 CREATE CARD */
+/* 🎬 CREATE CARD (WITH TITLE LABEL) */
 function createCard(item) {
-
   const card = document.createElement("div");
-  card.className = "card";
   card.style.position = "relative";
+  card.style.minWidth = "130px";
 
-  /* IMAGE */
   const img = document.createElement("img");
   img.src = item.poster_path
     ? IMG + item.poster_path
     : "https://via.placeholder.com/150x220?text=No+Image";
 
-  img.onerror = () => {
-    img.src = "https://via.placeholder.com/150x220?text=No+Image";
-  };
+  img.style.width = "100%";
+  img.style.borderRadius = "8px";
 
-  /* 🔥 LABEL (ITO YUNG HINAHANAP MO) */
+  /* 🔥 TITLE LABEL */
   const label = document.createElement("div");
   label.innerText = item.title || item.name;
   label.style.position = "absolute";
@@ -50,37 +45,15 @@ function createCard(item) {
   label.style.fontSize = "12px";
   label.style.background = "linear-gradient(to top, rgba(0,0,0,0.95), transparent)";
   label.style.color = "white";
-  label.style.zIndex = "10";
-
-  /* OPTIONAL OVERLAY (hover/tap info) */
-  const overlay = document.createElement("div");
-  overlay.style.position = "absolute";
-  overlay.style.top = "0";
-  overlay.style.left = "0";
-  overlay.style.width = "100%";
-  overlay.style.height = "100%";
-  overlay.style.background = "rgba(0,0,0,0.6)";
-  overlay.style.opacity = "0";
-  overlay.style.transition = "0.3s";
-
-  const rating = document.createElement("div");
-  rating.innerText = "⭐ " + (item.vote_average || "N/A");
-  rating.style.padding = "10px";
-
-  overlay.appendChild(rating);
 
   card.appendChild(img);
   card.appendChild(label);
-  card.appendChild(overlay);
-
-  /* HOVER / TAP */
-  card.onmouseenter = () => overlay.style.opacity = "1";
-  card.onmouseleave = () => overlay.style.opacity = "0";
 
   card.onclick = () => openPlayer(item);
 
   return card;
 }
+
 /* 🎬 SHOW */
 function show(list, id) {
   const box = document.getElementById(id);
@@ -101,152 +74,62 @@ function show(list, id) {
 
 /* ▶ PLAYER */
 function openPlayer(item) {
-  const video = document.getElementById("modal-video");
-  if (!video) return;
+  const video = document.getElementById("full");
+  const player = document.getElementById("player");
+
+  if (!video || !player) return;
 
   const isMovie = item.media_type === "movie" || item.title;
 
-  const src = isMovie
+  video.src = isMovie
     ? `https://vidsrc.cc/v2/embed/movie/${item.id}`
     : `https://vidsrc.cc/v2/embed/tv/${item.id}/1/1`;
 
-  const title = document.getElementById("modal-title");
-  if (title) title.innerText = item.title || item.name;
-
-  video.src = src;
-
-  const modal = document.getElementById("modal");
-  if (modal) modal.style.display = "flex";
+  player.style.display = "block";
 }
 
-/* ❌ CLOSE */
-function closeModal() {
-  const modal = document.getElementById("modal");
-  const video = document.getElementById("modal-video");
-
-  if (modal) modal.style.display = "none";
-  if (video) video.src = "";
+/* ❌ CLOSE PLAYER */
+function closePlayer() {
+  document.getElementById("player").style.display = "none";
+  document.getElementById("full").src = "";
 }
 
-/* 🎬 BANNER */
-function startBanner() {
-  const banner = document.getElementById("banner");
-  if (!banner) return;
-
-  const valid = movies.filter(m => m.backdrop_path);
-  if (valid.length === 0) return;
-
-  clearInterval(bannerTimer);
-
-  bannerTimer = setInterval(() => {
-    const m = valid[Math.floor(Math.random() * valid.length)];
-
-    banner.style.backgroundImage =
-      `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
-
-    const title = document.getElementById("banner-title");
-    if (title) title.innerText = m.title;
-
-    const btn = document.getElementById("watchBtn");
-    if (btn) btn.onclick = () => openPlayer(m);
-
-  }, 4000);
-}
-
-/* 🔥 VIEW ALL */
-function viewAll() {
-  const box = document.getElementById("movies");
-  const btn = document.getElementById("viewBtn");
-
-  if (!box) return;
-
-  if (isViewAll) {
-    isViewAll = false;
-    box.style.flexWrap = "nowrap";
-    box.style.overflowX = "auto";
-    show(movies, "movies-list");
-    if (btn) btn.innerText = "View All";
-    return;
-  }
-
-  isViewAll = true;
-  box.innerHTML = "";
-  box.style.flexWrap = "wrap";
-  box.style.overflowX = "hidden";
-  box.style.justifyContent = "center";
-
-  movies.forEach(i => {
-    if (!i.poster_path) return;
-    const card = createCard(i);
-    card.style.margin = "5px";
-    box.appendChild(card);
-  });
-
-  if (btn) btn.innerText = "Back";
-}
-
-/* 🔥 SEARCH */
+/* 🎬 SEARCH (REAL API) */
 async function searchMulti(value) {
-  if (!value.trim()) return;
-
   try {
     const res = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${value}`);
     const data = await res.json();
-
     const results = data.results || [];
 
     const moviesRes = results.filter(i => i.media_type === "movie");
     const tvRes = results.filter(i => i.media_type === "tv");
 
     show(moviesRes, "movies");
-    show(tvRes, "tvshows");
+    show(tvRes, "tv");
     show(tvRes.filter(x => x.original_language === "ja"), "anime");
 
-    /* suggestions */
-    if (!suggestBox) return;
-
-    suggestBox.innerHTML = "";
-    suggestBox.style.display = "block";
-
-    results.slice(0, 5).forEach(i => {
-      let t = i.title || i.name || "No title";
-
-      let div = document.createElement("div");
-      div.innerText = t;
-
-      div.onclick = () => {
-        document.getElementById("searchInput").value = t;
-        suggestBox.style.display = "none";
-        show([i], "movies");
-      };
-
-      suggestBox.appendChild(div);
-    });
-
   } catch (err) {
-    console.log("Search error:", err);
+    console.log(err);
   }
 }
 
-/* 🚀 INIT DOM */
+/* 🔍 SEARCH LISTENER */
 document.addEventListener("DOMContentLoaded", () => {
-
-  const search = document.getElementById("searchInput");
-  suggestBox = document.getElementById("suggestions");
+  const search = document.getElementById("search");
 
   if (search) {
     search.addEventListener("input", (e) => {
+
       const value = e.target.value;
 
       clearTimeout(debounceTimer);
 
       debounceTimer = setTimeout(() => {
 
-        if (value.trim() === "") {
+        if (!value.trim()) {
           show(movies, "movies");
-          show(tvshows, "tvshows");
+          show(tvshows, "tv");
           show(anime, "anime");
-          if (suggestBox) suggestBox.style.display = "none";
           return;
         }
 
@@ -255,81 +138,22 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 400);
     });
   }
-
-  /* click outside */
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest("#searchInput")) {
-      if (suggestBox) suggestBox.style.display = "none";
-    }
-  });
-
 });
 
-/* 🎤 VOICE */
-function startVoice() {
-  if (!('webkitSpeechRecognition' in window)) {
-    alert("Voice not supported");
-    return;
-  }
+/* 🎬 BANNER */
+function startBanner() {
+  const banner = document.getElementById("banner");
+  if (!banner) return;
 
-  let rec = new webkitSpeechRecognition();
+  const valid = movies.filter(m => m.backdrop_path);
 
-  rec.onresult = (e) => {
-    const input = document.getElementById("searchInput");
-    if (input) {
-      input.value = e.results[0][0].transcript;
-      input.dispatchEvent(new Event("input"));
-    }
-  };
+  bannerTimer = setInterval(() => {
+    const m = valid[Math.floor(Math.random() * valid.length)];
 
-  rec.start();
-}
+    banner.style.backgroundImage =
+      `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
 
-/* 🎮 GESTURES */
-document.addEventListener("DOMContentLoaded", () => {
-  const overlay = document.getElementById("overlay");
-  if (!overlay) return;
-
-  let lastTap = 0;
-  let startX = 0;
-  let startY = 0;
-
-  overlay.addEventListener("touchstart", (e) => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-  });
-
-  overlay.addEventListener("touchend", (e) => {
-    let now = Date.now();
-    let x = e.changedTouches[0].clientX;
-
-    if (now - lastTap < 300) {
-      showIcon(x < window.innerWidth / 2 ? "⏪ 10s" : "⏩ 10s");
-    }
-    lastTap = now;
-  });
-
-  overlay.addEventListener("touchmove", (e) => {
-    let y = e.touches[0].clientY;
-    let dy = y - startY;
-
-    if (startX < window.innerWidth / 2) {
-      document.body.style.filter = `brightness(${1 - dy / 300})`;
-    } else {
-      showIcon("🔊");
-    }
-  });
-});
-
-/* ICON */
-function showIcon(txt) {
-  const el = document.getElementById("centerIcon");
-  if (!el) return;
-
-  el.innerText = txt;
-  el.style.opacity = 1;
-
-  setTimeout(() => el.style.opacity = 0, 500);
+  }, 4000);
 }
 
 /* 🚀 INIT */
@@ -339,7 +163,7 @@ async function init() {
   anime = tvshows.filter(x => x.original_language === "ja");
 
   show(movies, "movies");
-  show(tvshows, "tvshows");
+  show(tvshows, "tv");
   show(anime, "anime");
 
   startBanner();
@@ -348,5 +172,4 @@ async function init() {
 init();
 
 /* GLOBAL */
-window.viewAll = viewAll;
-window.closeModal = closeModal;
+window.closePlayer = closePlayer;
