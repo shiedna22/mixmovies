@@ -4,6 +4,7 @@
 <title>ShiedFlix Ultimate</title><style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:white;font-family:Arial}
+html{scroll-behavior:smooth}
 
 /* NAV */
 .navbar{
@@ -24,26 +25,31 @@ align-items:flex-end;
 padding:20px;
 margin-top:60px;
 position:relative;
+background:black;
 overflow:hidden;
-background:#000;
-background-size:cover;
-background-position:center;
 }
+
 #hero iframe{
 position:absolute;
-top:50%;left:50%;
-width:177.77vh;height:100vh;
-transform:translate(-50%,-50%);
+top:50%;
+left:50%;
+width:177.77vh;
+height:100vh;
+transform:translate(-50%, -50%);
 opacity:0.4;
 pointer-events:none;
 }
+
 #hero::after{
 content:"";
 position:absolute;
 bottom:0;
-width:100%;height:150px;
+width:100%;
+height:150px;
 background:linear-gradient(to top,#000,transparent);
 }
+
+.hero-content{z-index:2}
 
 /* ROW */
 .row{margin-top:15px}
@@ -58,7 +64,6 @@ gap:10px;padding:10px;
 min-width:130px;
 display:flex;
 flex-direction:column;
-cursor:pointer;
 }
 .card img{
 width:130px;height:190px;
@@ -75,69 +80,15 @@ font-size:12px;
 margin-top:5px;
 }
 
-/* PREVIEW */
-#preview{
-display:none;
-position:fixed;
-top:0;left:0;
-width:100vw;height:100vh;
-background:black;
-z-index:99999;
-overflow:hidden;
-}
-.preview-bg{
-position:absolute;
-width:100%;height:100%;
-background-size:cover;
-background-position:center;
-filter:brightness(0.5);
-}
-#preview::after{
-content:"";
-position:absolute;
-bottom:0;
-width:100%;
-height:200px;
-background:linear-gradient(to top,rgba(0,0,0,0.9),transparent);
-}
-.preview-center{
-position:absolute;
-top:50%;left:50%;
-transform:translate(-50%,-50%);
-z-index:2;
-}
-.play-big{
-font-size:50px;
-padding:20px 30px;
-border-radius:50%;
-border:none;
-background:rgba(0,0,0,0.6);
-color:white;
-}
-.preview-info{
-position:absolute;
-bottom:40px;
-left:20px;
-z-index:2;
-max-width:90%;
-}
-.preview-info h2{font-size:20px}
-.preview-info p{font-size:13px}
-
 /* PLAYER */
 #player{
 display:none;
 position:fixed;
-top:0;left:0;
-width:100vw;height:100vh;
-background:black;
+width:100%;height:100%;
+top:0;background:black;
 z-index:99999;
 }
-#player iframe{
-width:100%;
-height:100%;
-border:none;
-}
+#player iframe{width:100%;height:100%}
 .close{
 position:absolute;
 right:20px;
@@ -150,24 +101,18 @@ cursor:pointer;
 <input id="search" placeholder="Search...">
 </div><!-- HERO --><div id="hero">
 <iframe id="heroVideo"></iframe>
-<div>
+<div class="hero-content">
 <h1 id="hero-title"></h1>
 <p id="hero-desc"></p>
 <button id="playHero">▶ Play</button>
 </div>
+</div><!-- CONTINUE --><div class="row"><h2>▶ Continue Watching</h2><div id="continue" class="row-posters"></div></div><!-- MY LIST --><div class="row"><h2>❤️ My List</h2><div id="mylist" class="row-posters"></div></div><!-- SEARCH --><div class="row" id="searchRow" style="display:none;">
+<h2>🔎 Search Results</h2>
+<div id="searchResults" class="row-posters"></div>
 </div><!-- ROWS --><div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
 <div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
 <div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
-<div class="row"><h2>🍥 Anime</h2><div id="anime" class="row-posters"></div></div><!-- PREVIEW --><div id="preview">
-<div class="preview-bg" id="previewBg"></div><div class="preview-center">
-<button class="play-big" onclick="startPlay()">▶</button>
-</div><div class="preview-info">
-<h2 id="previewTitle"></h2>
-<p id="previewDesc"></p>
-<button onclick="startPlay()">▶ Play</button>
-<button onclick="closePreview()">✖ Close</button>
-</div>
-</div><!-- PLAYER --><div id="player">
+<div class="row"><h2>🍥 Anime</h2><div id="anime" class="row-posters"></div></div><!-- PLAYER --><div id="player">
 <span class="close" onclick="closePlayer()">✖</span>
 <iframe id="full"></iframe>
 </div><script>
@@ -176,7 +121,11 @@ const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
 
 let current=null,currentType="movie";
-let heroList=[],heroIndex=0;
+let continueList=JSON.parse(localStorage.getItem("continue"))||[];
+let myList=JSON.parse(localStorage.getItem("myList"))||[];
+
+let heroList=[];
+let heroIndex=0;
 
 /* FETCH */
 async function fetchData(url){
@@ -207,7 +156,11 @@ img.src=i.poster_path?IMG+i.poster_path:"https://via.placeholder.com/150x220?tex
 const label=document.createElement("div");
 label.innerText=title(i);
 
-card.onclick=()=>openPreview(i,type);
+card.onclick=()=>{
+current=i;
+currentType=type;
+openPlayer(i);
+};
 
 card.appendChild(img);
 card.appendChild(label);
@@ -225,43 +178,52 @@ box.appendChild(createCard(i,type));
 });
 }
 
-/* PREVIEW */
-function openPreview(i,type){
-current=i;
-currentType=type;
-
-document.getElementById("preview").style.display="block";
-
-document.getElementById("previewTitle").innerText=title(i);
-document.getElementById("previewDesc").innerText=i.overview||"No description";
-
-if(i.backdrop_path){
-document.getElementById("previewBg").style.backgroundImage=
-`url(https://image.tmdb.org/t/p/original${i.backdrop_path})`;
-}else{
-document.getElementById("previewBg").style.background="#000";
-}
-}
-function closePreview(){
-document.getElementById("preview").style.display="none";
-}
-
 /* PLAYER */
-function startPlay(){
-closePreview();
-openPlayer(current,currentType);
-}
-function openPlayer(i,type){
-document.getElementById("player").style.display="block";
+function openPlayer(i){
+const player=document.getElementById("player");
+const iframe=document.getElementById("full");
 
-document.getElementById("full").src=
-type==="movie"
+iframe.src=i.title
 ?`https://vidsrc.cc/v2/embed/movie/${i.id}`
 :`https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
+
+player.style.display="block";
+saveContinue(i);
 }
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
+}
+
+/* CONTINUE */
+function saveContinue(m){
+continueList=continueList.filter(x=>x.id!==m.id);
+continueList.unshift(m);
+localStorage.setItem("continue",JSON.stringify(continueList));
+renderContinue();
+}
+function renderContinue(){
+const box=document.getElementById("continue");
+box.innerHTML="";
+continueList.forEach(m=>{
+box.appendChild(createCard(m,"movie"));
+});
+}
+
+/* MY LIST */
+function toggleMyList(){
+let exist=myList.find(m=>m.id===current.id);
+if(exist){myList=myList.filter(m=>m.id!==current.id);}
+else{myList.push(current);}
+localStorage.setItem("myList",JSON.stringify(myList));
+renderMyList();
+}
+function renderMyList(){
+const box=document.getElementById("mylist");
+box.innerHTML="";
+myList.forEach(m=>{
+box.appendChild(createCard(m,"movie"));
+});
 }
 
 /* HERO */
@@ -272,25 +234,28 @@ currentType=m.title?"movie":"tv";
 document.getElementById("hero-title").innerText=title(m);
 document.getElementById("hero-desc").innerText=(m.overview||"").slice(0,100)+"...";
 
-const trailer=await getTrailer(m.id,currentType);
-const heroVideo=document.getElementById("heroVideo");
+const trailer = await getTrailer(m.id,currentType);
+const hero = document.getElementById("heroVideo");
 
 if(trailer){
-heroVideo.style.display="block";
-heroVideo.src=trailer;
-document.getElementById("hero").style.backgroundImage="none";
+hero.src = trailer;
+document.getElementById("hero").style.backgroundImage = "none";
 }else{
-heroVideo.style.display="none";
+hero.src = "";
 if(m.backdrop_path){
-document.getElementById("hero").style.backgroundImage=
+document.getElementById("hero").style.backgroundImage =
 `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
+document.getElementById("hero").style.backgroundSize = "cover";
+document.getElementById("hero").style.backgroundPosition = "center";
+}else{
+document.getElementById("hero").style.background = "#000";
 }
 }
 
-document.getElementById("playHero").onclick=()=>openPreview(m,currentType);
+document.getElementById("playHero").onclick=()=>openPlayer(m);
 }
 
-/* HERO SLIDER */
+/* HERO AUTO SLIDE */
 function startHeroSlider(){
 setInterval(()=>{
 heroIndex++;
@@ -298,6 +263,34 @@ if(heroIndex>=heroList.length) heroIndex=0;
 setHero(heroList[heroIndex]);
 },5000);
 }
+
+/* SEARCH */
+let debounce;
+document.getElementById("search").addEventListener("input",(e)=>{
+clearTimeout(debounce);
+
+debounce=setTimeout(async()=>{
+const v=e.target.value.trim();
+const row=document.getElementById("searchRow");
+const box=document.getElementById("searchResults");
+
+if(!v){
+row.style.display="none";
+return;
+}
+
+const res=await fetch(`${API}/search/multi?api_key=${KEY}&query=${v}`);
+const data=await res.json();
+
+row.style.display="block";
+box.innerHTML="";
+
+data.results.slice(0,20).forEach(i=>{
+if(!i.poster_path)return;
+box.appendChild(createCard(i,i.media_type));
+});
+},400);
+});
 
 /* INIT */
 async function init(){
@@ -311,9 +304,12 @@ show(movies,"movies","movie");
 show(tv,"tv","tv");
 show(anime,"anime","tv");
 
-heroList=trending;
+heroList = trending;
 setHero(trending[0]);
 startHeroSlider();
+
+renderContinue();
+renderMyList();
 }
 init();
 </script></body>
