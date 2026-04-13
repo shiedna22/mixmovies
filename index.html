@@ -25,6 +25,9 @@ padding:20px;
 margin-top:60px;
 position:relative;
 overflow:hidden;
+background:#000;
+background-size:cover;
+background-position:center;
 }
 #hero iframe{
 position:absolute;
@@ -55,23 +58,50 @@ gap:10px;padding:10px;
 min-width:130px;
 display:flex;
 flex-direction:column;
-position:relative;
+cursor:pointer;
 }
 .card img{
 width:130px;height:190px;
 object-fit:cover;
 border-radius:8px;
-transition:0.3s;
 }
-.card:hover img{transform:scale(1.08)}
-.play-btn{
+
+/* PREVIEW */
+#preview{
+display:none;
+position:fixed;
+top:0;left:0;
+width:100vw;height:100vh;
+z-index:99999;
+background:black;
+}
+.preview-bg{
+position:absolute;
+width:100%;height:100%;
+background-size:cover;
+background-position:center;
+filter:brightness(0.5);
+}
+.preview-content{
+position:absolute;
+bottom:40px;
+left:20px;
+max-width:90%;
+}
+.preview-content h2{font-size:22px}
+.preview-content p{font-size:13px}
+
+.play-big{
 position:absolute;
 top:50%;left:50%;
 transform:translate(-50%,-50%);
-font-size:25px;
-opacity:0;
+font-size:50px;
+padding:20px 30px;
+border:none;
+border-radius:50%;
+background:rgba(0,0,0,0.6);
+color:white;
 }
-.card:hover .play-btn{opacity:1}
 
 /* PLAYER */
 #player{
@@ -83,9 +113,8 @@ background:black;
 z-index:99999;
 }
 #player iframe{
-position:absolute;
-top:0;left:0;
-width:100vw;height:100vh;
+width:100%;
+height:100%;
 border:none;
 }
 .close{
@@ -96,116 +125,28 @@ font-size:30px;
 z-index:3;
 cursor:pointer;
 }
-#playerInfo{
-position:absolute;
-bottom:80px;
-left:20px;
-z-index:3;
-max-width:80%;
-text-shadow:0 0 10px black;
-}
-
-/* PREVIEW */
-#preview{
-display:none;
-position:fixed;
-top:0;left:0;
-width:100vw;height:100vh;
-z-index:99998;
-overflow:hidden;
-}
-.preview-bg{
-position:absolute;
-width:100%;height:100%;
-background-size:cover;
-background-position:center;
-transform:scale(1.1);
-filter:brightness(0.5) blur(5px);
-}
-#preview iframe{
-position:absolute;
-width:100%;
-height:100%;
-opacity:0.3;
-pointer-events:none;
-}
-#preview::after{
-content:"";
-position:absolute;
-bottom:0;
-width:100%;
-height:200px;
-background:linear-gradient(to top,rgba(0,0,0,0.9),transparent);
-}
-
-/* CENTER PLAY */
-.preview-center{
-position:absolute;
-top:50%;left:50%;
-transform:translate(-50%,-50%);
-z-index:2;
-}
-.play-big{
-font-size:50px;
-padding:20px 30px;
-border-radius:50%;
-border:none;
-background:rgba(0,0,0,0.6);
-color:white;
-}
-
-/* INFO */
-.preview-info{
-position:absolute;
-bottom:40px;
-left:20px;
-z-index:2;
-max-width:90%;
-}
-.preview-info h2{font-size:22px}
-.preview-info p{font-size:13px;opacity:0.9}
-.preview-buttons button{
-margin-right:10px;
-margin-top:10px;
-padding:10px 15px;
-border:none;
-background:red;
-color:white;
-}
-
-/* MOBILE */
-@media(max-width:768px){
-.play-big{font-size:35px}
-.preview-info h2{font-size:18px}
-.preview-info p{font-size:12px}
-}
 </style></head><body><div class="navbar">
 <div class="logo">ShiedFlix</div>
 <input id="search" placeholder="Search...">
-</div><div id="hero">
+</div><!-- HERO --><div id="hero">
 <iframe id="heroVideo"></iframe>
 <div>
 <h1 id="hero-title"></h1>
 <p id="hero-desc"></p>
 <button id="playHero">▶ Play</button>
 </div>
-</div><div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div><!-- PREVIEW --><div id="preview">
-<div class="preview-bg" id="previewBg"></div>
-<iframe id="previewVideo"></iframe><div class="preview-center">
-<button class="play-big" onclick="startPlay()">▶</button>
-</div><div class="preview-info">
+</div><!-- ROW --><div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div><!-- PREVIEW --><div id="preview">
+<div class="preview-bg" id="previewBg"></div><button class="play-big" onclick="startPlay()">▶</button>
+
+<div class="preview-content">
 <h2 id="previewTitle"></h2>
 <p id="previewDesc"></p>
-<p id="previewRating"></p><div class="preview-buttons">
 <button onclick="startPlay()">▶ Play</button>
 <button onclick="closePreview()">✖ Close</button>
 </div>
-</div>
 </div><!-- PLAYER --><div id="player">
-<span class="close" onclick="closePlayer()">✖</span><div id="playerInfo">
-<h2 id="playerTitle"></h2>
-<p id="playerDesc"></p>
-</div><iframe id="full"></iframe>
+<span class="close" onclick="closePlayer()">✖</span>
+<iframe id="full"></iframe>
 </div><script>
 const API="https://api.themoviedb.org/3";
 const KEY="43c2413701b5c752d07b62acf8e57736";
@@ -229,7 +170,7 @@ return t?`https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1`:"";
 }catch{return "";}
 }
 
-function title(i){return i.title||i.name}
+function title(i){return i.title||i.name||"No Title"}
 
 /* CARD */
 function createCard(i,type){
@@ -239,15 +180,9 @@ card.className="card";
 const img=document.createElement("img");
 img.src=IMG+i.poster_path;
 
-const play=document.createElement("div");
-play.className="play-btn";
-play.innerText="▶";
-
 card.onclick=()=>openPreview(i,type);
 
 card.appendChild(img);
-card.appendChild(play);
-
 return card;
 }
 
@@ -262,34 +197,26 @@ box.appendChild(createCard(i,type));
 }
 
 /* PREVIEW */
-async function openPreview(i,type){
+function openPreview(i,type){
 current=i;
 currentType=type;
 
 document.getElementById("preview").style.display="block";
-
 document.getElementById("previewTitle").innerText=title(i);
 document.getElementById("previewDesc").innerText=i.overview||"No description";
-document.getElementById("previewRating").innerText="⭐ "+(i.vote_average||"N/A");
 
 document.getElementById("previewBg").style.backgroundImage=
 `url(https://image.tmdb.org/t/p/original${i.backdrop_path})`;
-
-let trailer=await getTrailer(i.id,type);
-document.getElementById("previewVideo").src=trailer;
 }
-
 function closePreview(){
 document.getElementById("preview").style.display="none";
-document.getElementById("previewVideo").src="";
 }
 
+/* PLAYER */
 function startPlay(){
 closePreview();
 openPlayer(current,currentType);
 }
-
-/* PLAYER */
 function openPlayer(i,type){
 document.getElementById("player").style.display="block";
 
@@ -297,24 +224,35 @@ document.getElementById("full").src=
 type==="movie"
 ?`https://vidsrc.cc/v2/embed/movie/${i.id}`
 :`https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
-
-document.getElementById("playerTitle").innerText=title(i);
-document.getElementById("playerDesc").innerText=i.overview||"";
 }
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
 }
 
-/* HERO */
+/* INIT */
 async function init(){
 const trending=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
 
 show(trending,"trending","movie");
 
-document.getElementById("hero-title").innerText=title(trending[0]);
-document.getElementById("hero-desc").innerText=trending[0].overview;
-document.getElementById("playHero").onclick=()=>openPreview(trending[0],"movie");
+const hero=trending[0];
+
+document.getElementById("hero-title").innerText=title(hero);
+document.getElementById("hero-desc").innerText=hero.overview||"";
+
+document.getElementById("playHero").onclick=()=>openPreview(hero,"movie");
+
+/* FIX HERO (NO BLACK SCREEN) */
+const trailer=await getTrailer(hero.id, hero.title?"movie":"tv");
+
+if(trailer){
+document.getElementById("heroVideo").src=trailer;
+}else{
+document.getElementById("heroVideo").style.display="none";
+document.getElementById("hero").style.backgroundImage=
+`url(https://image.tmdb.org/t/p/original${hero.backdrop_path})`;
+}
 }
 init();
 </script></body>
