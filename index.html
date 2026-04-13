@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Ultimate+</title>
+<title>ShiedFlix Ultimate FIXED</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -18,7 +18,10 @@ background:rgba(0,0,0,0.9);
 z-index:1000;
 }
 .logo{color:red;font-weight:bold}
-#search{background:#222;border:none;color:white;padding:8px 15px;border-radius:20px}
+#search{
+background:#222;border:none;color:white;
+padding:8px 15px;border-radius:20px;
+}
 
 /* HERO */
 #hero{
@@ -31,7 +34,6 @@ position:relative;
 background:black;
 overflow:hidden;
 }
-
 #hero iframe{
 position:absolute;
 top:50%;left:50%;
@@ -40,14 +42,6 @@ transform:translate(-50%,-50%);
 opacity:0.4;
 pointer-events:none;
 }
-
-#hero::after{
-content:"";
-position:absolute;
-bottom:0;width:100%;height:150px;
-background:linear-gradient(to top,#000,transparent);
-}
-
 .hero-content{z-index:2}
 
 /* ROW */
@@ -67,47 +61,26 @@ transition:0.3s;
 }
 .card img:hover{
 transform:scale(1.08);
-box-shadow:0 0 15px rgba(255,0,0,0.7);
+box-shadow:0 0 15px red;
 }
 .card div{
 font-size:12px;margin-top:5px;
-}
-
-/* MODAL PREVIEW */
-#preview{
-display:none;
-position:fixed;top:0;left:0;
-width:100%;height:100%;
-background:rgba(0,0,0,0.95);
-z-index:9999;
-padding:20px;
-overflow:auto;
-}
-.preview-box{
-max-width:800px;margin:auto;
-}
-.preview-box iframe{
-width:100%;height:300px;
-}
-.preview-btns button{
-margin:10px 5px;
-padding:10px 15px;
-border:none;
-background:red;color:white;
-cursor:pointer;
 }
 
 /* PLAYER */
 #player{
 display:none;
 position:fixed;
-width:100%;height:100%;
-top:0;background:black;
-z-index:99999;
+top:0;width:100%;height:100%;
+background:black;
+z-index:9999;
 }
 #player iframe{
-width:100%;height:80%;
+width:100%;
+height:70%;
 }
+
+/* CONTROLS */
 .controls{
 display:flex;
 justify-content:center;
@@ -117,14 +90,29 @@ padding:10px;
 .controls button{
 padding:10px;
 background:#222;
-color:white;
-border:none;
+border:none;color:white;
 cursor:pointer;
 }
 
+/* EPISODES PANEL */
+#episodes{
+max-height:30%;
+overflow:auto;
+padding:10px;
+}
+.ep{
+padding:8px;
+background:#111;
+margin:5px 0;
+cursor:pointer;
+border-radius:5px;
+}
+.ep:hover{background:red}
+
 .close{
 position:absolute;
-right:20px;top:10px;
+right:20px;
+top:10px;
 font-size:30px;
 cursor:pointer;
 }
@@ -153,22 +141,6 @@ cursor:pointer;
 <div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
 <div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
 
-<!-- PREVIEW -->
-<div id="preview">
-<span class="close" onclick="closePreview()">✖</span>
-<div class="preview-box">
-<iframe id="previewTrailer"></iframe>
-<h2 id="previewTitle"></h2>
-<p id="previewDesc"></p>
-<div id="episodeList"></div>
-
-<div class="preview-btns">
-<button onclick="playNow()">▶ Play</button>
-<button onclick="toggleMyList()">❤️ My List</button>
-</div>
-</div>
-</div>
-
 <!-- PLAYER -->
 <div id="player">
 <span class="close" onclick="closePlayer()">✖</span>
@@ -177,8 +149,10 @@ cursor:pointer;
 <div class="controls">
 <button onclick="seek(-10)">⏪ 10s</button>
 <button onclick="seek(10)">⏩ 10s</button>
-<button onclick="fullscreen()">⛶ Fullscreen</button>
+<button onclick="goFull()">⛶ Fullscreen</button>
 </div>
+
+<div id="episodes"></div>
 </div>
 
 <script>
@@ -188,10 +162,10 @@ const IMG="https://image.tmdb.org/t/p/w500";
 
 let current=null;
 let currentType="movie";
-let season=1,episode=1;
+let season=1;
 
 /* YEAR */
-function getYear(i){
+function year(i){
 return (i.release_date||i.first_air_date||"").slice(0,4);
 }
 
@@ -204,91 +178,20 @@ const img=document.createElement("img");
 img.src=i.poster_path?IMG+i.poster_path:"";
 
 const label=document.createElement("div");
-label.innerText = `${i.title||i.name} (${getYear(i)})`;
+label.innerText=`${i.title||i.name} (${year(i)})`;
 
-card.onclick=()=>openPreview(i,type);
+card.onclick=()=>{
+current=i;
+currentType=type;
+openPlayer(i);
+};
 
 card.appendChild(img);
 card.appendChild(label);
-
 return card;
 }
 
-/* PREVIEW */
-async function openPreview(i,type){
-current=i;
-currentType=type;
-
-document.getElementById("preview").style.display="block";
-document.getElementById("previewTitle").innerText=i.title||i.name;
-document.getElementById("previewDesc").innerText=i.overview;
-
-const res=await fetch(`${API}/${type}/${i.id}/videos?api_key=${KEY}`);
-const data=await res.json();
-const t=data.results.find(v=>v.site==="YouTube");
-
-document.getElementById("previewTrailer").src =
-t?`https://www.youtube.com/embed/${t.key}`:"";
-
-/* EPISODES */
-if(type==="tv"){
-let html="<h3>Episodes</h3>";
-for(let e=1;e<=10;e++){
-html+=`<button onclick="setEpisode(${e})">Ep ${e}</button>`;
-}
-document.getElementById("episodeList").innerHTML=html;
-}else{
-document.getElementById("episodeList").innerHTML="";
-}
-}
-
-function closePreview(){
-document.getElementById("preview").style.display="none";
-}
-
-/* PLAY */
-function playNow(){
-openPlayer(current);
-}
-
-function openPlayer(i){
-const iframe=document.getElementById("full");
-
-iframe.src = currentType==="movie"
-?`https://vidsrc.cc/v2/embed/movie/${i.id}`
-:`https://vidsrc.cc/v2/embed/tv/${i.id}/${season}/${episode}`;
-
-document.getElementById("player").style.display="block";
-closePreview();
-}
-
-function closePlayer(){
-document.getElementById("player").style.display="none";
-document.getElementById("full").src="";
-}
-
-/* SEEK (visual only) */
-function seek(sec){
-alert("Forward/Backward depends on video provider");
-}
-
-/* FULLSCREEN */
-function fullscreen(){
-document.getElementById("full").requestFullscreen();
-}
-
-/* EPISODE */
-function setEpisode(e){
-episode=e;
-alert("Episode "+e+" selected");
-}
-
-/* FETCH */
-async function fetchData(url){
-const res=await fetch(url);
-return (await res.json()).results;
-}
-
+/* SHOW */
 function show(list,id,type){
 const box=document.getElementById(id);
 box.innerHTML="";
@@ -296,6 +199,66 @@ list.forEach(i=>{
 if(!i.poster_path)return;
 box.appendChild(createCard(i,type));
 });
+}
+
+/* PLAYER */
+async function openPlayer(i){
+const iframe=document.getElementById("full");
+
+iframe.src = currentType==="movie"
+?`https://vidsrc.cc/v2/embed/movie/${i.id}`
+:`https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
+
+document.getElementById("player").style.display="block";
+
+/* LOAD EPISODES (REAL NETFLIX STYLE) */
+if(currentType==="tv"){
+const res=await fetch(`${API}/tv/${i.id}?api_key=${KEY}`);
+const data=await res.json();
+
+let html="<h3>Episodes</h3>";
+
+data.seasons.forEach(s=>{
+if(s.season_number===0)return;
+
+html+=`<h4>Season ${s.season_number}</h4>`;
+
+for(let e=1;e<=s.episode_count;e++){
+html+=`<div class="ep" onclick="playEpisode(${i.id},${s.season_number},${e})">
+Episode ${e}
+</div>`;
+}
+});
+
+document.getElementById("episodes").innerHTML=html;
+}else{
+document.getElementById("episodes").innerHTML="";
+}
+}
+
+function playEpisode(id,s,e){
+document.getElementById("full").src=
+`https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}`;
+}
+
+/* CONTROLS */
+function seek(x){
+alert("Depends on player server (limit ng vidsrc)");
+}
+
+function goFull(){
+document.getElementById("full").requestFullscreen();
+}
+
+function closePlayer(){
+document.getElementById("player").style.display="none";
+document.getElementById("full").src="";
+}
+
+/* FETCH */
+async function fetchData(url){
+const res=await fetch(url);
+return (await res.json()).results;
 }
 
 /* INIT */
@@ -307,7 +270,14 @@ const tv=await fetchData(`${API}/tv/popular?api_key=${KEY}`);
 show(trending,"trending","movie");
 show(movies,"movies","movie");
 show(tv,"tv","tv");
+
+/* HERO FIX */
+const h=trending[0];
+document.getElementById("hero-title").innerText=h.title||h.name;
+document.getElementById("hero-desc").innerText=(h.overview||"").slice(0,100);
+document.getElementById("playHero").onclick=()=>openPlayer(h);
 }
+
 init();
 </script>
 
