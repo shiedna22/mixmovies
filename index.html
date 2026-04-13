@@ -1,7 +1,7 @@
 <!DOCTYPE html><html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Ultimate</title><style>
+<title>ShiedFlix Pro</title><style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:white;font-family:Arial}
 html{scroll-behavior:smooth}
@@ -25,38 +25,57 @@ align-items:flex-end;
 padding:20px;
 margin-top:60px;
 position:relative;
-background:black;
 overflow:hidden;
 }
-
 #hero iframe{
 position:absolute;
-top:50%;
-left:50%;
-width:177.77vh;
-height:100vh;
-transform:translate(-50%, -50%);
+top:50%;left:50%;
+width:177.77vh;height:100vh;
+transform:translate(-50%,-50%);
 opacity:0.4;
 pointer-events:none;
 }
-
+#hero::before{
+content:"";
+position:absolute;
+width:100%;height:100%;
+background:inherit;
+filter:blur(25px);
+opacity:0.4;
+}
 #hero::after{
 content:"";
 position:absolute;
 bottom:0;
-width:100%;
-height:150px;
+width:100%;height:150px;
 background:linear-gradient(to top,#000,transparent);
 }
-
 .hero-content{z-index:2}
 
+/* CATEGORY */
+.categories{
+display:flex;
+gap:10px;
+padding:10px;
+overflow-x:auto;
+}
+.cat{
+background:#222;
+padding:6px 12px;
+border-radius:20px;
+cursor:pointer;
+white-space:nowrap;
+}
+.cat:hover{background:red}
+
 /* ROW */
-.row{margin-top:15px}
+.row{margin-top:10px}
 .row h2{padding-left:10px}
 .row-posters{
-display:flex;overflow-x:auto;
-gap:10px;padding:10px;
+display:flex;
+overflow-x:auto;
+gap:10px;
+padding:10px;
 }
 
 /* CARD */
@@ -64,6 +83,7 @@ gap:10px;padding:10px;
 min-width:130px;
 display:flex;
 flex-direction:column;
+position:relative;
 }
 .card img{
 width:130px;height:190px;
@@ -71,13 +91,34 @@ object-fit:cover;
 border-radius:8px;
 transition:0.3s;
 }
-.card img:hover{
+.card:hover img{
 transform:scale(1.08);
-box-shadow:0 0 15px rgba(255,0,0,0.7);
 }
+
+/* PLAY BUTTON */
+.play-btn{
+position:absolute;
+top:50%;left:50%;
+transform:translate(-50%,-50%);
+font-size:30px;
+opacity:0;
+transition:0.3s;
+}
+.card:hover .play-btn{opacity:1}
+
+/* TITLE */
 .card div{
 font-size:12px;
 margin-top:5px;
+}
+
+/* PROGRESS BAR */
+.progress{
+height:3px;
+background:red;
+position:absolute;
+bottom:0;
+left:0;
 }
 
 /* PLAYER */
@@ -106,8 +147,13 @@ cursor:pointer;
 <p id="hero-desc"></p>
 <button id="playHero">▶ Play</button>
 </div>
-</div><!-- CONTINUE --><div class="row"><h2>▶ Continue Watching</h2><div id="continue" class="row-posters"></div></div><!-- MY LIST --><div class="row"><h2>❤️ My List</h2><div id="mylist" class="row-posters"></div></div><!-- SEARCH --><div class="row" id="searchRow" style="display:none;">
-<h2>🔎 Search Results</h2>
+</div><!-- CATEGORY --><div class="categories">
+<div class="cat">🔥 Trending</div>
+<div class="cat">🎬 Movies</div>
+<div class="cat">📺 TV</div>
+<div class="cat">🍥 Anime</div>
+</div><!-- CONTINUE --><div class="row"><h2>▶ Continue Watching</h2><div id="continue" class="row-posters"></div></div><!-- SEARCH --><div class="row" id="searchRow" style="display:none;">
+<h2>🔎 Results</h2>
 <div id="searchResults" class="row-posters"></div>
 </div><!-- ROWS --><div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
 <div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
@@ -120,12 +166,9 @@ const API="https://api.themoviedb.org/3";
 const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
 
-let current=null,currentType="movie";
+let current=null;
 let continueList=JSON.parse(localStorage.getItem("continue"))||[];
-let myList=JSON.parse(localStorage.getItem("myList"))||[];
-
-let heroList=[];
-let heroIndex=0;
+let heroList=[],heroIndex=0;
 
 /* FETCH */
 async function fetchData(url){
@@ -151,18 +194,25 @@ const card=document.createElement("div");
 card.className="card";
 
 const img=document.createElement("img");
-img.src=i.poster_path?IMG+i.poster_path:"https://via.placeholder.com/150x220?text=No+Image";
+img.src=IMG+i.poster_path;
+
+const play=document.createElement("div");
+play.className="play-btn";
+play.innerText="▶";
 
 const label=document.createElement("div");
 label.innerText=title(i);
 
-card.onclick=()=>{
-current=i;
-currentType=type;
-openPlayer(i);
-};
+/* progress random demo */
+const progress=document.createElement("div");
+progress.className="progress";
+progress.style.width=Math.random()*100+"%";
+
+card.onclick=()=>openPlayer(i,type);
 
 card.appendChild(img);
+card.appendChild(play);
+card.appendChild(progress);
 card.appendChild(label);
 
 return card;
@@ -179,15 +229,14 @@ box.appendChild(createCard(i,type));
 }
 
 /* PLAYER */
-function openPlayer(i){
-const player=document.getElementById("player");
-const iframe=document.getElementById("full");
-
-iframe.src=i.title
+function openPlayer(i,type){
+current=i;
+document.getElementById("player").style.display="block";
+document.getElementById("full").src=
+type==="movie"
 ?`https://vidsrc.cc/v2/embed/movie/${i.id}`
 :`https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
 
-player.style.display="block";
 saveContinue(i);
 }
 function closePlayer(){
@@ -210,53 +259,22 @@ box.appendChild(createCard(m,"movie"));
 });
 }
 
-/* MY LIST */
-function toggleMyList(){
-let exist=myList.find(m=>m.id===current.id);
-if(exist){myList=myList.filter(m=>m.id!==current.id);}
-else{myList.push(current);}
-localStorage.setItem("myList",JSON.stringify(myList));
-renderMyList();
-}
-function renderMyList(){
-const box=document.getElementById("mylist");
-box.innerHTML="";
-myList.forEach(m=>{
-box.appendChild(createCard(m,"movie"));
-});
-}
-
 /* HERO */
 async function setHero(m){
-current=m;
-currentType=m.title?"movie":"tv";
-
 document.getElementById("hero-title").innerText=title(m);
 document.getElementById("hero-desc").innerText=(m.overview||"").slice(0,100)+"...";
 
-const trailer = await getTrailer(m.id,currentType);
-const hero = document.getElementById("heroVideo");
-
+const trailer=await getTrailer(m.id,m.title?"movie":"tv");
 if(trailer){
-hero.src = trailer;
-document.getElementById("hero").style.backgroundImage = "none";
+document.getElementById("heroVideo").src=trailer;
 }else{
-hero.src = "";
-if(m.backdrop_path){
-document.getElementById("hero").style.backgroundImage =
-`url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
-document.getElementById("hero").style.backgroundSize = "cover";
-document.getElementById("hero").style.backgroundPosition = "center";
-}else{
-document.getElementById("hero").style.background = "#000";
+document.getElementById("heroVideo").src="";
 }
+document.getElementById("playHero").onclick=()=>openPlayer(m,"movie");
 }
 
-document.getElementById("playHero").onclick=()=>openPlayer(m);
-}
-
-/* HERO AUTO SLIDE */
-function startHeroSlider(){
+/* SLIDER */
+function startSlider(){
 setInterval(()=>{
 heroIndex++;
 if(heroIndex>=heroList.length) heroIndex=0;
@@ -268,23 +286,18 @@ setHero(heroList[heroIndex]);
 let debounce;
 document.getElementById("search").addEventListener("input",(e)=>{
 clearTimeout(debounce);
-
 debounce=setTimeout(async()=>{
-const v=e.target.value.trim();
+const v=e.target.value;
 const row=document.getElementById("searchRow");
 const box=document.getElementById("searchResults");
 
-if(!v){
-row.style.display="none";
-return;
-}
+if(!v){row.style.display="none";return;}
 
 const res=await fetch(`${API}/search/multi?api_key=${KEY}&query=${v}`);
 const data=await res.json();
 
 row.style.display="block";
 box.innerHTML="";
-
 data.results.slice(0,20).forEach(i=>{
 if(!i.poster_path)return;
 box.appendChild(createCard(i,i.media_type));
@@ -304,12 +317,11 @@ show(movies,"movies","movie");
 show(tv,"tv","tv");
 show(anime,"anime","tv");
 
-heroList = trending;
+heroList=trending;
 setHero(trending[0]);
-startHeroSlider();
+startSlider();
 
 renderContinue();
-renderMyList();
 }
 init();
 </script></body>
