@@ -209,6 +209,9 @@ width:100%;
 height:100%;
 background:rgba(0,0,0,0.6);
 }
+.row-posters div {
+  color: white;
+}
   
 </style>
 </head>
@@ -319,15 +322,20 @@ const img = document.createElement("img");
 img.src = IMG + i.poster_path;
 
 /* 🔥 TITLE LABEL */
+const card = document.createElement("div");
+card.style.minWidth = "130px";
+card.style.display = "flex";
+card.style.flexDirection = "column";
+
+/* IMAGE */
+const img = document.createElement("img");
+img.src = IMG + i.poster_path;
+
+/* TITLE SA LABAS */
 const label = document.createElement("div");
 label.innerText = title(i);
-label.style.position = "absolute";
-label.style.bottom = "0";
-label.style.left = "0";
-label.style.width = "100%";
-label.style.padding = "6px";
 label.style.fontSize = "12px";
-label.style.background = "linear-gradient(to top, rgba(0,0,0,0.95), transparent)";
+label.style.marginTop = "5px";
 label.style.color = "white";
 
 /* CLICK */
@@ -382,22 +390,17 @@ results.slice(0,20).forEach(i=>{
 if(!i.poster_path) return;
 
 const card = document.createElement("div");
-card.style.position = "relative";
 card.style.minWidth = "130px";
+card.style.display = "flex";
+card.style.flexDirection = "column";
 
 const img = document.createElement("img");
 img.src = IMG + i.poster_path;
 
 const label = document.createElement("div");
 label.innerText = title(i);
-label.style.position = "absolute";
-label.style.bottom = "0";
-label.style.left = "0";
-label.style.width = "100%";
-label.style.padding = "6px";
 label.style.fontSize = "12px";
-label.style.background = "linear-gradient(to top, rgba(0,0,0,0.95), transparent)";
-label.style.color = "white";
+label.style.marginTop = "5px";
 
 card.onclick = () => {
   current = i;
