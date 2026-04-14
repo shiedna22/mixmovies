@@ -194,6 +194,45 @@ border-radius:5px;
 <div id="episodes"></div>
 </div>
 
+  <!-- 🎬 PREVIEW MODAL -->
+<div id="previewModal" style="
+display:none;
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:black;
+z-index:9998;
+padding:20px;
+">
+
+<span onclick="closePreview()" style="
+position:absolute;
+right:20px;
+top:10px;
+font-size:30px;
+cursor:pointer;
+">✖</span>
+
+<iframe id="previewVideo"
+style="width:100%;height:250px;border-radius:10px;"></iframe>
+
+<h2 id="previewTitle"></h2>
+<p id="previewDesc" style="color:#ccc;font-size:14px;"></p>
+
+<button onclick="playFromPreview()" style="
+margin-top:10px;
+padding:10px 15px;
+background:white;
+color:black;
+border:none;
+border-radius:5px;
+cursor:pointer;
+">
+▶ Play
+</button>
+
+</div>
+
 <script>
 const API="https://api.themoviedb.org/3";
 const KEY="43c2413701b5c752d07b62acf8e57736";
@@ -236,11 +275,9 @@ const label=document.createElement("div");
 label.innerText=title(i);
 
 card.onclick=()=>{
-current=i;
-currentType=type;
-openPlayer(i);
+openPreview(i, type);
 };
-
+  
 card.appendChild(img);
 card.appendChild(label);
 
@@ -367,6 +404,40 @@ document.getElementById("player").style.display="block";
 document.getElementById("full").src=trailer;
 }
 };
+}
+
+let previewItem = null;
+
+// OPEN PREVIEW
+async function openPreview(i, type){
+previewItem = i;
+currentType = type;
+
+document.getElementById("previewModal").style.display="block";
+
+document.getElementById("previewTitle").innerText = title(i);
+document.getElementById("previewDesc").innerText = i.overview || "No description";
+
+// trailer
+let trailer = await getTrailer(i.id, type);
+
+if(trailer){
+document.getElementById("previewVideo").src = trailer + "?autoplay=1&mute=1";
+}else{
+document.getElementById("previewVideo").src = "";
+}
+}
+
+// CLOSE
+function closePreview(){
+document.getElementById("previewModal").style.display="none";
+document.getElementById("previewVideo").src="";
+}
+
+// PLAY BUTTON
+function playFromPreview(){
+closePreview();
+openPlayer(previewItem);
 }
 
 /* HERO SLIDE */
