@@ -7,7 +7,6 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:white;font-family:Arial}
-html{scroll-behavior:smooth}
 
 /* NAV */
 .navbar{
@@ -28,8 +27,9 @@ align-items:flex-end;
 padding:20px;
 margin-top:60px;
 position:relative;
-background:black;
 overflow:hidden;
+background:black;
+cursor:pointer;
 }
 
 #hero iframe{
@@ -38,23 +38,14 @@ top:50%;
 left:50%;
 width:177.77vh;
 height:100vh;
-transform:translate(-50%, -50%);
+transform:translate(-50%,-50%);
 opacity:0;
 transition:0.5s;
 pointer-events:none;
 }
 
 #hero iframe.active{
-opacity:0.4;
-}
-
-#heroLoader{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-z-index:3;
-display:none;
+opacity:0.5;
 }
 
 #hero::after{
@@ -68,51 +59,45 @@ background:linear-gradient(to top,#000,transparent);
 
 .hero-content{z-index:2}
 
+#heroLoader{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+z-index:3;
+display:none;
+}
+
 /* ROW */
 .row{margin-top:15px}
 .row h2{padding-left:10px}
-.row-posters{
-display:flex;overflow-x:auto;
-gap:10px;padding:10px;
-}
+.row-posters{display:flex;overflow-x:auto;gap:10px;padding:10px}
 
 /* CARD */
-.card{
-min-width:130px;
-display:flex;
-flex-direction:column;
-cursor:pointer;
-}
+.card{min-width:130px;cursor:pointer}
 .card img{
 width:130px;height:190px;
-object-fit:cover;
 border-radius:8px;
 transition:0.3s;
 }
 .card img:hover{
 transform:scale(1.08);
-box-shadow:0 0 15px rgba(255,0,0,0.7);
+box-shadow:0 0 15px red;
 }
-.card div{
-font-size:12px;
-margin-top:5px;
-}
+.card div{font-size:12px;margin-top:5px}
 
 /* PLAYER */
 #player{
 display:none;
 position:fixed;
-width:100%;height:100%;
-top:0;background:black;
+top:0;width:100%;height:100%;
+background:black;
 z-index:99999;
 }
 #player iframe{width:100%;height:100%}
 .close{
-position:absolute;
-right:20px;
-top:10px;
-font-size:30px;
-cursor:pointer;
+position:absolute;right:20px;top:10px;
+font-size:30px;cursor:pointer;
 }
 </style>
 </head>
@@ -127,8 +112,7 @@ cursor:pointer;
 <!-- HERO -->
 <div id="hero">
 <div id="heroLoader">Loading...</div>
-
-<iframe id="heroVideo"></iframe>
+<iframe id="heroVideo" allow="autoplay; fullscreen"></iframe>
 
 <div class="hero-content">
 <h1 id="hero-title"></h1>
@@ -167,11 +151,9 @@ const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
 
 let current=null,currentType="movie";
-let continueList=JSON.parse(localStorage.getItem("continue"))||[];
-let myList=JSON.parse(localStorage.getItem("myList"))||[];
-
 let heroList=[],heroIndex=0;
 let trailerIndex=0,trailerTimeout;
+let isInteractive=false;
 
 /* FETCH */
 async function fetchData(url){
@@ -179,95 +161,22 @@ const res=await fetch(url);
 return (await res.json()).results;
 }
 
-/* TRAILER LIST */
+/* TRAILER */
 async function getTrailerList(id,type){
 try{
 const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
-
-return data.results
-.filter(v=>v.site==="YouTube")
-.map(v=>v.key);
+return data.results.filter(v=>v.site==="YouTube").map(v=>v.key);
 }catch{return [];}
 }
 
 function title(i){return i.title||i.name||"No Title"}
 
-/* CARD */
-function createCard(i,type){
-const card=document.createElement("div");
-card.className="card";
-
-const img=document.createElement("img");
-img.src=i.poster_path?IMG+i.poster_path:"https://via.placeholder.com/150x220";
-
-const label=document.createElement("div");
-label.innerText=title(i);
-
-card.onclick=()=>{
-current=i;
-currentType=type;
-openPlayer(i);
-};
-
-card.appendChild(img);
-card.appendChild(label);
-return card;
-}
-
-/* SHOW */
-function show(list,id,type){
-const box=document.getElementById(id);
-box.innerHTML="";
-list.forEach(i=>{
-if(!i.poster_path)return;
-box.appendChild(createCard(i,type));
-});
-}
-
-/* PLAYER */
-function openPlayer(i){
-const iframe=document.getElementById("full");
-iframe.src=i.title
-?`https://vidsrc.cc/v2/embed/movie/${i.id}`
-:`https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
-
-document.getElementById("player").style.display="block";
-saveContinue(i);
-}
-function closePlayer(){
-document.getElementById("player").style.display="none";
-document.getElementById("full").src="";
-}
-
-/* CONTINUE */
-function saveContinue(m){
-continueList=continueList.filter(x=>x.id!==m.id);
-continueList.unshift(m);
-localStorage.setItem("continue",JSON.stringify(continueList));
-renderContinue();
-}
-function renderContinue(){
-const box=document.getElementById("continue");
-box.innerHTML="";
-continueList.forEach(m=>{
-box.appendChild(createCard(m,"movie"));
-});
-}
-
-/* MY LIST */
-function renderMyList(){
-const box=document.getElementById("mylist");
-box.innerHTML="";
-myList.forEach(m=>{
-box.appendChild(createCard(m,"movie"));
-});
-}
-
 /* HERO */
 async function setHero(m){
 current=m;
 currentType=m.title?"movie":"tv";
+isInteractive=false;
 
 document.getElementById("hero-title").innerText=title(m);
 document.getElementById("hero-desc").innerText=(m.overview||"").slice(0,100)+"...";
@@ -277,6 +186,7 @@ const loader=document.getElementById("heroLoader");
 
 hero.style.display="block";
 hero.classList.remove("active");
+hero.style.pointerEvents="none";
 loader.style.display="block";
 
 const trailers=await getTrailerList(m.id,currentType);
@@ -290,7 +200,7 @@ showFallback(m);
 return;
 }
 
-hero.src=`https://www.youtube.com/embed/${trailers[trailerIndex]}?autoplay=1&mute=1`;
+hero.src=`https://www.youtube.com/embed/${trailers[trailerIndex]}?autoplay=1&mute=1&controls=0`;
 
 trailerTimeout=setTimeout(()=>{
 trailerIndex++;
@@ -304,57 +214,46 @@ hero.classList.add("active");
 };
 
 loadTrailer();
-
-document.getElementById("playHero").onclick=()=>openPlayer(m);
 }
 
+/* CLICK HERO → INTERACTIVE MODE */
+document.getElementById("hero").onclick=()=>{
+if(!current) return;
+
+const hero=document.getElementById("heroVideo");
+
+if(!isInteractive){
+isInteractive=true;
+hero.style.pointerEvents="auto";
+
+hero.src=hero.src.replace("mute=1","mute=0").replace("controls=0","controls=1");
+}
+};
+
+/* FALLBACK */
 function showFallback(m){
 const hero=document.getElementById("heroVideo");
-const loader=document.getElementById("heroLoader");
-
 hero.style.display="none";
-hero.src="";
-loader.style.display="none";
 
 if(m.backdrop_path){
 document.getElementById("hero").style.background=
 `url(https://image.tmdb.org/t/p/original${m.backdrop_path}) center/cover`;
-}else{
-document.getElementById("hero").style.background="#000";
 }
 }
 
-/* HERO SLIDER */
-function startHeroSlider(){
-setInterval(()=>{
-heroIndex=(heroIndex+1)%heroList.length;
-setHero(heroList[heroIndex]);
-},5000);
+/* PLAYER */
+function openPlayer(i){
+const iframe=document.getElementById("full");
+iframe.src=i.title
+?`https://vidsrc.cc/v2/embed/movie/${i.id}`
+:`https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
+
+document.getElementById("player").style.display="block";
 }
-
-/* SEARCH */
-let debounce;
-document.getElementById("search").addEventListener("input",(e)=>{
-clearTimeout(debounce);
-
-debounce=setTimeout(async()=>{
-const v=e.target.value.trim();
-const row=document.getElementById("searchRow");
-const box=document.getElementById("searchResults");
-
-if(!v){row.style.display="none";return;}
-
-const res=await fetch(`${API}/search/multi?api_key=${KEY}&query=${v}`);
-const data=await res.json();
-
-row.style.display="block";
-box.innerHTML="";
-data.results.slice(0,20).forEach(i=>{
-if(!i.poster_path)return;
-box.appendChild(createCard(i,i.media_type));
-});
-},400);
-});
+function closePlayer(){
+document.getElementById("player").style.display="none";
+document.getElementById("full").src="";
+}
 
 /* INIT */
 async function init(){
@@ -370,11 +269,33 @@ show(anime,"anime","tv");
 
 heroList=trending;
 setHero(trending[0]);
-startHeroSlider();
 
-renderContinue();
-renderMyList();
+setInterval(()=>{
+heroIndex=(heroIndex+1)%heroList.length;
+setHero(heroList[heroIndex]);
+},5000);
 }
+
+/* SHOW */
+function show(list,id,type){
+const box=document.getElementById(id);
+box.innerHTML="";
+list.forEach(i=>{
+if(!i.poster_path)return;
+
+const card=document.createElement("div");
+card.className="card";
+
+card.innerHTML=`
+<img src="${IMG+i.poster_path}">
+<div>${title(i)}</div>
+`;
+
+card.onclick=()=>openPlayer(i);
+box.appendChild(card);
+});
+}
+
 init();
 </script>
 
