@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Ultra FINAL</title>
+<title>ShīedFlix Ultra FINAL</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -111,6 +111,9 @@ width:100%;height:100%;
 background:black;
 z-index:9998;
 padding:20px;
+}
+#previewVideo{
+transition:0.3s;
 }
 #previewVideo{width:100%;height:250px;border-radius:10px}
 </style>
@@ -226,6 +229,7 @@ currentType=type;
 document.getElementById("previewModal").style.display="block";
 document.getElementById("previewTitle").innerText=title(i);
 document.getElementById("previewDesc").innerText=i.overview||"";
+document.getElementById("previewVideo").style.opacity = "1";
 
 let t=await getTrailer(i.id,type);
 document.getElementById("previewVideo").src=t+"?autoplay=1&mute=1";
@@ -242,19 +246,40 @@ openPlayer(previewItem);
 }
 
 /* PLAYER */
-function openPlayer(i){
+async function openPlayer(i){
+
+const iframe = document.getElementById("full");
+const epBox = document.getElementById("episodes");
+
+epBox.innerHTML="";
 document.getElementById("player").style.display="block";
+
+// 🔥 DIRECT PLAY AGAD (NO TRAILER)
 if(i.title){
-document.getElementById("full").src=`https://vidsrc.me/embed/movie/${i.id}`;
+  iframe.src=`https://vidsrc.me/embed/movie/${i.id}`;
 }else{
-document.getElementById("full").src=`https://vidsrc.me/embed/tv/${i.id}/1/1`;
+  iframe.src=`https://vidsrc.me/embed/tv/${i.id}/1/1`;
+
+  for(let e=1;e<=10;e++){
+    const btn=document.createElement("div");
+    btn.className="ep-btn";
+    btn.innerText="Ep "+e;
+
+    btn.onclick=()=>{
+      iframe.src=`https://vidsrc.me/embed/tv/${i.id}/1/${e}`;
+    };
+
+    epBox.appendChild(btn);
+  }
 }
+
+// 🔥 SAVE PROGRESS
 let progress = JSON.parse(localStorage.getItem("progress")) || {};
-progress[i.id] = 60; // demo muna
+progress[i.id] = 60;
 localStorage.setItem("progress", JSON.stringify(progress));
 
 saveContinue(i);
-}
+  }
 
 function closePlayer(){
 document.getElementById("player").style.display="none";
@@ -337,10 +362,13 @@ document.getElementById("heroVideo").src=t+"?autoplay=1&mute=1";
 
 document.getElementById("playHero").onclick=()=>openPlayer(m);
 document.getElementById("watchTrailer").onclick=()=>{
-document.getElementById("player").style.display="block";
-document.getElementById("full").src=t;
+getTrailer(m.id,currentType).then(trailer=>{
+  if(trailer){
+    document.getElementById("player").style.display="block";
+    document.getElementById("full").src = trailer + "?autoplay=1";
+  }
+});
 };
-}
 
 /* SEARCH */
 let debounce;
