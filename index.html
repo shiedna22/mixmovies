@@ -19,7 +19,8 @@ background:rgba(0,0,0,0.9);z-index:1000;
 
 /* HERO */
 #hero{
-height:55vh;
+height:40vh; /* 👈 mas compact */
+min-height:250px;
 display:flex;
 align-items:flex-end;
 padding:20px;
@@ -51,6 +52,14 @@ z-index:1;
 .hero-content{
 z-index:2;
 max-width:600px;
+margin-bottom:20px;
+}
+#hero h1{
+font-size:22px;
+}
+
+#hero p{
+font-size:12px;
 }
 
 .hero-buttons{display:flex;gap:10px;margin-top:10px}
@@ -240,6 +249,10 @@ document.getElementById("full").src=`https://vidsrc.me/embed/movie/${i.id}`;
 }else{
 document.getElementById("full").src=`https://vidsrc.me/embed/tv/${i.id}/1/1`;
 }
+let progress = JSON.parse(localStorage.getItem("progress")) || {};
+progress[i.id] = 60; // demo muna
+localStorage.setItem("progress", JSON.stringify(progress));
+
 saveContinue(i);
 }
 
@@ -259,7 +272,6 @@ function renderContinue(){
 const box = document.getElementById("continue");
 const section = box.parentElement;
 
-// hide if empty
 if(continueList.length === 0){
 section.style.display = "none";
 return;
@@ -274,12 +286,12 @@ continueList.forEach(m=>{
 const card=document.createElement("div");
 card.className="card";
 
-let percent = progressData[m.id] || 0;
+let percent = progressData[m.id] || 50; // 👈 default para makita agad
 
 card.innerHTML=`
 <img src="${IMG+m.poster_path}">
 <div>${title(m)}</div>
-${percent > 0 ? `<div class="progress-bar" style="width:${percent}%"></div>` : ""}
+<div class="progress-bar" style="width:${percent}%"></div>
 `;
 
 card.onclick=()=>openPreview(m,"movie");
