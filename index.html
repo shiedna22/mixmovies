@@ -106,8 +106,10 @@ top:0;background:black;
 z-index:99999;
 }
 #player iframe{
-width:100%;height:100%;
-pointer-events:auto;
+width:100%;
+height:60%;
+margin-top:60px;
+border-radius:10px;
 }
 .close{
 position:absolute;
@@ -256,37 +258,53 @@ box.appendChild(createCard(i,type));
 }
 
 /* PLAYER */
-function openPlayer(i){
-const iframe=document.getElementById("full");
-const epBox=document.getElementById("episodes");
 
-epBox.innerHTML="";
-
-if(i.title){
-iframe.src=`https://vidsrc.cc/v2/embed/movie/${i.id}`;
-}else{
-iframe.src=`https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
-
-for(let e=1;e<=10;e++){
-const btn=document.createElement("div");
-btn.className="ep-btn";
-btn.innerText="Ep "+e;
-
-btn.onclick=()=>{
-iframe.src=`https://vidsrc.cc/v2/embed/tv/${i.id}/1/${e}`;
-};
-
-epBox.appendChild(btn);
-}
-}
-
-document.getElementById("player").style.display="block";
-saveContinue(i);
-}
 
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
+}
+async function openPlayer(i){
+const iframe=document.getElementById("full");
+const epBox=document.getElementById("episodes");
+
+epBox.innerHTML="";
+document.getElementById("player").style.display="block";
+
+// 🎬 1. TRAILER MUNA (SAFE)
+let trailer = await getTrailer(i.id, currentType);
+
+if(trailer){
+  iframe.src = trailer + "?autoplay=1";
+}else{
+  iframe.src = "";
+}
+
+// ⏱ 2. AFTER 3 SEC → LOAD MOVIE / TV
+setTimeout(()=>{
+
+  if(i.title){
+    iframe.src=`https://vidsrc.me/embed/movie/${i.id}`;
+  }else{
+    iframe.src=`https://vidsrc.me/embed/tv/${i.id}/1/1`;
+
+    // 🎬 EPISODES
+    for(let e=1;e<=10;e++){
+      const btn=document.createElement("div");
+      btn.className="ep-btn";
+      btn.innerText="Ep "+e;
+
+      btn.onclick=()=>{
+        iframe.src=`https://vidsrc.me/embed/tv/${i.id}/1/${e}`;
+      };
+
+      epBox.appendChild(btn);
+    }
+  }
+
+},3000);
+
+saveContinue(i);
 }
 
 /* CONTINUE */
