@@ -116,6 +116,24 @@ padding:20px;
 transition:0.3s;
 }
 #previewVideo{width:100%;height:250px;border-radius:10px}
+#episodes{
+position:absolute;
+bottom:20px;
+left:20px;
+display:flex;
+gap:5px;
+flex-wrap:wrap;
+z-index:10000;
+}
+
+.ep-btn{
+background:#222;
+padding:5px 10px;
+border-radius:5px;
+cursor:pointer;
+font-size:12px;
+}
+.ep-btn:hover{background:red}
 </style>
 </head>
 
@@ -169,6 +187,7 @@ transition:0.3s;
 <div id="player">
 <span class="close" onclick="closePlayer()">✖</span>
 <iframe id="full" allowfullscreen></iframe>
+<div id="episodes"></div>
 </div>
 
 <!-- PREVIEW -->
@@ -184,7 +203,9 @@ transition:0.3s;
 const API="https://api.themoviedb.org/3";
 const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
-
+  
+let currentEpisode = 1;
+let autoNextTimer;
 let previewItem=null,currentType="movie";
 let continueList=JSON.parse(localStorage.getItem("continue"))||[];
 let myList=JSON.parse(localStorage.getItem("myList"))||[];
@@ -255,15 +276,49 @@ document.getElementById("player").style.display="block";
 if(i.title){
   iframe.src=`https://vidsrc.me/embed/movie/${i.id}`;
 }else{
-  iframe.src=`https://vidsrc.me/embed/tv/${i.id}/1/1`;
-}
+  const epBox = document.getElementById("episodes");
+  epBox.innerHTML="";
 
+  currentEpisode = 1;
+  loadEpisode(i.id, currentEpisode);
+
+  // 🔥 ADD BUTTONS
+  for(let e=1;e<=10;e++){
+    const btn=document.createElement("div");
+    btn.className="ep-btn";
+    btn.innerText="Ep "+e;
+
+    btn.onclick=()=>{
+      currentEpisode = e;
+      loadEpisode(i.id, e);
+    };
+
+    epBox.appendChild(btn);
+  }
+  }
+  
 // SAVE PROGRESS
 let progress = JSON.parse(localStorage.getItem("progress")) || {};
 progress[i.id] = 60;
 localStorage.setItem("progress", JSON.stringify(progress));
 
 saveContinue(i);
+}
+
+function loadEpisode(id, ep){
+const iframe = document.getElementById("full");
+
+// load episode
+iframe.src = `https://vidsrc.me/embed/tv/${id}/1/${ep}`;
+
+// clear old timer
+clearTimeout(autoNextTimer);
+
+// ⏱ auto next after 30 mins
+autoNextTimer = setTimeout(()=>{
+  currentEpisode++;
+  loadEpisode(id, currentEpisode);
+}, 1800000); // 30 minutes
 }
 
 function closePlayer(){
