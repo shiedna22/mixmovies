@@ -229,7 +229,6 @@ currentType=type;
 document.getElementById("previewModal").style.display="block";
 document.getElementById("previewTitle").innerText=title(i);
 document.getElementById("previewDesc").innerText=i.overview||"";
-document.getElementById("previewVideo").style.opacity = "1";
 
 let t=await getTrailer(i.id,type);
 document.getElementById("previewVideo").src=t+"?autoplay=1&mute=1";
@@ -249,37 +248,23 @@ openPlayer(previewItem);
 async function openPlayer(i){
 
 const iframe = document.getElementById("full");
-const epBox = document.getElementById("episodes");
 
-epBox.innerHTML="";
 document.getElementById("player").style.display="block";
 
-// 🔥 DIRECT PLAY AGAD (NO TRAILER)
+// DIRECT PLAY
 if(i.title){
   iframe.src=`https://vidsrc.me/embed/movie/${i.id}`;
 }else{
   iframe.src=`https://vidsrc.me/embed/tv/${i.id}/1/1`;
-
-  for(let e=1;e<=10;e++){
-    const btn=document.createElement("div");
-    btn.className="ep-btn";
-    btn.innerText="Ep "+e;
-
-    btn.onclick=()=>{
-      iframe.src=`https://vidsrc.me/embed/tv/${i.id}/1/${e}`;
-    };
-
-    epBox.appendChild(btn);
-  }
 }
 
-// 🔥 SAVE PROGRESS
+// SAVE PROGRESS
 let progress = JSON.parse(localStorage.getItem("progress")) || {};
 progress[i.id] = 60;
 localStorage.setItem("progress", JSON.stringify(progress));
 
 saveContinue(i);
-  }
+}
 
 function closePlayer(){
 document.getElementById("player").style.display="none";
@@ -293,6 +278,7 @@ continueList.unshift(m);
 localStorage.setItem("continue",JSON.stringify(continueList));
 renderContinue();
 }
+
 function renderContinue(){
 const box = document.getElementById("continue");
 const section = box.parentElement;
@@ -311,7 +297,7 @@ continueList.forEach(m=>{
 const card=document.createElement("div");
 card.className="card";
 
-let percent = progressData[m.id] || 50; // 👈 default para makita agad
+let percent = progressData[m.id] || 50;
 
 card.innerHTML=`
 <img src="${IMG+m.poster_path}">
@@ -327,12 +313,16 @@ box.appendChild(card);
 
 /* MY LIST */
 function toggleMyList(){
+if(!previewItem) return;
+
 let exist=myList.find(m=>m.id===previewItem.id);
 if(exist){myList=myList.filter(m=>m.id!==previewItem.id);}
 else{myList.push(previewItem);}
+
 localStorage.setItem("myList",JSON.stringify(myList));
 renderMyList();
 }
+
 function renderMyList(){
 const box = document.getElementById("mylist");
 const section = box.parentElement;
@@ -361,14 +351,18 @@ let t=await getTrailer(m.id,currentType);
 document.getElementById("heroVideo").src=t+"?autoplay=1&mute=1";
 
 document.getElementById("playHero").onclick=()=>openPlayer(m);
-document.getElementById("watchTrailer").onclick=()=>{
-getTrailer(m.id,currentType).then(trailer=>{
-  if(trailer){
-    document.getElementById("player").style.display="block";
-    document.getElementById("full").src = trailer + "?autoplay=1";
-  }
-});
+
+// ✅ FIXED TRAILER BUTTON (NO ERROR)
+document.getElementById("watchTrailer").onclick = async ()=>{
+const trailer = await getTrailer(m.id,currentType);
+
+if(trailer){
+  document.getElementById("player").style.display="block";
+  document.getElementById("full").src = trailer + "?autoplay=1";
+}
 };
+
+} // 🔥 IMPORTANT: SARADO NA FUNCTION
 
 /* SEARCH */
 let debounce;
@@ -421,6 +415,7 @@ renderMyList();
 
 init();
 </script>
+
 
 </body>
 </html>
