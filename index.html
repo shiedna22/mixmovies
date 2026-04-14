@@ -79,7 +79,7 @@ font-size:12px;
 
 /* PLAYER */
 #player{
-display:none;
+display:flex;
 position:fixed;
 top:0;
 left:0;
@@ -90,6 +90,8 @@ height:100vh;
 background:black;
 z-index:99999;
 overflow:hidden;
+align-items:center;
+justify-content:center;
 }
 body.player-open{
 overflow:hidden;
@@ -103,7 +105,9 @@ width:100vw;
 height:100vh;
 border:none;
 }
-
+.close{
+z-index:999999;
+}
 iframe{
 border:none;
 }
@@ -298,7 +302,7 @@ document.body.classList.add("player-open");
 
 // DIRECT PLAY
 if(i.title){
-  iframe.src=`https://vidsrc.me/embed/movie/${i.id}`;
+  iframe.src=`https://vidsrc.to/embed/movie/${i.id}?autoplay=1`;
 }else{
   const epBox = document.getElementById("episodes");
   epBox.innerHTML="";
@@ -333,7 +337,7 @@ function loadEpisode(id, ep){
 const iframe = document.getElementById("full");
 
 // load episode
-iframe.src = `https://vidsrc.me/embed/tv/${id}/1/${ep}`;
+iframe.src = `https://vidsrc.to/embed/tv/${id}/1/${ep}?autoplay=1`;
 
 // clear old timer
 clearTimeout(autoNextTimer);
