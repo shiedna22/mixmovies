@@ -119,11 +119,26 @@ cursor:pointer;
 #previewModal{
 display:none;
 position:fixed;
-top:0;left:0;
-width:100%;height:100%;
+top:0;
+left:0;
+width:100vw;
+height:100vh;
 background:black;
-z-index:9998;
-padding:20px;
+z-index:999999;
+padding:0;
+overflow:auto;
+}
+#previewModal iframe{
+width:100%;
+height:250px;
+border:none;
+}
+#previewModal span{
+position:absolute;
+top:15px;
+right:20px;
+font-size:30px;
+z-index:999999;
 }
 #previewVideo{width:100%;height:250px;border-radius:10px}
 </style>
@@ -253,13 +268,25 @@ const iframe=document.getElementById("full");
 document.getElementById("player").style.display="block";
 
 if(i.title){
-iframe.src=`https://2embed.cc/embed/movie/${i.id}?autoplay=1`;
+iframe.src=`https://vidsrc.me/embed/movie/${i.id}?autoplay=1`;
 }else{
-iframe.src=`https://2embed.cc/embed/tv/${i.id}/1/1?autoplay=1`;
+iframe.src=`https://vidsrc.me/embed/tv/${i.id}/1/1?autoplay=1`;
+  setTimeout(()=>{
+if(iframe.contentWindow.length === 0){
+alert("❌ No video available for this movie");
+closePlayer();
+}
+},4000);
 }
 
 saveContinue(i);
 }
+
+function isValidMovie(i){
+return i.release_date && i.poster_path;
+}
+
+
 
 function closePlayer(){
 document.getElementById("player").style.display="none";
