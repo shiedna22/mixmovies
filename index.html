@@ -1,7 +1,10 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Ultimate</title><style>
+<title>ShiedFlix Ultimate</title>
+
+<style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:white;font-family:Arial}
 html{scroll-behavior:smooth}
@@ -36,8 +39,22 @@ left:50%;
 width:177.77vh;
 height:100vh;
 transform:translate(-50%, -50%);
-opacity:0.4;
+opacity:0;
+transition:0.5s;
 pointer-events:none;
+}
+
+#hero iframe.active{
+opacity:0.4;
+}
+
+#heroLoader{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+z-index:3;
+display:none;
 }
 
 #hero::after{
@@ -64,6 +81,7 @@ gap:10px;padding:10px;
 min-width:130px;
 display:flex;
 flex-direction:column;
+cursor:pointer;
 }
 .card img{
 width:130px;height:190px;
@@ -96,26 +114,54 @@ top:10px;
 font-size:30px;
 cursor:pointer;
 }
-</style></head><body><div class="navbar">
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
 <div class="logo">ShiedFlix</div>
 <input id="search" placeholder="Search...">
-</div><!-- HERO --><div id="hero">
+</div>
+
+<!-- HERO -->
+<div id="hero">
+<div id="heroLoader">Loading...</div>
+
 <iframe id="heroVideo"></iframe>
+
 <div class="hero-content">
 <h1 id="hero-title"></h1>
 <p id="hero-desc"></p>
 <button id="playHero">▶ Play</button>
 </div>
-</div><!-- CONTINUE --><div class="row"><h2>▶ Continue Watching</h2><div id="continue" class="row-posters"></div></div><!-- MY LIST --><div class="row"><h2>❤️ My List</h2><div id="mylist" class="row-posters"></div></div><!-- SEARCH --><div class="row" id="searchRow" style="display:none;">
+</div>
+
+<!-- CONTINUE -->
+<div class="row"><h2>▶ Continue Watching</h2><div id="continue" class="row-posters"></div></div>
+
+<!-- MY LIST -->
+<div class="row"><h2>❤️ My List</h2><div id="mylist" class="row-posters"></div></div>
+
+<!-- SEARCH -->
+<div class="row" id="searchRow" style="display:none;">
 <h2>🔎 Search Results</h2>
 <div id="searchResults" class="row-posters"></div>
-</div><!-- ROWS --><div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
+</div>
+
+<!-- ROWS -->
+<div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
 <div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
 <div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
-<div class="row"><h2>🍥 Anime</h2><div id="anime" class="row-posters"></div></div><!-- PLAYER --><div id="player">
+<div class="row"><h2>🍥 Anime</h2><div id="anime" class="row-posters"></div></div>
+
+<!-- PLAYER -->
+<div id="player">
 <span class="close" onclick="closePlayer()">✖</span>
 <iframe id="full"></iframe>
-</div><script>
+</div>
+
+<script>
 const API="https://api.themoviedb.org/3";
 const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
@@ -124,8 +170,8 @@ let current=null,currentType="movie";
 let continueList=JSON.parse(localStorage.getItem("continue"))||[];
 let myList=JSON.parse(localStorage.getItem("myList"))||[];
 
-let heroList=[];
-let heroIndex=0;
+let heroList=[],heroIndex=0;
+let trailerIndex=0,trailerTimeout;
 
 /* FETCH */
 async function fetchData(url){
@@ -133,14 +179,16 @@ const res=await fetch(url);
 return (await res.json()).results;
 }
 
-/* TRAILER */
-async function getTrailer(id,type){
+/* TRAILER LIST */
+async function getTrailerList(id,type){
 try{
 const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
-const t=data.results.find(v=>v.site==="YouTube");
-return t?`https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1`:"";
-}catch{return "";}
+
+return data.results
+.filter(v=>v.site==="YouTube")
+.map(v=>v.key);
+}catch{return [];}
 }
 
 function title(i){return i.title||i.name||"No Title"}
@@ -151,7 +199,7 @@ const card=document.createElement("div");
 card.className="card";
 
 const img=document.createElement("img");
-img.src=i.poster_path?IMG+i.poster_path:"https://via.placeholder.com/150x220?text=No+Image";
+img.src=i.poster_path?IMG+i.poster_path:"https://via.placeholder.com/150x220";
 
 const label=document.createElement("div");
 label.innerText=title(i);
@@ -164,7 +212,6 @@ openPlayer(i);
 
 card.appendChild(img);
 card.appendChild(label);
-
 return card;
 }
 
@@ -180,14 +227,12 @@ box.appendChild(createCard(i,type));
 
 /* PLAYER */
 function openPlayer(i){
-const player=document.getElementById("player");
 const iframe=document.getElementById("full");
-
 iframe.src=i.title
 ?`https://vidsrc.cc/v2/embed/movie/${i.id}`
 :`https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
 
-player.style.display="block";
+document.getElementById("player").style.display="block";
 saveContinue(i);
 }
 function closePlayer(){
@@ -211,13 +256,6 @@ box.appendChild(createCard(m,"movie"));
 }
 
 /* MY LIST */
-function toggleMyList(){
-let exist=myList.find(m=>m.id===current.id);
-if(exist){myList=myList.filter(m=>m.id!==current.id);}
-else{myList.push(current);}
-localStorage.setItem("myList",JSON.stringify(myList));
-renderMyList();
-}
 function renderMyList(){
 const box=document.getElementById("mylist");
 box.innerHTML="";
@@ -234,32 +272,62 @@ currentType=m.title?"movie":"tv";
 document.getElementById("hero-title").innerText=title(m);
 document.getElementById("hero-desc").innerText=(m.overview||"").slice(0,100)+"...";
 
-const trailer = await getTrailer(m.id,currentType);
-const hero = document.getElementById("heroVideo");
+const hero=document.getElementById("heroVideo");
+const loader=document.getElementById("heroLoader");
 
-if(trailer){
-hero.src = trailer;
-document.getElementById("hero").style.backgroundImage = "none";
-}else{
-hero.src = "";
-if(m.backdrop_path){
-document.getElementById("hero").style.backgroundImage =
-`url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
-document.getElementById("hero").style.backgroundSize = "cover";
-document.getElementById("hero").style.backgroundPosition = "center";
-}else{
-document.getElementById("hero").style.background = "#000";
+hero.style.display="block";
+hero.classList.remove("active");
+loader.style.display="block";
+
+const trailers=await getTrailerList(m.id,currentType);
+trailerIndex=0;
+
+function loadTrailer(){
+clearTimeout(trailerTimeout);
+
+if(trailerIndex>=trailers.length){
+showFallback(m);
+return;
 }
+
+hero.src=`https://www.youtube.com/embed/${trailers[trailerIndex]}?autoplay=1&mute=1`;
+
+trailerTimeout=setTimeout(()=>{
+trailerIndex++;
+loadTrailer();
+},3000);
 }
+
+hero.onload=()=>{
+loader.style.display="none";
+hero.classList.add("active");
+};
+
+loadTrailer();
 
 document.getElementById("playHero").onclick=()=>openPlayer(m);
 }
 
-/* HERO AUTO SLIDE */
+function showFallback(m){
+const hero=document.getElementById("heroVideo");
+const loader=document.getElementById("heroLoader");
+
+hero.style.display="none";
+hero.src="";
+loader.style.display="none";
+
+if(m.backdrop_path){
+document.getElementById("hero").style.background=
+`url(https://image.tmdb.org/t/p/original${m.backdrop_path}) center/cover`;
+}else{
+document.getElementById("hero").style.background="#000";
+}
+}
+
+/* HERO SLIDER */
 function startHeroSlider(){
 setInterval(()=>{
-heroIndex++;
-if(heroIndex>=heroList.length) heroIndex=0;
+heroIndex=(heroIndex+1)%heroList.length;
 setHero(heroList[heroIndex]);
 },5000);
 }
@@ -274,17 +342,13 @@ const v=e.target.value.trim();
 const row=document.getElementById("searchRow");
 const box=document.getElementById("searchResults");
 
-if(!v){
-row.style.display="none";
-return;
-}
+if(!v){row.style.display="none";return;}
 
 const res=await fetch(`${API}/search/multi?api_key=${KEY}&query=${v}`);
 const data=await res.json();
 
 row.style.display="block";
 box.innerHTML="";
-
 data.results.slice(0,20).forEach(i=>{
 if(!i.poster_path)return;
 box.appendChild(createCard(i,i.media_type));
@@ -304,7 +368,7 @@ show(movies,"movies","movie");
 show(tv,"tv","tv");
 show(anime,"anime","tv");
 
-heroList = trending;
+heroList=trending;
 setHero(trending[0]);
 startHeroSlider();
 
@@ -312,5 +376,7 @@ renderContinue();
 renderMyList();
 }
 init();
-</script></body>
+</script>
+
+</body>
 </html>
