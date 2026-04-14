@@ -1,7 +1,10 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Ultimate</title><style>
+<title>ShiedFlix Ultra</title>
+
+<style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:white;font-family:Arial}
 html{scroll-behavior:smooth}
@@ -49,7 +52,26 @@ height:150px;
 background:linear-gradient(to top,#000,transparent);
 }
 
-.hero-content{z-index:2}
+.hero-content{z-index:2;max-width:600px}
+.hero-content p{font-size:14px;margin:8px 0}
+
+.hero-buttons{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.hero-buttons button{
+padding:8px 15px;
+border:none;
+border-radius:5px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.play-btn{background:white;color:black}
+.trailer-btn{background:red;color:white}
+.list-btn{background:#333;color:white}
 
 /* ROW */
 .row{margin-top:15px}
@@ -60,11 +82,7 @@ gap:10px;padding:10px;
 }
 
 /* CARD */
-.card{
-min-width:130px;
-display:flex;
-flex-direction:column;
-}
+.card{min-width:130px}
 .card img{
 width:130px;height:190px;
 object-fit:cover;
@@ -73,11 +91,10 @@ transition:0.3s;
 }
 .card img:hover{
 transform:scale(1.08);
-box-shadow:0 0 15px rgba(255,0,0,0.7);
+box-shadow:0 0 15px red;
 }
 .card div{
-font-size:12px;
-margin-top:5px;
+font-size:12px;margin-top:5px;
 }
 
 /* PLAYER */
@@ -88,7 +105,10 @@ width:100%;height:100%;
 top:0;background:black;
 z-index:99999;
 }
-#player iframe{width:100%;height:100%}
+#player iframe{
+width:100%;height:100%;
+pointer-events:auto;
+}
 .close{
 position:absolute;
 right:20px;
@@ -96,26 +116,83 @@ top:10px;
 font-size:30px;
 cursor:pointer;
 }
-</style></head><body><div class="navbar">
+
+/* EPISODES */
+#episodes{
+position:absolute;
+bottom:20px;
+left:20px;
+display:flex;
+gap:5px;
+flex-wrap:wrap;
+}
+
+.ep-btn{
+background:#222;
+padding:5px 10px;
+cursor:pointer;
+border-radius:5px;
+}
+.ep-btn:hover{background:red}
+
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
 <div class="logo">ShiedFlix</div>
 <input id="search" placeholder="Search...">
-</div><!-- HERO --><div id="hero">
+</div>
+
+<!-- HERO -->
+<div id="hero">
 <iframe id="heroVideo"></iframe>
+
 <div class="hero-content">
 <h1 id="hero-title"></h1>
 <p id="hero-desc"></p>
-<button id="playHero">▶ Play</button>
+
+<div class="hero-buttons">
+<button class="play-btn" id="playHero">▶ Play</button>
+<button class="trailer-btn" id="watchTrailer">🎬 Trailer</button>
+<button class="list-btn" onclick="toggleMyList()">❤️ My List</button>
 </div>
-</div><!-- CONTINUE --><div class="row"><h2>▶ Continue Watching</h2><div id="continue" class="row-posters"></div></div><!-- MY LIST --><div class="row"><h2>❤️ My List</h2><div id="mylist" class="row-posters"></div></div><!-- SEARCH --><div class="row" id="searchRow" style="display:none;">
+</div>
+</div>
+
+<!-- CONTINUE -->
+<div class="row">
+<h2>▶ Continue Watching</h2>
+<div id="continue" class="row-posters"></div>
+</div>
+
+<!-- MY LIST -->
+<div class="row">
+<h2>❤️ My List</h2>
+<div id="mylist" class="row-posters"></div>
+</div>
+
+<!-- SEARCH -->
+<div class="row" id="searchRow" style="display:none;">
 <h2>🔎 Search Results</h2>
 <div id="searchResults" class="row-posters"></div>
-</div><!-- ROWS --><div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
+</div>
+
+<!-- ROWS -->
+<div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
 <div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
 <div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
-<div class="row"><h2>🍥 Anime</h2><div id="anime" class="row-posters"></div></div><!-- PLAYER --><div id="player">
+<div class="row"><h2>🍥 Anime</h2><div id="anime" class="row-posters"></div></div>
+
+<!-- PLAYER -->
+<div id="player">
 <span class="close" onclick="closePlayer()">✖</span>
 <iframe id="full"></iframe>
-</div><script>
+<div id="episodes"></div>
+</div>
+
+<script>
 const API="https://api.themoviedb.org/3";
 const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
@@ -139,7 +216,7 @@ try{
 const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
 const t=data.results.find(v=>v.site==="YouTube");
-return t?`https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1`:"";
+return t?`https://www.youtube.com/embed/${t.key}`:"";
 }catch{return "";}
 }
 
@@ -151,7 +228,7 @@ const card=document.createElement("div");
 card.className="card";
 
 const img=document.createElement("img");
-img.src=i.poster_path?IMG+i.poster_path:"https://via.placeholder.com/150x220?text=No+Image";
+img.src=i.poster_path?IMG+i.poster_path:"https://via.placeholder.com/150x220";
 
 const label=document.createElement("div");
 label.innerText=title(i);
@@ -180,16 +257,33 @@ box.appendChild(createCard(i,type));
 
 /* PLAYER */
 function openPlayer(i){
-const player=document.getElementById("player");
 const iframe=document.getElementById("full");
+const epBox=document.getElementById("episodes");
 
-iframe.src=i.title
-?`https://vidsrc.cc/v2/embed/movie/${i.id}`
-:`https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
+epBox.innerHTML="";
 
-player.style.display="block";
+if(i.title){
+iframe.src=`https://vidsrc.cc/v2/embed/movie/${i.id}`;
+}else{
+iframe.src=`https://vidsrc.cc/v2/embed/tv/${i.id}/1/1`;
+
+for(let e=1;e<=10;e++){
+const btn=document.createElement("div");
+btn.className="ep-btn";
+btn.innerText="Ep "+e;
+
+btn.onclick=()=>{
+iframe.src=`https://vidsrc.cc/v2/embed/tv/${i.id}/1/${e}`;
+};
+
+epBox.appendChild(btn);
+}
+}
+
+document.getElementById("player").style.display="block";
 saveContinue(i);
 }
+
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
@@ -232,30 +326,32 @@ current=m;
 currentType=m.title?"movie":"tv";
 
 document.getElementById("hero-title").innerText=title(m);
-document.getElementById("hero-desc").innerText=(m.overview||"").slice(0,100)+"...";
+document.getElementById("hero-desc").innerText=(m.overview||"No description");
 
 const trailer = await getTrailer(m.id,currentType);
 const hero = document.getElementById("heroVideo");
 
 if(trailer){
-hero.src = trailer;
-document.getElementById("hero").style.backgroundImage = "none";
+hero.src = trailer+"?autoplay=1&mute=1";
 }else{
-hero.src = "";
+hero.src="";
 if(m.backdrop_path){
 document.getElementById("hero").style.backgroundImage =
 `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
-document.getElementById("hero").style.backgroundSize = "cover";
-document.getElementById("hero").style.backgroundPosition = "center";
-}else{
-document.getElementById("hero").style.background = "#000";
 }
 }
 
 document.getElementById("playHero").onclick=()=>openPlayer(m);
+
+document.getElementById("watchTrailer").onclick=()=>{
+if(trailer){
+document.getElementById("player").style.display="block";
+document.getElementById("full").src=trailer;
+}
+};
 }
 
-/* HERO AUTO SLIDE */
+/* HERO SLIDE */
 function startHeroSlider(){
 setInterval(()=>{
 heroIndex++;
@@ -312,5 +408,7 @@ renderContinue();
 renderMyList();
 }
 init();
-</script></body>
+</script>
+
+</body>
 </html>
