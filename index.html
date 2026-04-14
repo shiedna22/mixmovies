@@ -258,9 +258,15 @@ async function getTrailer(id,type){
 try{
 const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
-const t=data.results.find(v=>v.site==="YouTube");
+
+if(!data.results) return "";
+
+const t=data.results.find(v=>v.site==="YouTube" && v.type==="Trailer");
+
 return t?`https://www.youtube.com/embed/${t.key}`:"";
-}catch{return "";}
+}catch{
+return "";
+}
 }
 
 function title(i){
@@ -482,6 +488,8 @@ box.appendChild(createCard(i,i.media_type));
 
 /* INIT */
 async function init(){
+try{
+
 const trending=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
 const movies=await fetchData(`${API}/movie/popular?api_key=${KEY}`);
 const tv=await fetchData(`${API}/tv/popular?api_key=${KEY}`);
@@ -498,9 +506,12 @@ startHeroSlider();
 
 renderContinue();
 renderMyList();
+
+}catch(err){
+console.log("INIT ERROR:", err);
+}
 }
 init();
-
 window.onload = () => {
   document.getElementById("full").allowFullscreen = true;
 };
