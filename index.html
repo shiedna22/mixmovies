@@ -7,77 +7,29 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:white;font-family:Arial}
-
-/* NAV */
-.navbar{
-position:fixed;width:100%;top:0;
-padding:15px;display:flex;justify-content:space-between;
-background:#000;z-index:1000;
-}
+.navbar{position:fixed;width:100%;top:0;padding:15px;display:flex;justify-content:space-between;background:#000;z-index:1000}
 .logo{color:red;font-weight:bold}
 #search{background:#222;border:none;color:white;padding:8px 15px;border-radius:20px}
 
-/* HERO */
-#hero{
-height:55vh;
-display:flex;
-align-items:flex-end;
-padding:20px;
-margin-top:60px;
-position:relative;
-background:black;
-}
+#hero{height:55vh;display:flex;align-items:flex-end;padding:20px;margin-top:60px;position:relative}
+.hero-buttons{display:flex;gap:10px;margin-top:10px}
+.play-btn{background:white;color:black;padding:8px 15px;border:none;border-radius:5px}
+.trailer-btn{background:red;color:white;padding:8px 15px;border:none;border-radius:5px}
 
-.hero-content{z-index:2}
-.hero-buttons{margin-top:10px;display:flex;gap:10px}
-.hero-buttons button{
-padding:8px 15px;border:none;border-radius:5px;
-cursor:pointer;font-weight:bold;
-}
-.play-btn{background:white;color:black}
-.trailer-btn{background:red;color:white}
-.list-btn{background:#333;color:white}
-
-/* ROW */
 .row{margin-top:15px}
 .row h2{padding-left:10px}
-.row-posters{
-display:flex;overflow-x:auto;
-gap:10px;padding:10px;
-}
+.row-posters{display:flex;overflow-x:auto;gap:10px;padding:10px}
 
-/* CARD */
 .card{min-width:130px}
-.card img{
-width:130px;height:190px;
-border-radius:8px;
-}
+.card img{width:130px;height:190px;border-radius:8px}
 .card div{font-size:12px;color:#ccc;margin-top:5px}
 
-/* PLAYER */
-#player{
-display:none;position:fixed;
-top:0;width:100%;height:100%;
-background:black;z-index:9999;
-}
+#player{display:none;position:fixed;width:100%;height:100%;top:0;background:black;z-index:9999}
 #player iframe{width:100%;height:100%}
-.close{
-position:absolute;right:20px;top:10px;
-font-size:30px;cursor:pointer;
-}
+.close{position:absolute;right:20px;top:10px;font-size:30px}
 
-/* PREVIEW */
-#previewModal{
-display:none;
-position:fixed;
-top:0;left:0;
-width:100%;height:100%;
-background:black;
-z-index:9998;
-padding:20px;
-}
+#previewModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:black;z-index:9998;padding:20px}
 #previewVideo{width:100%;height:250px;border-radius:10px}
-
 </style>
 </head>
 
@@ -89,29 +41,25 @@ padding:20px;
 </div>
 
 <div id="hero">
-<div class="hero-content">
+<div>
 <h1 id="hero-title"></h1>
 <p id="hero-desc"></p>
-
 <div class="hero-buttons">
-<button class="play-btn" id="playHero">▶ Play</button>
-<button class="trailer-btn" id="watchTrailer">🎬 Trailer</button>
-<button class="list-btn" onclick="toggleMyList()">❤️ My List</button>
+<button id="playHero" class="play-btn">▶ Play</button>
+<button id="watchTrailer" class="trailer-btn">🎬 Trailer</button>
 </div>
 </div>
 </div>
 
 <div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
 <div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
-<div class="row"><h2>📺 TV</h2><div id="tv" class="row-posters"></div></div>
+<div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
 
-<!-- PLAYER -->
 <div id="player">
 <span class="close" onclick="closePlayer()">✖</span>
 <iframe id="full" allowfullscreen></iframe>
 </div>
 
-<!-- PREVIEW -->
 <div id="previewModal">
 <span onclick="closePreview()" style="position:absolute;right:20px;font-size:30px;">✖</span>
 <iframe id="previewVideo"></iframe>
@@ -154,54 +102,38 @@ return year?`${name} (${year})`:name;
 function createCard(i,type){
 const card=document.createElement("div");
 card.className="card";
-
-card.innerHTML=`
-<img src="${IMG+i.poster_path}">
-<div>${title(i)}</div>
-`;
-
+card.innerHTML=`<img src="${IMG+i.poster_path}"><div>${title(i)}</div>`;
 card.onclick=()=>openPreview(i,type);
-
 return card;
-}
-
-/* SHOW */
-function show(list,id,type){
-const box=document.getElementById(id);
-box.innerHTML="";
-list.forEach(i=>{
-if(!i.poster_path)return;
-box.appendChild(createCard(i,type));
-});
 }
 
 /* PREVIEW */
 async function openPreview(i,type){
 previewItem=i;
 currentType=type;
-
 document.getElementById("previewModal").style.display="block";
 document.getElementById("previewTitle").innerText=title(i);
 document.getElementById("previewDesc").innerText=i.overview||"";
-
 let t=await getTrailer(i.id,type);
 document.getElementById("previewVideo").src=t;
 }
-
 function closePreview(){
 document.getElementById("previewModal").style.display="none";
 document.getElementById("previewVideo").src="";
 }
-
 function playFromPreview(){
 closePreview();
-openPlayer(previewItem,true);
+openPlayer(previewItem);
 }
 
 /* PLAYER */
 function openPlayer(i){
 document.getElementById("player").style.display="block";
+if(i.title){
 document.getElementById("full").src=`https://vidsrc.me/embed/movie/${i.id}`;
+}else{
+document.getElementById("full").src=`https://vidsrc.me/embed/tv/${i.id}/1/1`;
+}
 }
 function closePlayer(){
 document.getElementById("player").style.display="none";
@@ -214,25 +146,20 @@ const trending=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
 const movies=await fetchData(`${API}/movie/popular?api_key=${KEY}`);
 const tv=await fetchData(`${API}/tv/popular?api_key=${KEY}`);
 
-// FIX TRENDING
 const clean=trending.filter(i=>i.media_type==="movie"||i.media_type==="tv");
 
-const box=document.getElementById("trending");
-box.innerHTML="";
-clean.forEach(i=>{
-box.appendChild(createCard(i,i.media_type));
-});
+const tbox=document.getElementById("trending");
+tbox.innerHTML="";
+clean.forEach(i=>tbox.appendChild(createCard(i,i.media_type)));
 
-show(movies,"movies","movie");
-show(tv,"tv","tv");
+movies.forEach(i=>document.getElementById("movies").appendChild(createCard(i,"movie")));
+tv.forEach(i=>document.getElementById("tv").appendChild(createCard(i,"tv")));
 
-// HERO
 let m=clean[0];
 document.getElementById("hero-title").innerText=title(m);
 document.getElementById("hero-desc").innerText=m.overview||"";
 document.getElementById("playHero").onclick=()=>openPlayer(m);
 }
-
 init();
 </script>
 
