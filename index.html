@@ -30,6 +30,17 @@ body{background:#000;color:white;font-family:Arial}
 
 #previewModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:black;z-index:9998;padding:20px}
 #previewVideo{width:100%;height:250px;border-radius:10px}
+
+#hero iframe{
+position:absolute;
+top:50%;
+left:50%;
+width:177.77vh;
+height:100vh;
+transform:translate(-50%, -50%);
+opacity:0.4;
+pointer-events:none;
+  }
 </style>
 </head>
 
@@ -41,12 +52,16 @@ body{background:#000;color:white;font-family:Arial}
 </div>
 
 <div id="hero">
-<div>
+<iframe id="heroVideo" allow="autoplay; mute"></iframe>
+
+<div class="hero-content">
 <h1 id="hero-title"></h1>
 <p id="hero-desc"></p>
+
 <div class="hero-buttons">
-<button id="playHero" class="play-btn">▶ Play</button>
-<button id="watchTrailer" class="trailer-btn">🎬 Trailer</button>
+<button class="play-btn" id="playHero">▶ Play</button>
+<button class="trailer-btn" id="watchTrailer">🎬 Trailer</button>
+<button class="list-btn" onclick="toggleMyList()">❤️ My List</button>
 </div>
 </div>
 </div>
@@ -139,6 +154,54 @@ function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
 }
+async function setHero(m){
+currentType = m.title ? "movie" : "tv";
+
+document.getElementById("hero-title").innerText = title(m);
+document.getElementById("hero-desc").innerText = m.overview || "";
+
+const trailer = await getTrailer(m.id, currentType);
+const hero = document.getElementById("heroVideo");
+
+if(trailer){
+hero.src = trailer + "?autoplay=1&mute=1";
+}else{
+hero.src = "";
+}
+
+document.getElementById("playHero").onclick = ()=>openPlayer(m);
+
+document.getElementById("watchTrailer").onclick = ()=>{
+document.getElementById("player").style.display="block";
+document.getElementById("full").src = trailer;
+};
+}
+let debounce;
+
+document.getElementById("search").addEventListener("input",(e)=>{
+clearTimeout(debounce);
+
+debounce=setTimeout(async()=>{
+const v=e.target.value.trim();
+const box=document.getElementById("trending");
+
+if(!v){
+init(); // balik default
+return;
+}
+
+const res=await fetch(`${API}/search/multi?api_key=${KEY}&query=${v}`);
+const data=await res.json();
+
+box.innerHTML="";
+
+data.results.forEach(i=>{
+if(!i.poster_path)return;
+box.appendChild(createCard(i,i.media_type));
+});
+
+},400);
+});
 
 /* INIT */
 async function init(){
@@ -155,10 +218,8 @@ clean.forEach(i=>tbox.appendChild(createCard(i,i.media_type)));
 movies.forEach(i=>document.getElementById("movies").appendChild(createCard(i,"movie")));
 tv.forEach(i=>document.getElementById("tv").appendChild(createCard(i,"tv")));
 
-let m=clean[0];
-document.getElementById("hero-title").innerText=title(m);
-document.getElementById("hero-desc").innerText=m.overview||"";
-document.getElementById("playHero").onclick=()=>openPlayer(m);
+let m = clean[0];
+setHero(m);
 }
 init();
 </script>
