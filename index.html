@@ -81,6 +81,17 @@ z-index:9999;
 position:absolute;right:20px;top:10px;
 font-size:30px;cursor:pointer;
 }
+.card{
+position:relative;
+}
+
+.progress-bar{
+height:3px;
+background:red;
+position:absolute;
+bottom:0;
+left:0;
+}
 
 /* PREVIEW */
 #previewModal{
@@ -245,21 +256,35 @@ localStorage.setItem("continue",JSON.stringify(continueList));
 renderContinue();
 }
 function renderContinue(){
-const section = document.querySelector("#continue").parentElement;
 const box = document.getElementById("continue");
+const section = box.parentElement;
 
-// 🔥 kung walang laman → hide
+// hide if empty
 if(continueList.length === 0){
 section.style.display = "none";
 return;
 }
 
-// 🔥 kung may laman → show
 section.style.display = "block";
-
 box.innerHTML="";
+
+let progressData = JSON.parse(localStorage.getItem("progress")) || {};
+
 continueList.forEach(m=>{
-box.appendChild(createCard(m,"movie"));
+const card=document.createElement("div");
+card.className="card";
+
+let percent = progressData[m.id] || 0;
+
+card.innerHTML=`
+<img src="${IMG+m.poster_path}">
+<div>${title(m)}</div>
+${percent > 0 ? `<div class="progress-bar" style="width:${percent}%"></div>` : ""}
+`;
+
+card.onclick=()=>openPreview(m,"movie");
+
+box.appendChild(card);
 });
 }
 
