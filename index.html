@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShīedFlix Ultra FINAL</title>
+<title>ShiedFlix Ultra FINAL</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -19,7 +19,7 @@ background:rgba(0,0,0,0.9);z-index:1000;
 
 /* HERO */
 #hero{
-height:40vh; /* 👈 mas compact */
+height:40vh;
 min-height:250px;
 display:flex;
 align-items:flex-end;
@@ -36,31 +36,9 @@ width:177.77vh;height:100vh;
 transform:translate(-50%, -50%);
 opacity:0.4;
 pointer-events:none;
-z-index:0;
 }
 
-#hero::after{
-content:"";
-position:absolute;
-bottom:0;
-width:100%;
-height:150px;
-background:linear-gradient(to top,#000,transparent);
-z-index:1;
-}
-
-.hero-content{
-z-index:2;
-max-width:600px;
-margin-bottom:20px;
-}
-#hero h1{
-font-size:22px;
-}
-
-#hero p{
-font-size:12px;
-}
+.hero-content{z-index:2;max-width:600px}
 
 .hero-buttons{display:flex;gap:10px;margin-top:10px}
 .play-btn{background:white;color:black;padding:8px 15px;border:none;border-radius:5px}
@@ -73,30 +51,32 @@ font-size:12px;
 .row-posters{display:flex;overflow-x:auto;gap:10px;padding:10px}
 
 /* CARD */
-.card{min-width:130px}
+.card{min-width:130px;position:relative}
 .card img{width:130px;height:190px;border-radius:8px}
 .card div{font-size:12px;color:#ccc;margin-top:5px}
 
+/* PROGRESS */
+.progress-bar{
+height:3px;
+background:red;
+position:absolute;
+bottom:0;
+left:0;
+}
+
 /* PLAYER */
 #player{
-display:flex;
+display:none;
 position:fixed;
 top:0;
 left:0;
-padding:0;
-margin:0;
 width:100vw;
 height:100vh;
 background:black;
 z-index:99999;
 overflow:hidden;
-align-items:center;
-justify-content:center;
 }
-body.player-open{
-overflow:hidden;
-}
-  
+
 #player iframe{
 position:absolute;
 top:0;
@@ -105,23 +85,35 @@ width:100vw;
 height:100vh;
 border:none;
 }
+
 .close{
+position:absolute;
+top:15px;
+right:20px;
+font-size:30px;
+cursor:pointer;
 z-index:999999;
 }
-iframe{
-border:none;
-}
-.card{
-position:relative;
+
+/* EPISODES */
+#episodes{
+position:absolute;
+bottom:70px;
+left:10px;
+display:flex;
+gap:6px;
+flex-wrap:wrap;
+z-index:99999;
 }
 
-.progress-bar{
-height:3px;
-background:red;
-position:absolute;
-bottom:0;
-left:0;
+.ep-btn{
+background:rgba(0,0,0,0.7);
+padding:6px 10px;
+border-radius:6px;
+font-size:11px;
+cursor:pointer;
 }
+.ep-btn:hover{background:red}
 
 /* PREVIEW */
 #previewModal{
@@ -133,34 +125,7 @@ background:black;
 z-index:9998;
 padding:20px;
 }
-#previewVideo{
-transition:0.3s;
-}
 #previewVideo{width:100%;height:250px;border-radius:10px}
-#episodes{
-position:absolute;
-bottom:60px; /* 👈 tinaas para hindi matabunan */
-left:10px;
-display:flex;
-gap:6px;
-flex-wrap:wrap;
-z-index:99999;
-}
-.ep-btn{
-background:rgba(0,0,0,0.7);
-padding:6px 10px;
-border-radius:6px;
-font-size:11px;
-}
-
-.ep-btn{
-background:#222;
-padding:5px 10px;
-border-radius:5px;
-cursor:pointer;
-font-size:12px;
-}
-.ep-btn:hover{background:red}
 </style>
 </head>
 
@@ -171,7 +136,6 @@ font-size:12px;
 <input id="search" placeholder="Search...">
 </div>
 
-<!-- HERO -->
 <div id="hero">
 <iframe id="heroVideo"></iframe>
 
@@ -187,37 +151,31 @@ font-size:12px;
 </div>
 </div>
 
-<!-- CONTINUE -->
 <div class="row">
 <h2>▶ Continue Watching</h2>
 <div id="continue" class="row-posters"></div>
 </div>
 
-<!-- MY LIST -->
 <div class="row">
 <h2>❤️ My List</h2>
 <div id="mylist" class="row-posters"></div>
 </div>
 
-<!-- SEARCH -->
 <div class="row" id="searchRow" style="display:none;">
 <h2>🔎 Search Results</h2>
 <div id="searchResults" class="row-posters"></div>
 </div>
 
-<!-- ROWS -->
 <div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
 <div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
 <div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
 
-<!-- PLAYER -->
 <div id="player">
 <span class="close" onclick="closePlayer()">✖</span>
 <iframe id="full" allowfullscreen></iframe>
 <div id="episodes"></div>
 </div>
 
-<!-- PREVIEW -->
 <div id="previewModal">
 <span onclick="closePreview()" style="position:absolute;right:20px;font-size:30px;">✖</span>
 <iframe id="previewVideo"></iframe>
@@ -230,9 +188,7 @@ font-size:12px;
 const API="https://api.themoviedb.org/3";
 const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
-  
-let currentEpisode = 1;
-let autoNextTimer;
+
 let previewItem=null,currentType="movie";
 let continueList=JSON.parse(localStorage.getItem("continue"))||[];
 let myList=JSON.parse(localStorage.getItem("myList"))||[];
@@ -248,8 +204,7 @@ async function getTrailer(id,type){
 try{
 const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
-if(!data.results) return "";
-const t=data.results.find(v=>v.site==="YouTube");
+const t=data.results?.find(v=>v.site==="YouTube");
 return t?`https://www.youtube.com/embed/${t.key}`:"";
 }catch{return "";}
 }
@@ -293,65 +248,21 @@ openPlayer(previewItem);
 }
 
 /* PLAYER */
-async function openPlayer(i){
-
-const iframe = document.getElementById("full");
-
+function openPlayer(i){
+const iframe=document.getElementById("full");
 document.getElementById("player").style.display="block";
-document.body.classList.add("player-open");
 
-// DIRECT PLAY
 if(i.title){
-  iframe.src=`https://vidsrc.to/embed/movie/${i.id}?autoplay=1`;
+iframe.src=`https://vidsrc.to/embed/movie/${i.id}?autoplay=1`;
 }else{
-  const epBox = document.getElementById("episodes");
-  epBox.innerHTML="";
-
-  currentEpisode = 1;
-  loadEpisode(i.id, currentEpisode);
-
-  // 🔥 ADD BUTTONS
-  for(let e=1;e<=10;e++){
-    const btn=document.createElement("div");
-    btn.className="ep-btn";
-    btn.innerText="Ep "+e;
-
-    btn.onclick=()=>{
-      currentEpisode = e;
-      loadEpisode(i.id, e);
-    };
-
-    epBox.appendChild(btn);
-  }
-  }
-  
-// SAVE PROGRESS
-let progress = JSON.parse(localStorage.getItem("progress")) || {};
-progress[i.id] = 60;
-localStorage.setItem("progress", JSON.stringify(progress));
+iframe.src=`https://vidsrc.to/embed/tv/${i.id}/1/1?autoplay=1`;
+}
 
 saveContinue(i);
 }
 
-function loadEpisode(id, ep){
-const iframe = document.getElementById("full");
-
-// load episode
-iframe.src = `https://vidsrc.to/embed/tv/${id}/1/${ep}?autoplay=1`;
-
-// clear old timer
-clearTimeout(autoNextTimer);
-
-// ⏱ auto next after 30 mins
-autoNextTimer = setTimeout(()=>{
-  currentEpisode++;
-  loadEpisode(id, currentEpisode);
-}, 1800000); // 30 minutes
-}
-
 function closePlayer(){
 document.getElementById("player").style.display="none";
-document.body.classList.remove("player-open");
 document.getElementById("full").src="";
 }
 
@@ -364,60 +275,25 @@ renderContinue();
 }
 
 function renderContinue(){
-const box = document.getElementById("continue");
-const section = box.parentElement;
-
-if(continueList.length === 0){
-section.style.display = "none";
-return;
-}
-
-section.style.display = "block";
+const box=document.getElementById("continue");
 box.innerHTML="";
-
-let progressData = JSON.parse(localStorage.getItem("progress")) || {};
-
 continueList.forEach(m=>{
-const card=document.createElement("div");
-card.className="card";
-
-let percent = progressData[m.id] || 50;
-
-card.innerHTML=`
-<img src="${IMG+m.poster_path}">
-<div>${title(m)}</div>
-<div class="progress-bar" style="width:${percent}%"></div>
-`;
-
-card.onclick=()=>openPreview(m,"movie");
-
-box.appendChild(card);
+box.appendChild(createCard(m,"movie"));
 });
 }
 
 /* MY LIST */
 function toggleMyList(){
-if(!previewItem) return;
-
+if(!previewItem)return;
 let exist=myList.find(m=>m.id===previewItem.id);
 if(exist){myList=myList.filter(m=>m.id!==previewItem.id);}
 else{myList.push(previewItem);}
-
 localStorage.setItem("myList",JSON.stringify(myList));
 renderMyList();
 }
 
 function renderMyList(){
-const box = document.getElementById("mylist");
-const section = box.parentElement;
-
-if(myList.length === 0){
-section.style.display="none";
-return;
-}
-
-section.style.display="block";
-
+const box=document.getElementById("mylist");
 box.innerHTML="";
 myList.forEach(m=>{
 box.appendChild(createCard(m,"movie"));
@@ -436,45 +312,14 @@ document.getElementById("heroVideo").src=t+"?autoplay=1&mute=1";
 
 document.getElementById("playHero").onclick=()=>openPlayer(m);
 
-// ✅ FIXED TRAILER BUTTON (NO ERROR)
-document.getElementById("watchTrailer").onclick = async ()=>{
-const trailer = await getTrailer(m.id,currentType);
-
+document.getElementById("watchTrailer").onclick=async()=>{
+let trailer=await getTrailer(m.id,currentType);
 if(trailer){
-  document.getElementById("player").style.display="block";
-  document.getElementById("full").src = trailer + "?autoplay=1";
+document.getElementById("player").style.display="block";
+document.getElementById("full").src=trailer+"?autoplay=1";
 }
 };
-
-} // 🔥 IMPORTANT: SARADO NA FUNCTION
-
-/* SEARCH */
-let debounce;
-document.getElementById("search").addEventListener("input",(e)=>{
-clearTimeout(debounce);
-
-debounce=setTimeout(async()=>{
-const v=e.target.value.trim();
-const row=document.getElementById("searchRow");
-const box=document.getElementById("searchResults");
-
-if(!v){
-row.style.display="none";
-return;
 }
-
-const res=await fetch(`${API}/search/multi?api_key=${KEY}&query=${v}`);
-const data=await res.json();
-
-row.style.display="block";
-box.innerHTML="";
-
-data.results.forEach(i=>{
-if(!i.poster_path)return;
-box.appendChild(createCard(i,i.media_type));
-});
-},400);
-});
 
 /* INIT */
 async function init(){
@@ -482,24 +327,17 @@ const trending=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
 const movies=await fetchData(`${API}/movie/popular?api_key=${KEY}`);
 const tv=await fetchData(`${API}/tv/popular?api_key=${KEY}`);
 
-const clean=trending.filter(i=>i.media_type==="movie"||i.media_type==="tv");
-
-const tbox=document.getElementById("trending");
-tbox.innerHTML="";
-clean.forEach(i=>tbox.appendChild(createCard(i,i.media_type)));
-
+trending.forEach(i=>document.getElementById("trending").appendChild(createCard(i,i.media_type)));
 movies.forEach(i=>document.getElementById("movies").appendChild(createCard(i,"movie")));
 tv.forEach(i=>document.getElementById("tv").appendChild(createCard(i,"tv")));
 
-setHero(clean[0]);
-
+setHero(trending[0]);
 renderContinue();
 renderMyList();
 }
 
 init();
 </script>
-
 
 </body>
 </html>
