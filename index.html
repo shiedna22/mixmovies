@@ -83,6 +83,8 @@ display:none;
 position:fixed;
 top:0;
 left:0;
+padding:0;
+margin:0;
 width:100vw;
 height:100vh;
 background:black;
@@ -92,11 +94,16 @@ overflow:hidden;
 body.player-open{
 overflow:hidden;
 }
-#player iframe{width:100%;height:100%}
-.close{
-position:absolute;right:20px;top:10px;
-font-size:30px;cursor:pointer;
+  
+#player iframe{
+position:absolute;
+top:0;
+left:0;
+width:100vw;
+height:100vh;
+border:none;
 }
+
 iframe{
 border:none;
 }
@@ -128,12 +135,18 @@ transition:0.3s;
 #previewVideo{width:100%;height:250px;border-radius:10px}
 #episodes{
 position:absolute;
-bottom:20px;
-left:20px;
+bottom:60px; /* 👈 tinaas para hindi matabunan */
+left:10px;
 display:flex;
-gap:5px;
+gap:6px;
 flex-wrap:wrap;
-z-index:10000;
+z-index:99999;
+}
+.ep-btn{
+background:rgba(0,0,0,0.7);
+padding:6px 10px;
+border-radius:6px;
+font-size:11px;
 }
 
 .ep-btn{
