@@ -245,7 +245,18 @@ localStorage.setItem("continue",JSON.stringify(continueList));
 renderContinue();
 }
 function renderContinue(){
-const box=document.getElementById("continue");
+const section = document.querySelector("#continue").parentElement;
+const box = document.getElementById("continue");
+
+// 🔥 kung walang laman → hide
+if(continueList.length === 0){
+section.style.display = "none";
+return;
+}
+
+// 🔥 kung may laman → show
+section.style.display = "block";
+
 box.innerHTML="";
 continueList.forEach(m=>{
 box.appendChild(createCard(m,"movie"));
@@ -261,7 +272,16 @@ localStorage.setItem("myList",JSON.stringify(myList));
 renderMyList();
 }
 function renderMyList(){
-const box=document.getElementById("mylist");
+const box = document.getElementById("mylist");
+const section = box.parentElement;
+
+if(myList.length === 0){
+section.style.display="none";
+return;
+}
+
+section.style.display="block";
+
 box.innerHTML="";
 myList.forEach(m=>{
 box.appendChild(createCard(m,"movie"));
