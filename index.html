@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Ultimate</title>
+<title>ShiedFlix FINAL BOSS</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -28,7 +28,6 @@ padding:20px;
 margin-top:60px;
 position:relative;
 overflow:hidden;
-background:black;
 cursor:pointer;
 }
 
@@ -43,28 +42,12 @@ opacity:0;
 transition:0.5s;
 pointer-events:none;
 }
-
-#hero iframe.active{
-opacity:0.5;
-}
-
-#hero::after{
-content:"";
-position:absolute;
-bottom:0;
-width:100%;
-height:150px;
-background:linear-gradient(to top,#000,transparent);
-}
+#hero iframe.active{opacity:0.5}
 
 .hero-content{z-index:2}
-
 #heroLoader{
-position:absolute;
-top:50%;
-left:50%;
+position:absolute;top:50%;left:50%;
 transform:translate(-50%,-50%);
-z-index:3;
 display:none;
 }
 
@@ -74,16 +57,25 @@ display:none;
 .row-posters{display:flex;overflow-x:auto;gap:10px;padding:10px}
 
 /* CARD */
-.card{min-width:130px;cursor:pointer}
+.card{min-width:130px;cursor:pointer;position:relative}
 .card img{
 width:130px;height:190px;
 border-radius:8px;
 transition:0.3s;
 }
-.card img:hover{
-transform:scale(1.08);
+.card:hover img{
+transform:scale(1.1);
 box-shadow:0 0 15px red;
 }
+.card video{
+position:absolute;
+top:0;left:0;
+width:100%;height:100%;
+object-fit:cover;
+display:none;
+border-radius:8px;
+}
+.card:hover video{display:block}
 .card div{font-size:12px;margin-top:5px}
 
 /* PLAYER */
@@ -152,7 +144,6 @@ const IMG="https://image.tmdb.org/t/p/w500";
 
 let current=null,currentType="movie";
 let heroList=[],heroIndex=0;
-let trailerIndex=0,trailerTimeout;
 let isInteractive=false;
 
 /* FETCH */
@@ -162,12 +153,13 @@ return (await res.json()).results;
 }
 
 /* TRAILER */
-async function getTrailerList(id,type){
+async function getTrailer(id,type){
 try{
 const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
-return data.results.filter(v=>v.site==="YouTube").map(v=>v.key);
-}catch{return [];}
+const t=data.results.find(v=>v.site==="YouTube");
+return t?`https://www.youtube.com/embed/${t.key}?autoplay=1&mute=1&controls=0`:"";
+}catch{return "";}
 }
 
 function title(i){return i.title||i.name||"No Title"}
@@ -184,62 +176,32 @@ document.getElementById("hero-desc").innerText=(m.overview||"").slice(0,100)+"..
 const hero=document.getElementById("heroVideo");
 const loader=document.getElementById("heroLoader");
 
-hero.style.display="block";
-hero.classList.remove("active");
 hero.style.pointerEvents="none";
 loader.style.display="block";
 
-const trailers=await getTrailerList(m.id,currentType);
-trailerIndex=0;
+const trailer=await getTrailer(m.id,currentType);
 
-function loadTrailer(){
-clearTimeout(trailerTimeout);
-
-if(trailerIndex>=trailers.length){
-showFallback(m);
-return;
-}
-
-hero.src=`https://www.youtube.com/embed/${trailers[trailerIndex]}?autoplay=1&mute=1&controls=0`;
-
-trailerTimeout=setTimeout(()=>{
-trailerIndex++;
-loadTrailer();
-},3000);
-}
-
+if(trailer){
+hero.src=trailer;
 hero.onload=()=>{
 loader.style.display="none";
 hero.classList.add("active");
 };
-
-loadTrailer();
+}else{
+hero.style.display="none";
+}
 }
 
-/* CLICK HERO → INTERACTIVE MODE */
+/* CLICK HERO */
 document.getElementById("hero").onclick=()=>{
-if(!current) return;
-
 const hero=document.getElementById("heroVideo");
 
 if(!isInteractive){
 isInteractive=true;
 hero.style.pointerEvents="auto";
-
 hero.src=hero.src.replace("mute=1","mute=0").replace("controls=0","controls=1");
 }
 };
-
-/* FALLBACK */
-function showFallback(m){
-const hero=document.getElementById("heroVideo");
-hero.style.display="none";
-
-if(m.backdrop_path){
-document.getElementById("hero").style.background=
-`url(https://image.tmdb.org/t/p/original${m.backdrop_path}) center/cover`;
-}
-}
 
 /* PLAYER */
 function openPlayer(i){
@@ -253,6 +215,45 @@ document.getElementById("player").style.display="block";
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
+}
+
+/* SHOW + HOVER PREVIEW */
+function show(list,id,type){
+const box=document.getElementById(id);
+box.innerHTML="";
+
+list.forEach(i=>{
+if(!i.poster_path)return;
+
+const card=document.createElement("div");
+card.className="card";
+
+card.innerHTML=`
+<img src="${IMG+i.poster_path}">
+<video muted loop></video>
+<div>${title(i)}</div>
+`;
+
+card.onclick=()=>openPlayer(i);
+
+/* hover preview */
+card.onmouseenter=async()=>{
+const vid=card.querySelector("video");
+const trailer=await getTrailer(i.id,type);
+if(trailer){
+vid.src=trailer.replace("embed","embed").replace("autoplay=1","autoplay=1");
+vid.style.display="block";
+vid.play();
+}
+};
+card.onmouseleave=()=>{
+const vid=card.querySelector("video");
+vid.pause();
+vid.style.display="none";
+};
+
+box.appendChild(card);
+});
 }
 
 /* INIT */
@@ -274,26 +275,6 @@ setInterval(()=>{
 heroIndex=(heroIndex+1)%heroList.length;
 setHero(heroList[heroIndex]);
 },5000);
-}
-
-/* SHOW */
-function show(list,id,type){
-const box=document.getElementById(id);
-box.innerHTML="";
-list.forEach(i=>{
-if(!i.poster_path)return;
-
-const card=document.createElement("div");
-card.className="card";
-
-card.innerHTML=`
-<img src="${IMG+i.poster_path}">
-<div>${title(i)}</div>
-`;
-
-card.onclick=()=>openPlayer(i);
-box.appendChild(card);
-});
 }
 
 init();
