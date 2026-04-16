@@ -6,7 +6,7 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#000;color:white;font-family:Arial}
+body{background:#000;color:white;font-family:Arial;overflow-x:hidden}
 
 /* NAV */
 .navbar{
@@ -33,8 +33,10 @@ padding:30px;
 margin-top:60px;
 position:relative;
 overflow:hidden;
+background:#000;
 }
 
+/* 🔥 cinematic video fix */
 #hero iframe{
 position:absolute;
 top:50%;
@@ -45,8 +47,10 @@ transform:translate(-50%,-50%);
 opacity:0.5;
 pointer-events:none;
 z-index:0;
+transition:opacity 0.5s ease;
 }
 
+/* overlay */
 #hero::before{
 content:"";
 position:absolute;
@@ -58,8 +62,19 @@ background:linear-gradient(to top,rgba(0,0,0,0.9),rgba(0,0,0,0.3));
 z-index:1;
 }
 
-.hero-content{
+#hero::after{
+content:"";
+position:absolute;
+bottom:0;
+width:100%;
+height:150px;
+background:linear-gradient(to top,#000,transparent);
 z-index:2;
+}
+
+.hero-content{
+position:relative;
+z-index:3;
 max-width:600px;
 animation:fadeUp 0.8s ease;
 }
@@ -93,26 +108,50 @@ z-index:9999;
 }
 
 #player iframe{
-width:100%;height:100%;
+width:100%;
+height:100dvh;
 border:none;
 }
 
-/* CONTROLS */
-#serverControls,#episodeControls{
+.close-btn{
 position:fixed;
+top:15px;right:15px;
+font-size:28px;
+z-index:10000;
+cursor:pointer;
+}
+
+/* CONTROLS */
+#serverControls{
+position:fixed;
+top:10px;
 left:50%;
 transform:translateX(-50%);
 z-index:10000;
-display:flex;gap:8px;
-overflow-x:auto;
+display:flex;
+gap:8px;
 }
 
-#serverControls{top:10px}
-#episodeControls{top:60px;width:100%;padding:10px}
+#episodeControls{
+position:fixed;
+top:60px;
+left:0;
+width:100%;
+display:flex;
+gap:8px;
+padding:10px;
+overflow-x:auto;
+z-index:10000;
+}
 
-#serverControls button,#episodeControls button{
-background:#222;color:white;border:none;
-padding:8px 12px;border-radius:20px;
+/* buttons */
+#serverControls button,
+#episodeControls button{
+background:#222;
+color:white;
+border:none;
+padding:8px 12px;
+border-radius:20px;
 }
 
 #serverControls button.active,
@@ -183,13 +222,15 @@ to{opacity:1;transform:translateY(0)}
 
 <!-- PLAYER -->
 <div id="player">
+<span class="close-btn" onclick="closePlayer()">✖</span>
 <div id="serverControls"></div>
 <div id="episodeControls"></div>
-<iframe id="full"></iframe>
+<iframe id="full" allowfullscreen allow="autoplay"></iframe>
 </div>
 
 <!-- PREVIEW -->
 <div id="previewModal">
+<span onclick="closePreview()" class="close-btn">✖</span>
 <iframe id="previewVideo"></iframe>
 <h2 id="previewTitle"></h2>
 <p id="previewDesc"></p>
@@ -204,6 +245,7 @@ const IMG="https://image.tmdb.org/t/p/w500";
 let previewItem=null;
 let continueList=JSON.parse(localStorage.getItem("continue"))||[];
 let myList=JSON.parse(localStorage.getItem("myList"))||[];
+
 let servers=[];
 let currentEpisode=1;
 let currentShowId=null;
@@ -243,7 +285,13 @@ if(t) document.getElementById("previewVideo").src=t;
 });
 }
 
+function closePreview(){
+document.getElementById("previewModal").style.display="none";
+document.getElementById("previewVideo").src="";
+}
+
 function playFromPreview(){
+closePreview();
 openPlayer(previewItem);
 }
 
@@ -253,13 +301,30 @@ document.getElementById("player").style.display="block";
 
 let isMovie=!!i.title;
 
+// MOVIE
 if(isMovie){
-servers=[{name:"Server 1",url:`https://vidsrc.me/embed/movie/${i.id}`}];
+currentShowId=null;
+document.getElementById("episodeControls").innerHTML="";
+servers=[
+{name:"Server 1",url:`https://vidsrc.me/embed/movie/${i.id}`},
+{name:"Server 2",url:`https://vidsrc.xyz/embed/movie/${i.id}`},
+{name:"Server 3",url:`https://vidlink.pro/movie/${i.id}`},
+{name:"Server 4",url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1`},
+{name:"Server 5",url:`https://2embed.cc/embed/${i.id}`}
+];
 }else{
+// TV
 currentEpisode=1;
 currentShowId=i.id;
 renderEpisodes(i);
-servers=[{name:"Server 1",url:`https://vidsrc.me/embed/tv/${i.id}/1/1`}];
+
+servers=[
+{name:"Server 1",url:`https://vidsrc.me/embed/tv/${i.id}/1/1`},
+{name:"Server 2",url:`https://vidsrc.xyz/embed/tv/${i.id}/1/1`},
+{name:"Server 3",url:`https://vidlink.pro/tv/${i.id}/1/1`},
+{name:"Server 4",url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1&s=1&e=1`},
+{name:"Server 5",url:`https://2embed.cc/embedtv/${i.id}&s=1&e=1`}
+];
 }
 
 renderServers();
@@ -273,7 +338,12 @@ box.innerHTML="";
 servers.forEach((s,i)=>{
 let b=document.createElement("button");
 b.innerText=s.name;
-b.onclick=()=>loadServer(i);
+b.onclick=()=>{
+loadServer(i);
+document.querySelectorAll("#serverControls button")
+.forEach(btn=>btn.classList.remove("active"));
+b.classList.add("active");
+};
 box.appendChild(b);
 });
 }
@@ -286,15 +356,27 @@ document.getElementById("full").src=servers[i].url;
 function renderEpisodes(i){
 const box=document.getElementById("episodeControls");
 box.innerHTML="";
+
 for(let e=1;e<=10;e++){
 let b=document.createElement("button");
 b.innerText="Ep "+e;
+
+if(e===currentEpisode) b.classList.add("active");
+
 b.onclick=()=>{
 currentEpisode=e;
-servers=[{name:"Server 1",url:`https://vidsrc.me/embed/tv/${i.id}/1/${e}`}];
+
+servers=[
+{name:"Server 1",url:`https://vidsrc.me/embed/tv/${i.id}/1/${e}`},
+{name:"Server 2",url:`https://vidsrc.xyz/embed/tv/${i.id}/1/${e}`},
+{name:"Server 3",url:`https://vidlink.pro/tv/${i.id}/1/${e}`}
+];
+
+renderEpisodes(i);
 renderServers();
 loadServer(0);
 };
+
 box.appendChild(b);
 }
 }
@@ -331,6 +413,7 @@ myList.forEach(m=>box.appendChild(createCard(m,"movie")));
 /* HERO */
 async function setHero(m){
 let year=(m.release_date||m.first_air_date||"").slice(0,4);
+
 document.getElementById("hero-title").innerText=
 (m.title||m.name)+(year?` (${year})`:"");
 
