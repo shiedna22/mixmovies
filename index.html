@@ -150,6 +150,36 @@ body{
 background:#000;
 overflow-x:hidden;
 }
+.video-container{
+position:relative;
+width:100%;
+height:100%;
+}
+
+#full{
+width:100%;
+height:100%;
+border:none;
+}
+
+.controls{
+position:absolute;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+display:flex;
+gap:15px;
+z-index:9999;
+}
+
+.controls button{
+background:rgba(0,0,0,0.7);
+color:white;
+border:none;
+padding:10px;
+border-radius:50%;
+font-size:16px;
+}
 </style>
 </head>
 
@@ -201,8 +231,18 @@ overflow-x:hidden;
 
 <!-- PLAYER -->
 <div id="player">
-<span class="close" onclick="closePlayer()">✖</span>
+<span class="close-btn" onclick="closePlayer()">✖</span>
+
+<div class="video-container">
 <iframe id="full" allowfullscreen></iframe>
+
+<div class="controls">
+<button onclick="skip(-10)">⏪ 10s</button>
+<button onclick="togglePlay()">⏯</button>
+<button onclick="skip(10)">10s ⏩</button>
+<button onclick="goFullscreen()">⛶</button>
+</div>
+</div>
 </div>
 
 <!-- PREVIEW -->
@@ -350,6 +390,27 @@ box.innerHTML="";
 continueList.forEach(m=>{
 box.appendChild(createCard(m,"movie"));
 });
+}
+function togglePlay(){
+let iframe = document.getElementById("full");
+
+// simulate tap (since iframe locked)
+iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+}
+
+function skip(sec){
+let iframe = document.getElementById("full");
+
+// not always supported but fallback gesture
+alert("Skip works on some servers only");
+}
+
+function goFullscreen(){
+let player = document.getElementById("player");
+
+if(player.requestFullscreen){
+player.requestFullscreen();
+}
 }
 
 /* MY LIST */
