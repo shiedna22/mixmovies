@@ -282,7 +282,7 @@ openPlayer(previewItem);
 /* PLAYER */
 let servers = [];
 let currentServer = 0;
-let switchTimer;
+let tries = 0;
 
 function openPlayer(i){
 document.getElementById("player").style.display="block";
@@ -291,45 +291,74 @@ let isMovie = !!i.title;
 
 servers = isMovie ? [
 `https://vidsrc.me/embed/movie/${i.id}`,
-`https://vidsrc.xyz/embed/movie/${i.id}?autoplay=1`,
+`https://vidsrc.xyz/embed/movie/${i.id}`,
 `https://vidlink.pro/movie/${i.id}`
 ] : [
 `https://vidsrc.me/embed/tv/${i.id}/1/1`,
-`https://vidsrc.xyz/embed/tv/${i.id}/1/1?autoplay=1`,
+`https://vidsrc.xyz/embed/tv/${i.id}/1/1`,
 `https://vidlink.pro/tv/${i.id}/1/1`
 ];
 
 currentServer = 0;
+tries = 0;
 
-loadServerAuto();
+loadProPlayer(i);
 
 saveContinue(i);
 }
 
-function loadServerAuto(){
+function loadProPlayer(i){
 const iframe = document.getElementById("full");
+
+if(tries >= servers.length){
+loadBackup(i);
+return;
+}
 
 iframe.src = servers[currentServer];
 
-// 🔥 auto switch every 6 sec if still blank/error
-clearTimeout(switchTimer);
-
-switchTimer = setTimeout(()=>{
+setTimeout(()=>{
+tries++;
 currentServer++;
+loadProPlayer(i);
+},5000);
+}
+function loadBackup(i){
+const iframe = document.getElementById("full");
 
-if(currentServer >= servers.length){
-currentServer = 0;
+// 🔥 fallback universal player
+iframe.src = `https://multiembed.mov/?video_id=${i.id}&tmdb=1`;
+
+// kung ayaw pa rin → last fallback
+setTimeout(()=>{
+iframe.src = `https://2embed.cc/embed/${i.id}`;
+},5000);
 }
 
-loadServerAuto();
-
-},6000);
+function showError(){
+document.getElementById("full").src = "";
+document.getElementById("player").innerHTML += `
+<div style="
+position:absolute;
+top:50%;left:50%;
+transform:translate(-50%,-50%);
+text-align:center;
+color:white;
+">
+❌ No stream available<br><br>
+<button onclick="closePlayer()" style="
+padding:10px;
+background:red;
+border:none;
+color:white;
+border-radius:5px;
+">Close</button>
+</div>`;
 }
 
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
-clearTimeout(switchTimer);
 }
 
 /* CONTINUE */
