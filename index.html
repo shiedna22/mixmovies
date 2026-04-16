@@ -141,9 +141,6 @@ background:black;
 z-index:9998;
 overflow-y:auto;
 }
-#previewModal *{
-display:none !important;
-}
 #previewVideo{
 width:100%;
 height:220px;
@@ -313,22 +310,19 @@ currentType = type;
 
 const modal = document.getElementById("previewModal");
 
-// 👉 siguradong hidden muna lahat
-modal.style.display = "none";
-
-// 👉 reset content (important fix)
-document.getElementById("previewTitle").innerHTML = "";
-document.getElementById("previewDesc").innerHTML = "";
+// reset first
+document.getElementById("previewTitle").innerText = "";
+document.getElementById("previewDesc").innerText = "";
 document.getElementById("previewVideo").src = "";
 
-// 👉 saka lang lalagay data
+// set data
 document.getElementById("previewTitle").innerText = i.title || i.name;
 document.getElementById("previewDesc").innerText = i.overview || "";
 
-// 👉 saka mo ipapakita
+// show modal
 modal.style.display = "block";
 
-// 👉 load trailer
+// load trailer
 getTrailer(i.id,type).then(t=>{
 document.getElementById("previewVideo").src = t + "?autoplay=1&mute=1";
 });
@@ -336,7 +330,6 @@ document.getElementById("previewVideo").src = t + "?autoplay=1&mute=1";
 function closePreview(){
 document.getElementById("previewModal").style.display = "none";
 document.getElementById("previewVideo").src = "";
-document.body.classList.remove("modal-open");
 }
 function playFromPreview(){
 closePreview();
@@ -474,6 +467,7 @@ box.appendChild(createCard(m,"movie"));
 
 /* HERO */
 async function setHero(m){
+closePreview();
 currentType = m.title ? "movie" : "tv";
 
 // 🔥 clear muna (important fix)
@@ -564,7 +558,6 @@ renderMyList();
 }
 
 init();
-window.onload = ()=>{
 document.getElementById("previewModal").style.display = "none";
 };
 window.addEventListener("DOMContentLoaded", ()=>{
