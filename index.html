@@ -299,9 +299,11 @@ document.getElementById("player").style.display="block";
 let url;
 
 if(i.title){
-url = `https://vidsrc.me/embed/movie/${i.id}`;
+document.getElementById("full").src=
+`https://www.2embed.cc/embed/${i.id}`;
 }else{
-url = `https://vidsrc.me/embed/tv/${i.id}/1/1`;
+document.getElementById("full").src=
+`https://www.2embed.cc/embedtv/${i.id}&s=1&e=1`;
 }
 
 // backup after 3 seconds
