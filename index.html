@@ -232,17 +232,7 @@ font-size:16px;
 <!-- PLAYER -->
 <div id="player">
 <span class="close-btn" onclick="closePlayer()">✖</span>
-
-<div class="video-container">
 <iframe id="full" allowfullscreen></iframe>
-
-<div class="controls">
-<button onclick="skip(-10)">⏪ 10s</button>
-<button onclick="togglePlay()">⏯</button>
-<button onclick="skip(10)">10s ⏩</button>
-<button onclick="goFullscreen()">⛶</button>
-</div>
-</div>
 </div>
 
 <!-- PREVIEW -->
@@ -390,27 +380,6 @@ box.innerHTML="";
 continueList.forEach(m=>{
 box.appendChild(createCard(m,"movie"));
 });
-}
-function togglePlay(){
-let iframe = document.getElementById("full");
-
-// simulate tap (since iframe locked)
-iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-}
-
-function skip(sec){
-let iframe = document.getElementById("full");
-
-// not always supported but fallback gesture
-alert("Skip works on some servers only");
-}
-
-function goFullscreen(){
-let player = document.getElementById("player");
-
-if(player.requestFullscreen){
-player.requestFullscreen();
-}
 }
 
 /* MY LIST */
