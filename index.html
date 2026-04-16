@@ -389,7 +389,6 @@ if(isMovie){
 currentShowId = null;
 document.getElementById("episodeControls").innerHTML="";
 document.getElementById("episodeControls").style.display="none";
-document.getElementById("nextEpisodeBtn").style.display="none";
 servers = [
 {name:"Server 1", url:`https://vidsrc.me/embed/movie/${i.id}`},
 {name:"Server 2", url:`https://vidsrc.xyz/embed/movie/${i.id}`},
@@ -404,7 +403,6 @@ document.getElementById("episodeControls").style.display="flex";
 currentEpisode = 1;
 currentShowId = i.id;
 
-document.getElementById("nextEpisodeBtn").style.display="block";
 renderEpisodes(i);
 
 servers = [
@@ -454,7 +452,6 @@ iframe.src = servers[i].url;
 
 // show next button only if TV
 if(currentShowId){
-document.getElementById("nextEpisodeBtn").style.display = "block";
 }
 
 // auto next
@@ -465,8 +462,8 @@ nextEpisode();
 
 // 🔥 highlight active
 const buttons = document.querySelectorAll("#serverControls button");
-buttons.forEach(btn=>btn.style.background="#222");
-if(buttons[i]) buttons[i].style.background="red";
+buttons.forEach(btn=>btn.classList.remove("active"));
+if(buttons[i]) buttons[i].classList.add("active");
 }
 function closePlayer(){
 document.getElementById("player").style.display="none";
@@ -616,7 +613,6 @@ renderMyList();
 }
 
 init();
-document.getElementById("nextEpisodeBtn").onclick = nextEpisode;
 </script>
 
 </body>
