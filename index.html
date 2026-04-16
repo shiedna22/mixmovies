@@ -238,6 +238,20 @@ height:100dvh;
 <div id="episodeControls"></div>
 <iframe id="full" allowfullscreen allow="autoplay"></iframe>
 </div>
+<button id="nextEpisodeBtn" style="
+position:fixed;
+bottom:80px;
+right:20px;
+padding:12px 15px;
+background:red;
+color:white;
+border:none;
+border-radius:5px;
+z-index:10000;
+display:none;
+">
+▶ Next Episode
+</button>
 
 <!-- PREVIEW -->
 <div id="previewModal">
@@ -257,6 +271,23 @@ const IMG="https://image.tmdb.org/t/p/w500";
 let previewItem=null,currentType="movie";
 let continueList=JSON.parse(localStorage.getItem("continue"))||[];
 let myList=JSON.parse(localStorage.getItem("myList"))||[];
+let currentEpisode = 1;
+let currentShowId = null;
+  
+function nextEpisode(){
+currentEpisode++;
+
+if(currentEpisode > 10) return;
+
+servers = [
+{name:"Server 1", url:`https://vidsrc.me/embed/tv/${currentShowId}/1/${currentEpisode}`},
+{name:"Server 2", url:`https://vidsrc.xyz/embed/tv/${currentShowId}/1/${currentEpisode}`}
+];
+
+renderEpisodes({id:currentShowId});
+renderServers();
+loadServer(0);
+}
 
 /* FETCH */
 async function fetchData(url){
@@ -320,6 +351,7 @@ let isMovie = !!i.title;
 if(isMovie){
 document.getElementById("episodeControls").innerHTML="";
 document.getElementById("episodeControls").style.display="none";
+document.getElementById("nextEpisodeBtn").style.display="none";
 servers = [
 {name:"Server 1", url:`https://vidsrc.me/embed/movie/${i.id}`},
 {name:"Server 2", url:`https://vidsrc.xyz/embed/movie/${i.id}`},
@@ -331,6 +363,10 @@ servers = [
 // 📺 TV SERVERS
 }else{
 document.getElementById("episodeControls").style.display="flex";
+currentEpisode = 1;
+currentShowId = i.id;
+
+document.getElementById("nextEpisodeBtn").style.display="block";
 renderEpisodes(i);
 
 servers = [
@@ -362,13 +398,25 @@ box.appendChild(b);
 function loadServer(i){
 const iframe = document.getElementById("full");
 
-// reset muna (fix loading bug)
+// reset
 iframe.src = "";
 
-// slight delay para mag refresh
+// load server
 setTimeout(()=>{
 iframe.src = servers[i].url;
 },200);
+
+// 🔥 show next episode button (TV only)
+if(currentShowId){
+document.getElementById("nextEpisodeBtn").style.display = "block";
+}
+
+// 🔥 AUTO NEXT (fallback timer)
+clearTimeout(window.autoNextTimer);
+window.autoNextTimer = setTimeout(()=>{
+nextEpisode();
+}, 1000 * 60 * 20); // 20 minutes
+}
 
 // highlight active
 const buttons = document.querySelectorAll("#serverControls button");
@@ -380,24 +428,46 @@ document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
 document.body.classList.remove("player-open");
 document.getElementById("episodeControls").innerHTML="";
+clearTimeout(window.autoNextTimer);
 }
 
 /* EPISODES */
 function renderEpisodes(i){
-const box=document.getElementById("episodeControls");
+if(i.title) return;
+
+currentShowId = i.id;
+
+const box = document.getElementById("episodeControls");
 box.innerHTML="";
 
 for(let e=1;e<=10;e++){
 let btn=document.createElement("button");
 btn.innerText="Ep "+e;
 
+btn.style.padding="8px";
+btn.style.border="none";
+btn.style.borderRadius="5px";
+
+// 🔥 highlight current
+if(e === currentEpisode){
+btn.style.background="red";
+btn.style.color="white";
+}else{
+btn.style.background="#222";
+btn.style.color="white";
+}
+
 btn.onclick=()=>{
+currentEpisode = e;
+
+// update servers
 servers = [
 {name:"Server 1", url:`https://vidsrc.me/embed/tv/${i.id}/1/${e}`},
 {name:"Server 2", url:`https://vidsrc.xyz/embed/tv/${i.id}/1/${e}`},
 {name:"Server 3", url:`https://vidlink.pro/tv/${i.id}/1/${e}`}
 ];
 
+renderEpisodes(i); // refresh highlight
 renderServers();
 loadServer(0);
 };
@@ -505,6 +575,7 @@ renderMyList();
 }
 
 init();
+document.getElementById("nextEpisodeBtn").onclick = nextEpisode;
 </script>
 
 </body>
