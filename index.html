@@ -280,67 +280,56 @@ openPlayer(previewItem);
 }
 
 /* PLAYER */
-let currentServer = 0;
 let servers = [];
+let currentServer = 0;
+let switchTimer;
 
 function openPlayer(i){
 document.getElementById("player").style.display="block";
-document.getElementById("loading").style.display="block";
-document.getElementById("errorMsg").style.display="none";
 
 let isMovie = !!i.title;
 
-// 🔥 servers list (fallback system)
 servers = isMovie ? [
-`https://vidsrc.xyz/embed/movie/${i.id}?autoplay=1`,
 `https://vidsrc.me/embed/movie/${i.id}`,
+`https://vidsrc.xyz/embed/movie/${i.id}?autoplay=1`,
 `https://vidlink.pro/movie/${i.id}`
 ] : [
-`https://vidsrc.xyz/embed/tv/${i.id}/1/1?autoplay=1`,
 `https://vidsrc.me/embed/tv/${i.id}/1/1`,
+`https://vidsrc.xyz/embed/tv/${i.id}/1/1?autoplay=1`,
 `https://vidlink.pro/tv/${i.id}/1/1`
 ];
 
 currentServer = 0;
-loadServer();
+
+loadServerAuto();
 
 saveContinue(i);
 }
 
-function loadServer(){
+function loadServerAuto(){
 const iframe = document.getElementById("full");
+
 iframe.src = servers[currentServer];
 
-// hide loading after load
-iframe.onload = ()=>{
-document.getElementById("loading").style.display="none";
-};
+// 🔥 auto switch every 6 sec if still blank/error
+clearTimeout(switchTimer);
 
-// 🔥 detect fail (timeout)
-setTimeout(()=>{
-if(document.getElementById("loading").style.display==="block"){
-document.getElementById("loading").style.display="none";
-document.getElementById("errorMsg").style.display="block";
-}
-},5000);
-}
-
-function switchServer(){
+switchTimer = setTimeout(()=>{
 currentServer++;
 
 if(currentServer >= servers.length){
 currentServer = 0;
 }
 
-document.getElementById("loading").style.display="block";
-document.getElementById("errorMsg").style.display="none";
+loadServerAuto();
 
-loadServer();
+},6000);
 }
 
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
+clearTimeout(switchTimer);
 }
 
 /* CONTINUE */
