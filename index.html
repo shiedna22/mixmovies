@@ -89,9 +89,10 @@ background:black;
 z-index:9999;
 }
 #player iframe{
-width:100%;
-height:100%;
+width:100vw;
+height:100vh;
 border:none;
+object-fit:contain;
 }
 .close-btn{
 position:fixed;
@@ -185,7 +186,8 @@ border-radius:5px;
 <!-- PLAYER -->
 <div id="player">
 <span class="close-btn" onclick="closePlayer()">✖</span>
-
+<iframe id="full" allowfullscreen allow="autoplay; fullscreen"></iframe>
+</div>
 <!-- SERVER BUTTONS -->
 <div id="serverControls" style="
 position:absolute;
@@ -196,9 +198,16 @@ display:flex;
 gap:10px;
 z-index:9999;
 "></div>
+<div id="episodeControls" style="
+position:absolute;
+top:110px;
+left:50%;
+transform:translateX(-50%);
+display:flex;
+gap:10px;
+z-index:9999;
+"></div>
 
-<iframe id="full" allowfullscreen allow="autoplay; fullscreen"></iframe>
-</div>
   
 <!-- PREVIEW -->
 <div id="previewModal">
@@ -287,24 +296,44 @@ let servers = [];
 function openPlayer(i){
 document.getElementById("player").style.display="block";
 
+// 🔥 DETECT TYPE
 let isMovie = !!i.title;
 
-servers = isMovie ? [
+// 🎬 MOVIE
+if(isMovie){
+
+// clear episodes
+document.getElementById("episodeControls").innerHTML="";
+
+servers = [
 {name:"Server 1", url:`https://vidsrc.me/embed/movie/${i.id}`},
 {name:"Server 2", url:`https://vidsrc.xyz/embed/movie/${i.id}`},
 {name:"Server 3", url:`https://vidlink.pro/movie/${i.id}`},
-{name:"Server 4", url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1`},
-{name:"Server 5", url:`https://2embed.cc/embed/${i.id}`}
-] : [
-{name:"Server 1", url:`https://vidsrc.me/embed/tv/${i.id}/1/1`},
-{name:"Server 2", url:`https://vidsrc.xyz/embed/tv/${i.id}/1/1`},
-{name:"Server 3", url:`https://vidlink.pro/tv/${i.id}/1/1`},
 {name:"Server 4", url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1`},
 {name:"Server 5", url:`https://2embed.cc/embed/${i.id}`}
 ];
 
 renderServers();
 loadServer(0);
+}
+
+// 📺 TV
+else{
+
+renderEpisodes(i); // 🔥 dito lang dapat
+
+// default servers (Ep1)
+servers = [
+{name:"Server 1", url:`https://vidsrc.me/embed/tv/${i.id}/1/1`},
+{name:"Server 2", url:`https://vidsrc.xyz/embed/tv/${i.id}/1/1`},
+{name:"Server 3", url:`https://vidlink.pro/tv/${i.id}/1/1`},
+{name:"Server 4", url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1&s=1&e=1`},
+{name:"Server 5", url:`https://2embed.cc/embedtv/${i.id}&s=1&e=1`}
+];
+
+renderServers();
+loadServer(0);
+}
 
 saveContinue(i);
 }
@@ -331,8 +360,13 @@ box.appendChild(btn);
 
 function loadServer(index){
 document.getElementById("full").src = servers[index].url;
-}
 
+// highlight active
+const buttons = document.querySelectorAll("#serverControls button");
+
+buttons.forEach(btn=>btn.style.background="#222");
+buttons[index].style.background="red";
+}
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
@@ -358,6 +392,35 @@ box.innerHTML="";
 continueList.forEach(m=>{
 box.appendChild(createCard(m,"movie"));
 });
+}
+function renderEpisodes(i){
+if(i.title) return;
+
+const box = document.getElementById("episodeControls");
+box.innerHTML="";
+
+for(let e=1; e<=10; e++){
+let btn = document.createElement("button");
+
+btn.innerText = "Ep " + e;
+btn.style.padding="8px";
+btn.style.background="#222";
+btn.style.color="white";
+btn.style.border="none";
+btn.style.borderRadius="5px";
+
+btn.onclick=()=>{
+servers = [
+{name:"Server 1", url:`https://vidsrc.me/embed/tv/${i.id}/1/${e}`},
+{name:"Server 2", url:`https://vidsrc.xyz/embed/tv/${i.id}/1/${e}`}
+];
+
+renderServers();
+loadServer(0);
+};
+
+box.appendChild(btn);
+}
 }
 
 /* MY LIST */
