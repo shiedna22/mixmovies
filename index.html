@@ -141,6 +141,9 @@ background:black;
 z-index:9998;
 overflow-y:auto;
 }
+#previewModal *{
+display:none !important;
+}
 #previewVideo{
 width:100%;
 height:220px;
@@ -260,7 +263,7 @@ sandbox="allow-same-origin allow-scripts allow-forms allow-presentation">
 </div>
 
 <!-- PREVIEW -->
-<div id="previewModal">
+<div id="previewModal" style="display:none;">
 <span onclick="closePreview()" class="close-btn">✖</span>
 <iframe id="previewVideo"></iframe>
 <h2 id="previewTitle"></h2>
@@ -309,20 +312,27 @@ previewItem = i;
 currentType = type;
 
 const modal = document.getElementById("previewModal");
-modal.style.display = "block";
 
-// reset content (important fix)
-document.getElementById("previewTitle").innerText = "";
-document.getElementById("previewDesc").innerText = "";
-document.body.classList.add("modal-open");
+// 👉 siguradong hidden muna lahat
+modal.style.display = "none";
+
+// 👉 reset content (important fix)
+document.getElementById("previewTitle").innerHTML = "";
+document.getElementById("previewDesc").innerHTML = "";
+document.getElementById("previewVideo").src = "";
+
+// 👉 saka lang lalagay data
 document.getElementById("previewTitle").innerText = i.title || i.name;
 document.getElementById("previewDesc").innerText = i.overview || "";
 
+// 👉 saka mo ipapakita
+modal.style.display = "block";
+
+// 👉 load trailer
 getTrailer(i.id,type).then(t=>{
 document.getElementById("previewVideo").src = t + "?autoplay=1&mute=1";
 });
 }
-
 function closePreview(){
 document.getElementById("previewModal").style.display = "none";
 document.getElementById("previewVideo").src = "";
@@ -548,6 +558,7 @@ movies.forEach(i=>document.getElementById("movies").appendChild(createCard(i,"mo
 tv.forEach(i=>document.getElementById("tv").appendChild(createCard(i,"tv")));
 
 setHero(clean[0]);
+closePreview();
 renderContinue();
 renderMyList();
 }
@@ -556,6 +567,15 @@ init();
 window.onload = ()=>{
 document.getElementById("previewModal").style.display = "none";
 };
+window.addEventListener("DOMContentLoaded", ()=>{
+const modal = document.getElementById("previewModal");
+modal.style.display = "none";
+
+// clear lahat
+document.getElementById("previewTitle").innerHTML = "";
+document.getElementById("previewDesc").innerHTML = "";
+document.getElementById("previewVideo").src = "";
+});
 </script>
 
 </body>
