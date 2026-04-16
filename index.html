@@ -199,6 +199,9 @@ max-height:80px;
 overflow:hidden;
 text-overflow:ellipsis;
 }
+body.modal-open{
+overflow:hidden;
+}
 </style>
 </head>
 
@@ -301,32 +304,30 @@ return card;
 }
 
 /* PREVIEW */
-async function openPreview(i,type){
-previewItem=i;
-currentType=type;
+function openPreview(i,type){
+previewItem = i;
+currentType = type;
 
-document.getElementById("previewModal").style.display="block";
-document.getElementById("previewTitle").innerText=i.title||i.name;
-document.getElementById("previewDesc").innerText=i.overview||"";
+const modal = document.getElementById("previewModal");
+modal.style.display = "block";
 
-let t=await getTrailer(i.id,type);
-document.getElementById("previewVideo").src=t+"?autoplay=1&mute=1";
+// reset content (important fix)
+document.getElementById("previewTitle").innerText = "";
+document.getElementById("previewDesc").innerText = "";
+document.body.classList.add("modal-open");
+document.getElementById("previewTitle").innerText = i.title || i.name;
+document.getElementById("previewDesc").innerText = i.overview || "";
 
-let exist=myList.find(m=>m.id===i.id);
-let btn=document.getElementById("myListBtn");
-btn.innerText = exist ? "💔 Remove from My List" : "❤️ Add to My List";
-
-btn.onclick=()=>{
-toggleMyList();
-openPreview(i,type);
-};
+getTrailer(i.id,type).then(t=>{
+document.getElementById("previewVideo").src = t + "?autoplay=1&mute=1";
+});
 }
 
 function closePreview(){
-document.getElementById("previewModal").style.display="none";
-document.getElementById("previewVideo").src="";
+document.getElementById("previewModal").style.display = "none";
+document.getElementById("previewVideo").src = "";
+document.body.classList.remove("modal-open");
 }
-
 function playFromPreview(){
 closePreview();
 openPlayer(previewItem);
@@ -552,6 +553,9 @@ renderMyList();
 }
 
 init();
+window.onload = ()=>{
+document.getElementById("previewModal").style.display = "none";
+};
 </script>
 
 </body>
