@@ -118,8 +118,8 @@ top:0;
 left:0;
 width:100%;
 height:100%;
+border:none;
 }
-
 .close-btn{
 position:fixed;
 top:15px;right:15px;
@@ -130,27 +130,25 @@ cursor:pointer;
 
 /* CONTROLS */
 #serverControls{
-position:absolute;
-top:15px;
+position:fixed;
+top:10px;
 left:50%;
 transform:translateX(-50%);
 display:flex;
 gap:10px;
-z-index:9999;
-flex-wrap:wrap;
+z-index:10000;
 }
 
 #episodeControls{
-position:absolute;
+position:fixed;
 top:60px;
 left:0;
 width:100%;
-max-width:100vw;
 display:flex;
 overflow-x:auto;
 gap:8px;
 padding:10px;
-z-index:9999;
+z-index:10000;
 }
 #episodeControls::-webkit-scrollbar{display:none}
 
@@ -189,6 +187,7 @@ overflow-x:hidden;
 }
 body.player-open{
 overflow:hidden;
+height:100dvh;
 }
 </style>
 </head>
@@ -320,7 +319,7 @@ openPlayer(previewItem);
 let servers=[];
 function openPlayer(i){
 document.getElementById("player").style.display="block";
-document.body.classList.add("player-open"); // 🔥 add
+document.body.classList.add("player-open");
 
 let isMovie = !!i.title;
 
@@ -383,7 +382,7 @@ if(buttons[i]) buttons[i].style.background="red";
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
-document.body.classList.remove("player-open"); // 🔥 remove
+document.body.classList.remove("player-open");
 }
 
 /* EPISODES */
