@@ -296,13 +296,29 @@ openPlayer(previewItem);
 function openPlayer(i){
 document.getElementById("player").style.display="block";
 
+let url;
+
+if(i.title){
+url = `https://vidsrc.me/embed/movie/${i.id}`;
+}else{
+url = `https://vidsrc.me/embed/tv/${i.id}/1/1`;
+}
+
+// backup after 3 seconds
+setTimeout(()=>{
+if(!document.getElementById("full").src.includes("vidsrc.xyz")){
 if(i.title){
 document.getElementById("full").src=
-`https://vidsrc.to/embed/movie/${i.id}?autoplay=1&controls=1`;
+`https://vidsrc.xyz/embed/movie/${i.id}`;
 }else{
 document.getElementById("full").src=
-`https://vidsrc.to/embed/tv/${i.id}/1/1?autoplay=1&controls=1`;
+`https://vidsrc.xyz/embed/tv/${i.id}/1/1`;
 }
+}
+},3000);
+
+document.getElementById("full").src = url;
+
 saveContinue(i);
 }
 
