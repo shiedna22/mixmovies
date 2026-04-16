@@ -186,14 +186,16 @@ border-radius:5px;
 <div id="player">
 <span class="close-btn" onclick="closePlayer()">✖</span>
 
-<div id="loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
-Loading...
-</div>
-
-<div id="errorMsg" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
-<p>⚠️ Video not available</p>
-<button onclick="switchServer()">Switch Server</button>
-</div>
+<!-- SERVER BUTTONS -->
+<div id="serverControls" style="
+position:absolute;
+top:60px;
+left:50%;
+transform:translateX(-50%);
+display:flex;
+gap:10px;
+z-index:9999;
+"></div>
 
 <iframe id="full" allowfullscreen allow="autoplay; fullscreen"></iframe>
 </div>
@@ -281,8 +283,6 @@ openPlayer(previewItem);
 
 /* PLAYER */
 let servers = [];
-let currentServer = 0;
-let tries = 0;
 
 function openPlayer(i){
 document.getElementById("player").style.display="block";
@@ -290,77 +290,53 @@ document.getElementById("player").style.display="block";
 let isMovie = !!i.title;
 
 servers = isMovie ? [
-`https://vidsrc.me/embed/movie/${i.id}`,
-`https://vidsrc.xyz/embed/movie/${i.id}`,
-`https://vidlink.pro/movie/${i.id}`
+{name:"Server 1", url:`https://vidsrc.me/embed/movie/${i.id}`},
+{name:"Server 2", url:`https://vidsrc.xyz/embed/movie/${i.id}`},
+{name:"Server 3", url:`https://vidlink.pro/movie/${i.id}`},
+{name:"Server 4", url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1`},
+{name:"Server 5", url:`https://2embed.cc/embed/${i.id}`}
 ] : [
-`https://vidsrc.me/embed/tv/${i.id}/1/1`,
-`https://vidsrc.xyz/embed/tv/${i.id}/1/1`,
-`https://vidlink.pro/tv/${i.id}/1/1`
+{name:"Server 1", url:`https://vidsrc.me/embed/tv/${i.id}/1/1`},
+{name:"Server 2", url:`https://vidsrc.xyz/embed/tv/${i.id}/1/1`},
+{name:"Server 3", url:`https://vidlink.pro/tv/${i.id}/1/1`},
+{name:"Server 4", url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1`},
+{name:"Server 5", url:`https://2embed.cc/embed/${i.id}`}
 ];
 
-currentServer = 0;
-tries = 0;
-
-loadProPlayer(i);
+renderServers();
+loadServer(0);
 
 saveContinue(i);
 }
 
-function loadProPlayer(i){
-const iframe = document.getElementById("full");
+function renderServers(){
+const box = document.getElementById("serverControls");
+box.innerHTML="";
 
-if(tries >= servers.length){
-loadBackup(i);
-return;
+servers.forEach((s,index)=>{
+let btn = document.createElement("button");
+
+btn.innerText = s.name;
+btn.style.padding="8px";
+btn.style.background="#222";
+btn.style.color="white";
+btn.style.border="none";
+btn.style.borderRadius="5px";
+
+btn.onclick=()=>loadServer(index);
+
+box.appendChild(btn);
+});
 }
 
-iframe.src = servers[currentServer];
-
-setTimeout(()=>{
-tries++;
-currentServer++;
-loadProPlayer(i);
-},5000);
-}
-function loadBackup(i){
-const iframe = document.getElementById("full");
-
-// 🔥 fallback universal player
-iframe.src = `https://multiembed.mov/?video_id=${i.id}&tmdb=1`;
-
-// kung ayaw pa rin → last fallback
-setTimeout(()=>{
-iframe.src = `https://2embed.cc/embed/${i.id}`;
-},5000);
-}
-
-function showError(){
-document.getElementById("full").src = "";
-document.getElementById("player").innerHTML += `
-<div style="
-position:absolute;
-top:50%;left:50%;
-transform:translate(-50%,-50%);
-text-align:center;
-color:white;
-">
-❌ No stream available<br><br>
-<button onclick="closePlayer()" style="
-padding:10px;
-background:red;
-border:none;
-color:white;
-border-radius:5px;
-">Close</button>
-</div>`;
+function loadServer(index){
+document.getElementById("full").src = servers[index].url;
 }
 
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
 }
-
 /* CONTINUE */
 function saveContinue(m){
 continueList=continueList.filter(x=>x.id!==m.id);
