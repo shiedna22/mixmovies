@@ -6,7 +6,7 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#000;color:white;font-family:Arial;overflow-x:hidden}
+body{background:#000;color:white;font-family:Arial}
 
 /* NAV */
 .navbar{
@@ -33,20 +33,20 @@ padding:30px;
 margin-top:60px;
 position:relative;
 overflow:hidden;
-background:#000;
 }
+
 #hero iframe{
 position:absolute;
 top:50%;
 left:50%;
-width:120%;
-height:120%;
+width:177.77vh;
+height:100vh;
 transform:translate(-50%,-50%);
-object-fit:cover;
 opacity:0.5;
 pointer-events:none;
 z-index:0;
 }
+
 #hero::before{
 content:"";
 position:absolute;
@@ -54,76 +54,21 @@ top:0;
 left:0;
 width:100%;
 height:100%;
-background:linear-gradient(
-to top,
-rgba(0,0,0,0.9),
-rgba(0,0,0,0.4),
-transparent
-);
+background:linear-gradient(to top,rgba(0,0,0,0.9),rgba(0,0,0,0.3));
 z-index:1;
-}
-#hero.loaded::before{display:none;}
-
-#hero::after{
-content:"";
-position:absolute;
-bottom:0;
-width:100%;
-height:150px;
-background:linear-gradient(to top,#000,transparent);
-z-index:2;
 }
 
 .hero-content{
-position:relative;
-z-index:3;
+z-index:2;
 max-width:600px;
-}
-.hero-content h1{
-font-size:28px;
-font-weight:bold;
-margin-bottom:10px;
+animation:fadeUp 0.8s ease;
 }
 
-.hero-content p{
-font-size:14px;
-line-height:1.4;
-max-height:70px;
-overflow:hidden;
-opacity:0.9;
-}
+.hero-buttons{display:flex;gap:10px;margin-top:15px}
 
-.hero-buttons{
-display:flex;
-gap:10px;
-margin-top:15px;
-}
-
-.play-btn{
-background:white;
-color:black;
-padding:10px 18px;
-border:none;
-border-radius:6px;
-font-weight:bold;
-}
-
-.trailer-btn{
-background:red;
-color:white;
-padding:10px 18px;
-border:none;
-border-radius:6px;
-}
-
-.list-btn{
-background:rgba(255,255,255,0.2);
-color:white;
-padding:10px 18px;
-border:none;
-border-radius:6px;
-backdrop-filter:blur(5px);
-}
+.play-btn{background:white;color:black;padding:10px 18px;border:none;border-radius:6px}
+.trailer-btn{background:red;color:white;padding:10px 18px;border:none;border-radius:6px}
+.list-btn{background:#333;color:white;padding:10px 18px;border:none;border-radius:6px}
 
 /* ROW */
 .row{margin-top:15px}
@@ -141,47 +86,39 @@ display:flex;overflow-x:auto;gap:10px;padding:10px;
 #player{
 display:none;
 position:fixed;
-top:0;
-left:0;
-width:100vw;
-height:100dvh;
+top:0;left:0;
+width:100vw;height:100dvh;
 background:black;
 z-index:9999;
 }
 
 #player iframe{
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:100dvh; /* 🔥 important */
+width:100%;height:100%;
 border:none;
-}
-.close-btn{
-position:fixed;
-top:15px;right:15px;
-font-size:28px;
-z-index:9999;
-cursor:pointer;
 }
 
 /* CONTROLS */
-#serverControls{
+#serverControls,#episodeControls{
 position:fixed;
-top:10px;
 left:50%;
 transform:translateX(-50%);
 z-index:10000;
+display:flex;gap:8px;
+overflow-x:auto;
 }
 
-#episodeControls{
-position:fixed;
-top:60px;
-left:0;
-width:100%;
-z-index:10000;
+#serverControls{top:10px}
+#episodeControls{top:60px;width:100%;padding:10px}
+
+#serverControls button,#episodeControls button{
+background:#222;color:white;border:none;
+padding:8px 12px;border-radius:20px;
 }
-#episodeControls::-webkit-scrollbar{display:none}
+
+#serverControls button.active,
+#episodeControls button.active{
+background:red;
+}
 
 /* PREVIEW */
 #previewModal{
@@ -194,82 +131,12 @@ z-index:9998;
 overflow-y:auto;
 }
 
-#previewVideo{
-width:100%;
-height:220px;
-border:none;
-}
+#previewVideo{width:100%;height:220px}
 
-.preview-btn{
-margin-top:10px;
-padding:10px;
-border:none;
-background:red;
-color:white;
-}
-
-@keyframes spin{
-to{transform:translate(-50%,-50%) rotate(360deg);}
-}
-html, body{
-margin:0;
-padding:0;
-overflow-x:hidden;
-}
-body.player-open{
-overflow:hidden;
-height:100dvh;
-}
-/* 🔥 NETFLIX STYLE BUTTONS */
-
-/* server buttons */
-#serverControls button{
-background:rgba(255,255,255,0.1);
-color:white;
-border:none;
-padding:8px 14px;
-border-radius:20px;
-font-size:13px;
-backdrop-filter:blur(5px);
-transition:0.3s;
-}
-
-#serverControls button:hover{
-background:red;
-transform:scale(1.1);
-}
-
-#serverControls button.active{
-background:red;
-color:white;
-}
-
-/* episode buttons */
-#episodeControls{
-display:flex;
-overflow-x:auto;
-gap:8px;
-padding:10px;
-}
-
-#episodeControls button{
-background:#222;
-color:white;
-border:none;
-padding:8px 12px;
-border-radius:20px;
-font-size:12px;
-transition:0.3s;
-white-space:nowrap;
-}
-
-#episodeControls button:hover{
-background:red;
-transform:scale(1.1);
-}
-
-#episodeControls button.active{
-background:red;
+/* ANIMATION */
+@keyframes fadeUp{
+from{opacity:0;transform:translateY(20px)}
+to{opacity:1;transform:translateY(0)}
 }
 </style>
 </head>
@@ -298,16 +165,10 @@ background:red;
 </div>
 
 <!-- CONTINUE -->
-<div class="row">
-<h2>▶ Continue Watching</h2>
-<div id="continue" class="row-posters"></div>
-</div>
+<div class="row"><h2>▶ Continue Watching</h2><div id="continue" class="row-posters"></div></div>
 
 <!-- MY LIST -->
-<div class="row">
-<h2>❤️ My List</h2>
-<div id="mylist" class="row-posters"></div>
-</div>
+<div class="row"><h2>❤️ My List</h2><div id="mylist" class="row-posters"></div></div>
 
 <!-- SEARCH -->
 <div class="row" id="searchRow" style="display:none;">
@@ -322,20 +183,17 @@ background:red;
 
 <!-- PLAYER -->
 <div id="player">
-<span class="close-btn" onclick="closePlayer()">✖</span>
 <div id="serverControls"></div>
 <div id="episodeControls"></div>
-<iframe id="full" allowfullscreen allow="autoplay"></iframe>
+<iframe id="full"></iframe>
 </div>
 
 <!-- PREVIEW -->
 <div id="previewModal">
-<span onclick="closePreview()" class="close-btn">✖</span>
 <iframe id="previewVideo"></iframe>
 <h2 id="previewTitle"></h2>
 <p id="previewDesc"></p>
-<button class="preview-btn" onclick="playFromPreview()">▶ Play</button>
-<button class="preview-btn" id="myListBtn"></button>
+<button onclick="playFromPreview()">▶ Play</button>
 </div>
 
 <script>
@@ -343,27 +201,12 @@ const API="https://api.themoviedb.org/3";
 const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
 
-let previewItem=null,currentType="movie";
+let previewItem=null;
 let continueList=JSON.parse(localStorage.getItem("continue"))||[];
 let myList=JSON.parse(localStorage.getItem("myList"))||[];
-let servers = [];
-let currentEpisode = 1;
-let currentShowId = null;
-  
-function nextEpisode(){
-currentEpisode++;
-
-if(currentEpisode > 10) return;
-
-servers = [
-{name:"Server 1", url:`https://vidsrc.me/embed/tv/${currentShowId}/1/${currentEpisode}`},
-{name:"Server 2", url:`https://vidsrc.xyz/embed/tv/${currentShowId}/1/${currentEpisode}`}
-];
-
-renderEpisodes({id:currentShowId});
-renderServers();
-loadServer(0);
-}
+let servers=[];
+let currentEpisode=1;
+let currentShowId=null;
 
 /* FETCH */
 async function fetchData(url){
@@ -373,83 +216,50 @@ return (await res.json()).results;
 
 /* TRAILER */
 async function getTrailer(id,type){
-try{
 const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
 const data=await res.json();
 let t=data.results?.find(v=>v.site==="YouTube");
 return t?`https://www.youtube.com/embed/${t.key}`:null;
-}catch{return null;}
 }
 
 /* CARD */
 function createCard(i,type){
-const card=document.createElement("div");
-card.className="card";
-card.innerHTML=`<img src="${IMG+i.poster_path}"><div>${i.title||i.name}</div>`;
-card.onclick=()=>openPreview(i,type);
-return card;
+const c=document.createElement("div");
+c.className="card";
+c.innerHTML=`<img src="${IMG+i.poster_path}"><div>${i.title||i.name}</div>`;
+c.onclick=()=>openPreview(i,type);
+return c;
 }
 
 /* PREVIEW */
 function openPreview(i,type){
 previewItem=i;
-currentType=type;
-
+document.getElementById("previewModal").style.display="block";
 document.getElementById("previewTitle").innerText=i.title||i.name;
 document.getElementById("previewDesc").innerText=i.overview||"";
 
-document.getElementById("previewModal").style.display="block";
-
 getTrailer(i.id,type).then(t=>{
-if(t) document.getElementById("previewVideo").src=t+"?autoplay=1&mute=1";
+if(t) document.getElementById("previewVideo").src=t;
 });
 }
 
-function closePreview(){
-document.getElementById("previewModal").style.display="none";
-document.getElementById("previewVideo").src="";
-}
-
 function playFromPreview(){
-closePreview();
 openPlayer(previewItem);
 }
 
 /* PLAYER */
 function openPlayer(i){
 document.getElementById("player").style.display="block";
-document.body.classList.add("player-open");
 
-let isMovie = !!i.title;
+let isMovie=!!i.title;
 
-// 🎬 MOVIE SERVERS
 if(isMovie){
-currentShowId = null;
-document.getElementById("episodeControls").innerHTML="";
-document.getElementById("episodeControls").style.display="none";
-servers = [
-{name:"Server 1", url:`https://vidsrc.me/embed/movie/${i.id}`},
-{name:"Server 2", url:`https://vidsrc.xyz/embed/movie/${i.id}`},
-{name:"Server 3", url:`https://vidlink.pro/movie/${i.id}`},
-{name:"Server 4", url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1`},
-{name:"Server 5", url:`https://2embed.cc/embed/${i.id}`}
-];
-
-// 📺 TV SERVERS
+servers=[{name:"Server 1",url:`https://vidsrc.me/embed/movie/${i.id}`}];
 }else{
-document.getElementById("episodeControls").style.display="flex";
-currentEpisode = 1;
-currentShowId = i.id;
-
+currentEpisode=1;
+currentShowId=i.id;
 renderEpisodes(i);
-
-servers = [
-{name:"Server 1", url:`https://vidsrc.me/embed/tv/${i.id}/1/1`},
-{name:"Server 2", url:`https://vidsrc.xyz/embed/tv/${i.id}/1/1`},
-{name:"Server 3", url:`https://vidlink.pro/tv/${i.id}/1/1`},
-{name:"Server 4", url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1&s=1&e=1`},
-{name:"Server 5", url:`https://2embed.cc/embedtv/${i.id}&s=1&e=1`}
-];
+servers=[{name:"Server 1",url:`https://vidsrc.me/embed/tv/${i.id}/1/1`}];
 }
 
 renderServers();
@@ -457,98 +267,35 @@ loadServer(0);
 saveContinue(i);
 }
 
-
 function renderServers(){
 const box=document.getElementById("serverControls");
 box.innerHTML="";
 servers.forEach((s,i)=>{
 let b=document.createElement("button");
 b.innerText=s.name;
-b.onclick=()=>{
-loadServer(i);
-
-// remove active sa lahat
-document.querySelectorAll("#serverControls button")
-.forEach(btn=>btn.classList.remove("active"));
-
-// add active sa pinindot
-b.classList.add("active");
-};
+b.onclick=()=>loadServer(i);
 box.appendChild(b);
 });
 }
+
 function loadServer(i){
-const iframe = document.getElementById("full");
-
-// reset
-iframe.src = "";
-
-// load
-setTimeout(()=>{
-iframe.src = servers[i].url;
-},200);
-
-// show next button only if TV
-if(currentShowId){
-}
-
-// auto next
-clearTimeout(window.autoNextTimer);
-window.autoNextTimer = setTimeout(()=>{
-nextEpisode();
-}, 1000 * 60 * 20);
-
-// 🔥 highlight active
-const buttons = document.querySelectorAll("#serverControls button");
-buttons.forEach(btn=>btn.classList.remove("active"));
-if(buttons[i]) buttons[i].classList.add("active");
-}
-function closePlayer(){
-document.getElementById("player").style.display="none";
-document.getElementById("full").src="";
-document.body.classList.remove("player-open");
-document.getElementById("episodeControls").innerHTML="";
-clearTimeout(window.autoNextTimer);
+document.getElementById("full").src=servers[i].url;
 }
 
 /* EPISODES */
 function renderEpisodes(i){
-if(i.title) return;
-
-currentShowId = i.id;
-
-const box = document.getElementById("episodeControls");
+const box=document.getElementById("episodeControls");
 box.innerHTML="";
-
 for(let e=1;e<=10;e++){
-let btn=document.createElement("button");
-btn.innerText="Ep "+e;
-
-btn.style.padding="8px";
-btn.style.border="none";
-btn.style.borderRadius="5px";
-
-// 🔥 highlight current
-if(e === currentEpisode){
-btn.classList.add("active");
-}
-
-btn.onclick=()=>{
-currentEpisode = e;
-
-// update servers
-servers = [
-{name:"Server 1", url:`https://vidsrc.me/embed/tv/${i.id}/1/${e}`},
-{name:"Server 2", url:`https://vidsrc.xyz/embed/tv/${i.id}/1/${e}`},
-{name:"Server 3", url:`https://vidlink.pro/tv/${i.id}/1/${e}`}
-];
-
-renderEpisodes(i); // refresh highlight
+let b=document.createElement("button");
+b.innerText="Ep "+e;
+b.onclick=()=>{
+currentEpisode=e;
+servers=[{name:"Server 1",url:`https://vidsrc.me/embed/tv/${i.id}/1/${e}`}];
 renderServers();
 loadServer(0);
 };
-
-box.appendChild(btn);
+box.appendChild(b);
 }
 }
 
@@ -583,42 +330,24 @@ myList.forEach(m=>box.appendChild(createCard(m,"movie")));
 
 /* HERO */
 async function setHero(m){
-closePreview();
+let year=(m.release_date||m.first_air_date||"").slice(0,4);
+document.getElementById("hero-title").innerText=
+(m.title||m.name)+(year?` (${year})`:"");
 
-const hero=document.getElementById("hero");
-const video=document.getElementById("heroVideo");
-
-video.src="";
-video.style.display="none";
-document.getElementById("hero").classList.remove("loaded");
-document.getElementById("hero-title").innerText=m.title||m.name;
 document.getElementById("hero-desc").innerText=m.overview||"";
 
-if(m.backdrop_path){
-hero.style.background=`url(${IMG+m.backdrop_path}) center/cover`;
-}
-
-let type = m.title ? "movie" : "tv";
-let t = await getTrailer(m.id, type);
+let type=m.title?"movie":"tv";
+let t=await getTrailer(m.id,type);
 
 if(t){
-video.style.display="block";
-setTimeout(()=>video.src=t+"?autoplay=1&mute=1",200);
+document.getElementById("heroVideo").src=t+"?autoplay=1&mute=1";
 }
 
-hero.classList.add("loaded");
-
 document.getElementById("playHero").onclick=()=>openPlayer(m);
-setTimeout(()=>{
-document.getElementById("hero").classList.add("loaded");
-},1000);
 }
 
 /* SEARCH */
-let debounce;
-document.getElementById("search").addEventListener("input",(e)=>{
-clearTimeout(debounce);
-debounce=setTimeout(async()=>{
+document.getElementById("search").addEventListener("input",async(e)=>{
 const v=e.target.value.trim();
 const row=document.getElementById("searchRow");
 const box=document.getElementById("searchResults");
@@ -635,7 +364,6 @@ if(valid.length===0){row.style.display="none";return;}
 
 row.style.display="block";
 valid.forEach(i=>box.appendChild(createCard(i,i.media_type)));
-},400);
 });
 
 /* INIT */
