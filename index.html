@@ -302,23 +302,39 @@ openPlayer(previewItem);
 
 /* PLAYER */
 let servers=[];
-
 function openPlayer(i){
 document.getElementById("player").style.display="block";
 
-let isMovie=!!i.title;
+let isMovie = !!i.title;
 
+// 🎬 MOVIE SERVERS
 if(isMovie){
-servers=[{name:"Server 1",url:`https://vidsrc.xyz/embed/movie/${i.id}`}];
+servers = [
+{name:"Server 1", url:`https://vidsrc.me/embed/movie/${i.id}`},
+{name:"Server 2", url:`https://vidsrc.xyz/embed/movie/${i.id}`},
+{name:"Server 3", url:`https://vidlink.pro/movie/${i.id}`},
+{name:"Server 4", url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1`},
+{name:"Server 5", url:`https://2embed.cc/embed/${i.id}`}
+];
+
+// 📺 TV SERVERS
 }else{
-servers=[{name:"Server 1",url:`https://vidsrc.xyz/embed/tv/${i.id}/1/1`}];
 renderEpisodes(i);
+
+servers = [
+{name:"Server 1", url:`https://vidsrc.me/embed/tv/${i.id}/1/1`},
+{name:"Server 2", url:`https://vidsrc.xyz/embed/tv/${i.id}/1/1`},
+{name:"Server 3", url:`https://vidlink.pro/tv/${i.id}/1/1`},
+{name:"Server 4", url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1&s=1&e=1`},
+{name:"Server 5", url:`https://2embed.cc/embedtv/${i.id}&s=1&e=1`}
+];
 }
 
 renderServers();
 loadServer(0);
 saveContinue(i);
 }
+
 
 function renderServers(){
 const box=document.getElementById("serverControls");
@@ -332,9 +348,21 @@ box.appendChild(b);
 }
 
 function loadServer(i){
-document.getElementById("full").src=servers[i].url;
-}
+const iframe = document.getElementById("full");
 
+// reset muna (fix loading bug)
+iframe.src = "";
+
+// slight delay para mag refresh
+setTimeout(()=>{
+iframe.src = servers[i].url;
+},200);
+
+// highlight active
+const buttons = document.querySelectorAll("#serverControls button");
+buttons.forEach(btn=>btn.style.background="#222");
+if(buttons[i]) buttons[i].style.background="red";
+}
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
@@ -344,14 +372,22 @@ document.getElementById("full").src="";
 function renderEpisodes(i){
 const box=document.getElementById("episodeControls");
 box.innerHTML="";
+
 for(let e=1;e<=10;e++){
 let btn=document.createElement("button");
 btn.innerText="Ep "+e;
+
 btn.onclick=()=>{
-servers=[{name:"Server 1",url:`https://vidsrc.xyz/embed/tv/${i.id}/1/${e}`}];
+servers = [
+{name:"Server 1", url:`https://vidsrc.me/embed/tv/${i.id}/1/${e}`},
+{name:"Server 2", url:`https://vidsrc.xyz/embed/tv/${i.id}/1/${e}`},
+{name:"Server 3", url:`https://vidlink.pro/tv/${i.id}/1/${e}`}
+];
+
 renderServers();
 loadServer(0);
 };
+
 box.appendChild(btn);
 }
 }
