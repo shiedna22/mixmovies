@@ -253,6 +253,8 @@ display:none;
 ▶ Next Episode
 </button>
 
+</div>
+
 <!-- PREVIEW -->
 <div id="previewModal">
 <span onclick="closePreview()" class="close-btn">✖</span>
@@ -271,6 +273,7 @@ const IMG="https://image.tmdb.org/t/p/w500";
 let previewItem=null,currentType="movie";
 let continueList=JSON.parse(localStorage.getItem("continue"))||[];
 let myList=JSON.parse(localStorage.getItem("myList"))||[];
+let servers = [];
 let currentEpisode = 1;
 let currentShowId = null;
   
@@ -340,7 +343,6 @@ openPlayer(previewItem);
 }
 
 /* PLAYER */
-let servers=[];
 function openPlayer(i){
 document.getElementById("player").style.display="block";
 document.body.classList.add("player-open");
@@ -349,6 +351,7 @@ let isMovie = !!i.title;
 
 // 🎬 MOVIE SERVERS
 if(isMovie){
+currentShowId = null;
 document.getElementById("episodeControls").innerHTML="";
 document.getElementById("episodeControls").style.display="none";
 document.getElementById("nextEpisodeBtn").style.display="none";
@@ -394,31 +397,29 @@ b.onclick=()=>loadServer(i);
 box.appendChild(b);
 });
 }
-
 function loadServer(i){
 const iframe = document.getElementById("full");
 
 // reset
 iframe.src = "";
 
-// load server
+// load
 setTimeout(()=>{
 iframe.src = servers[i].url;
 },200);
 
-// 🔥 show next episode button (TV only)
+// show next button only if TV
 if(currentShowId){
 document.getElementById("nextEpisodeBtn").style.display = "block";
 }
 
-// 🔥 AUTO NEXT (fallback timer)
+// auto next
 clearTimeout(window.autoNextTimer);
 window.autoNextTimer = setTimeout(()=>{
 nextEpisode();
-}, 1000 * 60 * 20); // 20 minutes
-}
+}, 1000 * 60 * 20);
 
-// highlight active
+// 🔥 highlight active
 const buttons = document.querySelectorAll("#serverControls button");
 buttons.forEach(btn=>btn.style.background="#222");
 if(buttons[i]) buttons[i].style.background="red";
