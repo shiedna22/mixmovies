@@ -182,6 +182,57 @@ body.player-open{
 overflow:hidden;
 height:100dvh;
 }
+/* 🔥 NETFLIX STYLE BUTTONS */
+
+/* server buttons */
+#serverControls button{
+background:rgba(255,255,255,0.1);
+color:white;
+border:none;
+padding:8px 14px;
+border-radius:20px;
+font-size:13px;
+backdrop-filter:blur(5px);
+transition:0.3s;
+}
+
+#serverControls button:hover{
+background:red;
+transform:scale(1.1);
+}
+
+#serverControls button.active{
+background:red;
+color:white;
+}
+
+/* episode buttons */
+#episodeControls{
+display:flex;
+overflow-x:auto;
+gap:8px;
+padding:10px;
+}
+
+#episodeControls button{
+background:#222;
+color:white;
+border:none;
+padding:8px 12px;
+border-radius:20px;
+font-size:12px;
+transition:0.3s;
+white-space:nowrap;
+}
+
+#episodeControls button:hover{
+background:red;
+transform:scale(1.1);
+}
+
+#episodeControls button.active{
+background:red;
+}
 </style>
 </head>
 
@@ -237,22 +288,6 @@ height:100dvh;
 <div id="serverControls"></div>
 <div id="episodeControls"></div>
 <iframe id="full" allowfullscreen allow="autoplay"></iframe>
-</div>
-<button id="nextEpisodeBtn" style="
-position:fixed;
-bottom:80px;
-right:20px;
-padding:12px 15px;
-background:red;
-color:white;
-border:none;
-border-radius:5px;
-z-index:10000;
-display:none;
-">
-▶ Next Episode
-</button>
-
 </div>
 
 <!-- PREVIEW -->
@@ -393,7 +428,16 @@ box.innerHTML="";
 servers.forEach((s,i)=>{
 let b=document.createElement("button");
 b.innerText=s.name;
-b.onclick=()=>loadServer(i);
+b.onclick=()=>{
+loadServer(i);
+
+// remove active sa lahat
+document.querySelectorAll("#serverControls button")
+.forEach(btn=>btn.classList.remove("active"));
+
+// add active sa pinindot
+b.classList.add("active");
+};
 box.appendChild(b);
 });
 }
@@ -451,11 +495,7 @@ btn.style.borderRadius="5px";
 
 // 🔥 highlight current
 if(e === currentEpisode){
-btn.style.background="red";
-btn.style.color="white";
-}else{
-btn.style.background="#222";
-btn.style.color="white";
+btn.classList.add("active");
 }
 
 btn.onclick=()=>{
