@@ -83,10 +83,8 @@ scroll-snap-align:start;
 #player{
 display:none;
 position:fixed;
-top:0;
-left:0;
-width:100vw;
-height:100vh;
+top:0;left:0;
+width:100vw;height:100vh;
 background:black;
 z-index:9999;
 overflow:hidden;
@@ -94,10 +92,8 @@ overflow:hidden;
 
 #player iframe{
 position:absolute;
-top:0;
-left:0;
-width:100%;
-height:100%;
+top:0;left:0;
+width:100%;height:100%;
 border:none;
 }
 
@@ -148,7 +144,7 @@ overflow-y:auto;
 #previewVideo{
 width:100%;
 height:220px;
-object-fit:cover;
+border:none;
 }
 .preview-btn{
 margin-top:10px;
@@ -161,16 +157,11 @@ color:white;
 
 /* MOBILE */
 @media(max-width:768px){
-
 #hero{height:60vh;}
-
 .hero-content{padding:15px;}
-
 #episodeControls button{min-width:60px;}
-
 }
 
-/* FIX */
 html,body{margin:0;padding:0;overflow-x:hidden}
 </style>
 </head>
@@ -219,12 +210,14 @@ html,body{margin:0;padding:0;overflow-x:hidden}
 <!-- PLAYER -->
 <div id="player">
 <span class="close-btn" onclick="closePlayer()">✖</span>
-
 <div id="serverControls"></div>
 <div id="episodeControls"></div>
 
-<iframe id="full" allowfullscreen allow="autoplay; fullscreen"
-sandbox="allow-same-origin allow-scripts allow-forms allow-presentation"></iframe>
+<iframe id="full"
+allowfullscreen
+allow="autoplay; fullscreen"
+sandbox="allow-same-origin allow-scripts allow-forms allow-presentation">
+</iframe>
 </div>
 
 <!-- PREVIEW -->
@@ -282,6 +275,25 @@ document.getElementById("previewDesc").innerText=i.overview||"";
 
 let t=await getTrailer(i.id,type);
 document.getElementById("previewVideo").src=t+"?autoplay=1&mute=1";
+
+let exist=myList.find(m=>m.id===i.id);
+let btn=document.getElementById("myListBtn");
+btn.innerText = exist ? "💔 Remove from My List" : "❤️ Add to My List";
+
+btn.onclick=()=>{
+toggleMyList();
+openPreview(i,type);
+};
+}
+
+function closePreview(){
+document.getElementById("previewModal").style.display="none";
+document.getElementById("previewVideo").src="";
+}
+
+function playFromPreview(){
+closePreview();
+openPlayer(previewItem);
 }
 
 /* PLAYER */
@@ -298,13 +310,16 @@ document.getElementById("episodeControls").innerHTML="";
 servers=[
 {name:"Server 1",url:`https://vidsrc.me/embed/movie/${i.id}`},
 {name:"Server 2",url:`https://vidsrc.xyz/embed/movie/${i.id}`},
-{name:"Server 3",url:`https://vidlink.pro/movie/${i.id}`}
+{name:"Server 3",url:`https://vidlink.pro/movie/${i.id}`},
+{name:"Server 4",url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1`},
+{name:"Server 5",url:`https://2embed.cc/embed/${i.id}`}
 ];
 }else{
 renderEpisodes(i);
 servers=[
 {name:"Server 1",url:`https://vidsrc.me/embed/tv/${i.id}/1/1`},
-{name:"Server 2",url:`https://vidsrc.xyz/embed/tv/${i.id}/1/1`}
+{name:"Server 2",url:`https://vidsrc.xyz/embed/tv/${i.id}/1/1`},
+{name:"Server 3",url:`https://vidlink.pro/tv/${i.id}/1/1`}
 ];
 }
 
@@ -328,6 +343,10 @@ function loadServer(i){
 const iframe=document.getElementById("full");
 iframe.src="";
 setTimeout(()=>iframe.src=servers[i].url,200);
+
+const buttons=document.querySelectorAll("#serverControls button");
+buttons.forEach(btn=>btn.style.background="#222");
+buttons[i].style.background="red";
 }
 
 function closePlayer(){
@@ -335,13 +354,152 @@ document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
 }
 
+/* CONTINUE */
+function saveContinue(m){
+continueList=continueList.filter(x=>x.id!==m.id);
+continueList.unshift(m);
+localStorage.setItem("continue",JSON.stringify(continueList));
+renderContinue();
+}
+function renderContinue(){
+const section=document.querySelector("#continue").parentElement;
+const box=document.getElementById("continue");
+
+if(continueList.length===0){
+section.style.display="none";
+return;
+}
+
+section.style.display="block";
+box.innerHTML="";
+continueList.forEach(m=>{
+box.appendChild(createCard(m,"movie"));
+});
+}
+
+/* EPISODES */
+function renderEpisodes(i){
+if(i.title) return;
+
+const box=document.getElementById("episodeControls");
+box.innerHTML="";
+
+for(let e=1;e<=10;e++){
+let btn=document.createElement("button");
+btn.innerText="Ep "+e;
+
+btn.onclick=()=>{
+servers=[
+{name:"Server 1",url:`https://vidsrc.me/embed/tv/${i.id}/1/${e}`},
+{name:"Server 2",url:`https://vidsrc.xyz/embed/tv/${i.id}/1/${e}`}
+];
+renderServers();
+loadServer(0);
+};
+
+box.appendChild(btn);
+}
+}
+
+/* MY LIST */
+function toggleMyList(){
+let exist=myList.find(m=>m.id===previewItem.id);
+if(exist){myList=myList.filter(m=>m.id!==previewItem.id);}
+else{myList.push(previewItem);}
+localStorage.setItem("myList",JSON.stringify(myList));
+renderMyList();
+}
+function renderMyList(){
+const box=document.getElementById("mylist");
+const section=box.parentElement;
+
+if(myList.length===0){
+section.style.display="none";
+return;
+}
+
+section.style.display="block";
+box.innerHTML="";
+myList.forEach(m=>{
+box.appendChild(createCard(m,"movie"));
+});
+}
+
+/* HERO */
+async function setHero(m){
+currentType=m.title?"movie":"tv";
+
+document.getElementById("hero-title").innerText=m.title||m.name;
+document.getElementById("hero-desc").innerText=m.overview||"";
+
+let t=await getTrailer(m.id,currentType);
+
+if(!t){
+document.getElementById("heroVideo").style.display="none";
+document.getElementById("hero").style.background=
+`url(${IMG+m.backdrop_path}) center/cover`;
+}else{
+document.getElementById("heroVideo").style.display="block";
+document.getElementById("heroVideo").src=
+t+"?autoplay=1&mute=1&controls=0&loop=1";
+}
+
+document.getElementById("playHero").onclick=()=>openPlayer(m);
+document.getElementById("watchTrailer").onclick=()=>{
+document.getElementById("player").style.display="block";
+document.getElementById("full").src=t;
+};
+}
+
+/* SEARCH */
+let debounce;
+document.getElementById("search").addEventListener("input",(e)=>{
+clearTimeout(debounce);
+
+debounce=setTimeout(async()=>{
+const v=e.target.value.trim();
+const row=document.getElementById("searchRow");
+const box=document.getElementById("searchResults");
+
+if(!v){
+row.style.display="none";
+return;
+}
+
+const res=await fetch(`${API}/search/multi?api_key=${KEY}&query=${v}`);
+const data=await res.json();
+
+box.innerHTML="";
+let valid=data.results.filter(i=>i.poster_path);
+
+if(valid.length===0){
+row.style.display="none";
+return;
+}
+
+row.style.display="block";
+valid.forEach(i=>{
+box.appendChild(createCard(i,i.media_type));
+});
+
+},400);
+});
+
 /* INIT */
 async function init(){
 const trending=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
-trending.forEach(i=>{
-if(i.poster_path)
-document.getElementById("trending").appendChild(createCard(i,i.media_type));
-});
+const movies=await fetchData(`${API}/movie/popular?api_key=${KEY}`);
+const tv=await fetchData(`${API}/tv/popular?api_key=${KEY}`);
+
+const clean=trending.filter(i=>i.media_type==="movie"||i.media_type==="tv");
+
+clean.forEach(i=>document.getElementById("trending").appendChild(createCard(i,i.media_type)));
+movies.forEach(i=>document.getElementById("movies").appendChild(createCard(i,"movie")));
+tv.forEach(i=>document.getElementById("tv").appendChild(createCard(i,"tv")));
+
+setHero(clean[0]);
+renderContinue();
+renderMyList();
 }
 
 init();
