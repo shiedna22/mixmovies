@@ -157,12 +157,48 @@ color:white;
 
 /* MOBILE */
 @media(max-width:768px){
-#hero{height:60vh;}
+#hero{height:50vh;}
 .hero-content{padding:15px;}
+.hero-content p{
+font-size:13px;
+}
 #episodeControls button{min-width:60px;}
 }
 
 html,body{margin:0;padding:0;overflow-x:hidden}
+
+#hero::before{
+content:"";
+position:absolute;
+top:50%;
+left:50%;
+width:30px;
+height:30px;
+border:3px solid #fff;
+border-top:3px solid transparent;
+border-radius:50%;
+animation:spin 1s linear infinite;
+transform:translate(-50%,-50%);
+z-index:2;
+}
+
+@keyframes spin{
+to{transform:translate(-50%,-50%) rotate(360deg);}
+}
+
+/* hide loader pag ready */
+#hero.loaded::before{
+display:none;
+}
+.hero-content{
+max-width:90%;
+}
+
+.hero-content p{
+max-height:80px;
+overflow:hidden;
+text-overflow:ellipsis;
+}
 </style>
 </head>
 
@@ -427,27 +463,40 @@ box.appendChild(createCard(m,"movie"));
 
 /* HERO */
 async function setHero(m){
-currentType=m.title?"movie":"tv";
+currentType = m.title ? "movie" : "tv";
 
-document.getElementById("hero-title").innerText=m.title||m.name;
-document.getElementById("hero-desc").innerText=m.overview||"";
+// 🔥 clear muna (important fix)
+document.getElementById("heroVideo").src = "";
+document.getElementById("hero").style.background = "";
 
-let t=await getTrailer(m.id,currentType);
+// set content
+document.getElementById("hero-title").innerText = m.title || m.name;
+document.getElementById("hero-desc").innerText = m.overview || "";
+
+// trailer
+let t = await getTrailer(m.id, currentType);
 
 if(!t){
 document.getElementById("heroVideo").style.display="none";
-document.getElementById("hero").style.background=
-`url(${IMG+m.backdrop_path}) center/cover`;
+document.getElementById("hero").style.background =
+`url(${IMG+m.backdrop_path}) center/cover no-repeat`;
 }else{
 document.getElementById("heroVideo").style.display="block";
-document.getElementById("heroVideo").src=
+
+// 🔥 FIX looping + reload bug
+document.getElementById("heroVideo").src = "";
+setTimeout(()=>{
+document.getElementById("heroVideo").src =
 t+"?autoplay=1&mute=1&controls=0&loop=1";
+},200);
 }
 
-document.getElementById("playHero").onclick=()=>openPlayer(m);
-document.getElementById("watchTrailer").onclick=()=>{
+// buttons
+document.getElementById("playHero").onclick = ()=>openPlayer(m);
+
+document.getElementById("watchTrailer").onclick = ()=>{
 document.getElementById("player").style.display="block";
-document.getElementById("full").src=t;
+document.getElementById("full").src = t;
 };
 }
 
