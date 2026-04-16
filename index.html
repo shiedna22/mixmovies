@@ -318,6 +318,8 @@ let isMovie = !!i.title;
 
 // 🎬 MOVIE SERVERS
 if(isMovie){
+document.getElementById("episodeControls").innerHTML="";
+document.getElementById("episodeControls").style.display="none";
 servers = [
 {name:"Server 1", url:`https://vidsrc.me/embed/movie/${i.id}`},
 {name:"Server 2", url:`https://vidsrc.xyz/embed/movie/${i.id}`},
@@ -328,6 +330,7 @@ servers = [
 
 // 📺 TV SERVERS
 }else{
+document.getElementById("episodeControls").style.display="flex";
 renderEpisodes(i);
 
 servers = [
@@ -376,6 +379,7 @@ function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
 document.body.classList.remove("player-open");
+document.getElementById("episodeControls").innerHTML="";
 }
 
 /* EPISODES */
