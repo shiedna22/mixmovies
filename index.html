@@ -124,6 +124,15 @@ border-radius:5px;
 background:red;
 color:white;
 }
+#loading{color:white;font-size:18px}
+#errorMsg button{
+margin-top:10px;
+padding:10px;
+border:none;
+background:red;
+color:white;
+border-radius:5px;
+}
 </style>
 </head>
 
@@ -176,9 +185,19 @@ color:white;
 <!-- PLAYER -->
 <div id="player">
 <span class="close-btn" onclick="closePlayer()">✖</span>
-<iframe id="full" allowfullscreen allow="autoplay; fullscreen"></iframe>
+
+<div id="loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+Loading...
 </div>
 
+<div id="errorMsg" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+<p>⚠️ Video not available</p>
+<button onclick="switchServer()">Switch Server</button>
+</div>
+
+<iframe id="full" allowfullscreen allow="autoplay; fullscreen"></iframe>
+</div>
+  
 <!-- PREVIEW -->
 <div id="previewModal">
 <span onclick="closePreview()" class="close-btn">✖</span>
@@ -261,18 +280,62 @@ openPlayer(previewItem);
 }
 
 /* PLAYER */
+let currentServer = 0;
+let servers = [];
+
 function openPlayer(i){
 document.getElementById("player").style.display="block";
+document.getElementById("loading").style.display="block";
+document.getElementById("errorMsg").style.display="none";
 
-if(i.title){
-document.getElementById("full").src=
-`https://vidsrc.xyz/embed/movie/${i.id}?autoplay=1`;
-}else{
-document.getElementById("full").src=
-`https://vidsrc.xyz/embed/tv/${i.id}/1/1?autoplay=1`;
-}
+let isMovie = !!i.title;
+
+// 🔥 servers list (fallback system)
+servers = isMovie ? [
+`https://vidsrc.xyz/embed/movie/${i.id}?autoplay=1`,
+`https://vidsrc.me/embed/movie/${i.id}`,
+`https://vidlink.pro/movie/${i.id}`
+] : [
+`https://vidsrc.xyz/embed/tv/${i.id}/1/1?autoplay=1`,
+`https://vidsrc.me/embed/tv/${i.id}/1/1`,
+`https://vidlink.pro/tv/${i.id}/1/1`
+];
+
+currentServer = 0;
+loadServer();
 
 saveContinue(i);
+}
+
+function loadServer(){
+const iframe = document.getElementById("full");
+iframe.src = servers[currentServer];
+
+// hide loading after load
+iframe.onload = ()=>{
+document.getElementById("loading").style.display="none";
+};
+
+// 🔥 detect fail (timeout)
+setTimeout(()=>{
+if(document.getElementById("loading").style.display==="block"){
+document.getElementById("loading").style.display="none";
+document.getElementById("errorMsg").style.display="block";
+}
+},5000);
+}
+
+function switchServer(){
+currentServer++;
+
+if(currentServer >= servers.length){
+currentServer = 0;
+}
+
+document.getElementById("loading").style.display="block";
+document.getElementById("errorMsg").style.display="none";
+
+loadServer();
 }
 
 function closePlayer(){
