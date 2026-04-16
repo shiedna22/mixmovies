@@ -81,18 +81,28 @@ scroll-snap-align:start;
 
 /* PLAYER */
 #player{
-display:none;
 position:fixed;
-top:0;left:0;
-width:100vw;height:100vh;
+top:0;
+left:0;
+width:100vw;
+height:100vh;
 background:black;
 z-index:9999;
 }
-#player iframe{
-width:100vw;
-height:100vh;
+
+#full{
+width:100%;
+height:100%;
 border:none;
-object-fit:contain;
+}
+#player iframe{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+border:none;
+padding-bottom: env(safe-area-inset-bottom);
 }
 .close-btn{
 position:fixed;
@@ -133,6 +143,46 @@ border:none;
 background:red;
 color:white;
 border-radius:5px;
+}
+/* 📱 MOBILE FIX */
+@media(max-width:768px){
+
+#player{
+display:block;
+}
+
+#serverControls{
+top:50px !important;
+flex-wrap:wrap;
+justify-content:center;
+}
+
+#episodeControls{
+position:absolute;
+top:100px;
+left:0 !important;
+transform:none !important;
+width:100%;
+display:flex;
+overflow-x:auto;
+gap:8px;
+padding:10px;
+z-index:9999;
+}
+
+#episodeControls button{
+min-width:60px;
+}
+
+#player iframe{
+top:140px;
+height:calc(100% - 140px);
+}
+}
+
+/* optional (hide scrollbar) */
+#episodeControls::-webkit-scrollbar{
+display:none;
 }
 </style>
 </head>
@@ -185,9 +235,9 @@ border-radius:5px;
 
 <!-- PLAYER -->
 <div id="player">
+
 <span class="close-btn" onclick="closePlayer()">✖</span>
-<iframe id="full" allowfullscreen allow="autoplay; fullscreen"></iframe>
-</div>
+
 <!-- SERVER BUTTONS -->
 <div id="serverControls" style="
 position:absolute;
@@ -198,6 +248,8 @@ display:flex;
 gap:10px;
 z-index:9999;
 "></div>
+
+<!-- EPISODES -->
 <div id="episodeControls" style="
 position:absolute;
 top:110px;
@@ -206,7 +258,14 @@ transform:translateX(-50%);
 display:flex;
 gap:10px;
 z-index:9999;
+overflow-x:auto;
+max-width:90%;
 "></div>
+
+<!-- VIDEO -->
+<iframe id="full" allowfullscreen allow="autoplay; fullscreen"></iframe>
+
+</div>
 
   
 <!-- PREVIEW -->
