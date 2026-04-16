@@ -558,16 +558,28 @@ renderMyList();
 }
 
 init();
-document.getElementById("previewModal").style.display = "none";
-};
+// 🔥 SAFE INIT (NO ERROR, NO CONFLICT)
 window.addEventListener("DOMContentLoaded", ()=>{
 const modal = document.getElementById("previewModal");
-modal.style.display = "none";
 
-// clear lahat
-document.getElementById("previewTitle").innerHTML = "";
-document.getElementById("previewDesc").innerHTML = "";
-document.getElementById("previewVideo").src = "";
+if(modal){
+modal.style.display = "none";
+}
+
+const video = document.getElementById("previewVideo");
+if(video){
+video.src = "";
+}
+
+const title = document.getElementById("previewTitle");
+if(title){
+title.innerHTML = "";
+}
+
+const desc = document.getElementById("previewDesc");
+if(desc){
+desc.innerHTML = "";
+}
 });
 </script>
 
