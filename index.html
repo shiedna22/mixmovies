@@ -93,16 +93,22 @@ scroll-snap-align:start;
 #player{
 display:none;
 position:fixed;
-top:0;left:0;
+top:0;
+left:0;
 width:100vw;
 height:100vh;
 background:black;
 z-index:9999;
+overflow:hidden;
 }
 
 #player iframe{
-width:100vw;
+position:absolute;
+top:50%;
+left:50%;
+width:177.77vh;   /* magic ratio */
 height:100vh;
+transform:translate(-50%,-50%);
 border:none;
 }
 .close{
