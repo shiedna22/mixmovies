@@ -295,12 +295,16 @@ openPlayer(previewItem);
 /* PLAYER */
 function openPlayer(i){
 document.getElementById("player").style.display="block";
+
 if(i.title){
 document.getElementById("full").src=
-`https://vidsrc.me/embed/movie/${i.id}?autoplay=1&rel=0`;
+`https://vidsrc.to/embed/movie/${i.id}?autoplay=1&controls=1`;
 }else{
 document.getElementById("full").src=
-`https://vidsrc.me/embed/tv/${i.id}/1/1?autoplay=1`;
+`https://vidsrc.to/embed/tv/${i.id}/1/1?autoplay=1&controls=1`;
+}
+
+saveContinue(i);
 }
 saveContinue(i);
 }
