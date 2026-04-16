@@ -407,7 +407,8 @@ document.getElementById("hero").style.background=
 `url(${IMG+m.backdrop_path}) center/cover`;
 }else{
 document.getElementById("heroVideo").style.display="block";
-document.getElementById("heroVideo").src=t+"?autoplay=1&mute=1&controls=0&loop=1";
+document.getElementById("heroVideo").src =
+t + "?autoplay=1&mute=1&controls=0&loop=1&playlist=" + t.split("embed/")[1];
 }
 
 document.getElementById("playHero").onclick=()=>openPlayer(m);
