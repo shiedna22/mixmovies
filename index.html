@@ -115,10 +115,15 @@ border:none;
 
 .close-btn{
 position:fixed;
-top:15px;right:15px;
-font-size:28px;
-z-index:10000;
+top:15px;
+right:15px;
+font-size:32px;
+z-index:99999; /* 🔥 mas mataas sa lahat */
 cursor:pointer;
+color:white;
+background:rgba(0,0,0,0.5);
+padding:8px 12px;
+border-radius:50%;
 }
 
 /* CONTROLS */
@@ -127,7 +132,7 @@ position:fixed;
 top:10px;
 left:50%;
 transform:translateX(-50%);
-z-index:10000;
+z-index:9000;
 display:flex;
 gap:8px;
 }
@@ -141,7 +146,7 @@ display:flex;
 gap:8px;
 padding:10px;
 overflow-x:auto;
-z-index:10000;
+z-index:9000;
 }
 
 /* buttons */
