@@ -26,7 +26,7 @@ width:120px;
 
 /* HERO */
 #hero{
-height:45vh; /* mas maliit sa mobile */
+height:45vh;
 min-height:260px;
 max-height:420px;
 margin-top:60px;
@@ -61,7 +61,6 @@ max-height:50px;
 overflow:hidden;
 }
 
-/* BUTTONS */
 .hero-buttons{margin-top:10px;display:flex;gap:8px}
 .play-btn{background:white;color:black;padding:8px 12px;border:none;border-radius:5px}
 .trailer-btn{background:red;color:white;padding:8px 12px;border:none;border-radius:5px}
@@ -96,19 +95,20 @@ width:100%;
 height:100%;
 border:none;
 z-index:1;
-/* 🔥 IMPORTANT */
-pointer-events:none; /* block muna clicks */
+pointer-events:auto;
 }
 
+/* SHIELD */
 #clickShield{
 position:absolute;
 top:0;
 left:0;
 width:100%;
 height:100%;
-z-index:5;
-pointer-events:auto;
+z-index:2;
+background:transparent;
 }
+
 /* CONTROLS */
 .close-btn{
 position:fixed;
@@ -119,6 +119,7 @@ font-size:26px;
 background:black;
 padding:8px;
 border-radius:50%;
+cursor:pointer;
 }
 
 #serverControls,
@@ -128,7 +129,7 @@ left:0;width:100%;
 display:flex;gap:6px;
 overflow-x:auto;
 padding:8px;
-z-index:999998;
+z-index:99998;
 }
 #serverControls{top:10px}
 #episodeControls{top:55px}
@@ -140,11 +141,6 @@ border:none;
 padding:6px 12px;
 border-radius:20px;
 font-size:12px;
-transition:0.2s;
-}
-
-#episodeControls button:hover{
-background:#333;
 }
 
 #episodeControls button.active{
@@ -164,18 +160,6 @@ z-index:9998;
 padding:10px;
 }
 #previewVideo{width:100%;height:200px}
-  
-@media(min-width:768px){
-#hero{height:60vh;}
-.hero-content h1{font-size:22px}
-.hero-content p{font-size:14px}
-}
-#serverControls,
-#episodeControls,
-.close-btn{
-pointer-events:auto;
-z-index:999999;
-}
 </style>
 </head>
 
@@ -186,7 +170,6 @@ z-index:999999;
 <input id="search" placeholder="Search...">
 </div>
 
-<!-- HERO -->
 <div id="hero">
 <iframe id="heroVideo"></iframe>
 <div class="hero-content">
@@ -194,20 +177,18 @@ z-index:999999;
 <p id="hero-desc"></p>
 <div class="hero-buttons">
 <button class="play-btn" id="playHero">▶ Play</button>
-<button class="trailer-btn" id="watchTrailer">🎬 Trailer</button>
+<button class="trailer-btn">🎬 Trailer</button>
 <button class="list-btn" onclick="toggleMyList()">❤️ My List</button>
 </div>
 </div>
 </div>
 
-<!-- ROWS -->
 <div class="row"><h2>▶ Continue Watching</h2><div id="continue" class="row-posters"></div></div>
 <div class="row"><h2>❤️ My List</h2><div id="mylist" class="row-posters"></div></div>
 <div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
 <div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
 <div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
 
-<!-- PLAYER -->
 <div id="player">
 <div id="clickShield"></div>
 <span class="close-btn" onclick="closePlayer()">✖</span>
@@ -216,7 +197,6 @@ z-index:999999;
 <iframe id="full"></iframe>
 </div>
 
-<!-- PREVIEW -->
 <div id="previewModal">
 <span class="close-btn" onclick="closePreview()">✖</span>
 <iframe id="previewVideo"></iframe>
@@ -288,17 +268,8 @@ openPlayer(previewItem);
 
 /* PLAYER */
 function openPlayer(i){
-
-unlocked = false;
-
-/* reset shield */
-document.getElementById("clickShield").style.display = "block";
-
-/* disable muna video */
-document.getElementById("full").style.pointerEvents = "none";
-
-/* show player */
 document.getElementById("player").style.display="block";
+document.getElementById("clickShield").style.display="block";
 
 if(i.title){
 servers=[
@@ -325,7 +296,6 @@ servers.forEach((s,i)=>{
 let b=document.createElement("button");
 b.innerText=s.name;
 b.onclick=()=>loadServer(i);
-if(i==0)b.classList.add("active");
 box.appendChild(b);
 });
 }
@@ -343,47 +313,20 @@ for(let e=1;e<=10;e++){
 let b=document.createElement("button");
 b.innerText="Ep "+e;
 if(e===currentEpisode) b.classList.add("active");
+
 b.onclick=()=>{
 currentEpisode=e;
 servers=[
 {name:"S1",url:`https://vidlink.pro/tv/${i.id}/1/${e}`}
 ];
+renderEpisodes(i);
 loadServer(0);
 };
 box.appendChild(b);
 }
 }
 
-/* CONTINUE */
-function saveContinue(m){
-continueList=continueList.filter(x=>x.id!==m.id);
-continueList.unshift(m);
-localStorage.setItem("continue",JSON.stringify(continueList));
-renderContinue();
-}
-
-function renderContinue(){
-let box=document.getElementById("continue");
-box.innerHTML="";
-continueList.forEach(m=>box.appendChild(createCard(m,"movie")));
-}
-
-/* MY LIST */
-function toggleMyList(){
-let exist=myList.find(m=>m.id===previewItem.id);
-if(exist){myList=myList.filter(m=>m.id!==previewItem.id);}
-else{myList.push(previewItem);}
-localStorage.setItem("myList",JSON.stringify(myList));
-renderMyList();
-}
-
-function renderMyList(){
-let box=document.getElementById("mylist");
-box.innerHTML="";
-myList.forEach(m=>box.appendChild(createCard(m,"movie")));
-}
-
-/* HERO AUTO SLIDE */
+/* HERO */
 async function init(){
 heroList=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
 const movies=await fetchData(`${API}/movie/popular?api_key=${KEY}`);
@@ -404,16 +347,12 @@ renderContinue();
 renderMyList();
 }
 
-/* HERO */
 async function setHero(m){
 let year=(m.release_date||m.first_air_date||"").slice(0,4);
-
 document.getElementById("hero-title").innerText=(m.title||m.name)+" ("+year+")";
 document.getElementById("hero-desc").innerText=m.overview||"";
 
-let type=m.title?"movie":"tv";
-let t=await getTrailer(m.id,type);
-
+let t=await getTrailer(m.id,m.title?"movie":"tv");
 if(t){
 document.getElementById("heroVideo").src=t+"?autoplay=1&mute=1";
 }else{
@@ -429,30 +368,17 @@ init();
 function closePlayer(){
 document.getElementById("player").style.display="none";
 document.getElementById("full").src="";
+document.getElementById("clickShield").style.display="block";
 }
 
-/* SHIELD */
-let unlocked = false;
-
-function enablePlayer(){
-const iframe = document.getElementById("full");
-const shield = document.getElementById("clickShield");
-
-iframe.style.pointerEvents = "auto";
-shield.style.display = "none";
-}
-
-/* CLICK SHIELD */
-document.getElementById("clickShield").addEventListener("click", function(e){
-
-if(!unlocked){
-unlocked = true;
-enablePlayer();
-}
-
+/* SHIELD CLICK */
+document.getElementById("clickShield").onclick=function(e){
+this.style.display="none";
 e.stopPropagation();
-});
+};
 
+/* BLOCK POPUPS */
+window.open = function(){ return null; };
 </script>
 
 </body>
