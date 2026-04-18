@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Ultra FINAL</title>
+<title>ShiedFlix</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -85,7 +85,8 @@ z-index:9999;
 
 #player iframe{
 position:absolute;
-top:0;left:0;
+top:0;
+left:0;
 width:100%;
 height:100dvh;
 border:none;
@@ -98,11 +99,12 @@ position:fixed;
 top:15px;
 right:15px;
 font-size:32px;
-z-index:99999;
+z-index:999999; /* pinakamataas */
 cursor:pointer;
-background:rgba(0,0,0,0.6);
-padding:8px 12px;
+background:rgba(0,0,0,0.7);
+padding:10px 14px;
 border-radius:50%;
+color:white;
 }
 
 /* CONTROLS */
@@ -153,6 +155,34 @@ overflow-y:auto;
 iframe{
 pointer-events:auto;
 }
+#player{
+pointer-events:none;
+}
+
+#player iframe{
+pointer-events:auto;
+}
+
+.close-btn,
+#serverControls,
+#episodeControls{
+pointer-events:auto;
+}
+#clickShield{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+z-index:5;
+background:transparent;
+}
+.close-btn,
+#serverControls,
+#episodeControls{
+z-index:999999;
+pointer-events:auto;
+}
 </style>
 </head>
 
@@ -197,6 +227,7 @@ pointer-events:auto;
 
 <!-- PLAYER -->
 <div id="player">
+<div id="clickShield"></div> <!-- ADD THIS -->
 <span class="close-btn" onclick="closePlayer()">✖</span>
 <div id="serverControls"></div>
 <div id="episodeControls"></div>
@@ -472,6 +503,15 @@ e.preventDefault();
 e.stopPropagation();
 }
 });
+setTimeout(()=>{
+let shield = document.getElementById("clickShield");
+if(shield){
+shield.onclick = function(){
+this.style.display = "none";
+};
+}
+},500);
+
 </script>
 
 </body>
