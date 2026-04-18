@@ -122,12 +122,17 @@ position:fixed;
 top:15px;
 right:15px;
 font-size:32px;
-z-index:100000; /* pinakamataas */
+z-index:99999;
 cursor:pointer;
 color:white;
 background:rgba(0,0,0,0.6);
 padding:8px 12px;
 border-radius:50%;
+transition:0.3s;
+}
+.close-btn:hover{
+transform:scale(1.2);
+background:red;
 }
 
 /* CONTROLS */
@@ -190,9 +195,6 @@ overflow-y:auto;
 from{opacity:0;transform:translateY(20px)}
 to{opacity:1;transform:translateY(0)}
 }
-#player{
-pointer-events:none;
-}
 
 #player iframe{
 pointer-events:auto;
@@ -202,6 +204,15 @@ pointer-events:auto;
 #episodeControls,
 .close-btn{
 pointer-events:auto;
+}
+#clickBlock{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100dvh;
+z-index:99998; /* ilalim ng X */
+pointer-events:none;
 }
 </style>
 </head>
@@ -251,6 +262,10 @@ pointer-events:auto;
   <span class="close-btn" onclick="closePlayer()">✖</span>
   <div id="serverControls"></div>
   <div id="episodeControls"></div>
+
+  <!-- 🔥 ADD THIS -->
+  <div id="clickBlock"></div>
+
   <iframe id="full"></iframe>
 </div>
 
