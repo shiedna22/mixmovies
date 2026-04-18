@@ -196,10 +196,7 @@ overflow-y:auto;
 <span class="close-btn" onclick="closePlayer()">✖</span>
 <div id="serverControls"></div>
 <div id="episodeControls"></div>
-<iframe id="full"
-allow="autoplay; fullscreen"
-sandbox="allow-same-origin allow-scripts allow-forms allow-presentation">
-</iframe>
+<iframe id="full" allow="autoplay; fullscreen"></iframe>
 </div>
 
 <!-- PREVIEW -->
@@ -323,10 +320,10 @@ box.appendChild(b);
 function loadServer(i){
 const iframe = document.getElementById("full");
 
-// reset muna (anti ads trigger)
+// reset muna
 iframe.src = "";
 
-// delay load
+// delay para iwas ads trigger
 setTimeout(()=>{
 iframe.src = servers[i].url;
 },100);
@@ -463,8 +460,6 @@ window.open = function() { return null; };
 window.addEventListener("beforeunload", (e)=>{
 e.stopPropagation();
 });
-init();
-
 // 🔥 ANTI ADS CLICK BLOCK
 document.addEventListener("click", function(e){
 if(e.target.tagName === "A"){
