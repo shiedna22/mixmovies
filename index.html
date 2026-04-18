@@ -196,7 +196,10 @@ overflow-y:auto;
 <span class="close-btn" onclick="closePlayer()">✖</span>
 <div id="serverControls"></div>
 <div id="episodeControls"></div>
-<iframe id="full"></iframe>
+<iframe id="full"
+allow="autoplay; fullscreen"
+sandbox="allow-same-origin allow-scripts allow-forms allow-presentation">
+</iframe>
 </div>
 
 <!-- PREVIEW -->
@@ -318,7 +321,20 @@ box.appendChild(b);
 }
 
 function loadServer(i){
-document.getElementById("full").src=servers[i].url;
+const iframe = document.getElementById("full");
+
+// reset muna (anti ads trigger)
+iframe.src = "";
+
+// delay load
+setTimeout(()=>{
+iframe.src = servers[i].url;
+},100);
+
+// highlight active
+const buttons = document.querySelectorAll("#serverControls button");
+buttons.forEach(btn=>btn.classList.remove("active"));
+if(buttons[i]) buttons[i].classList.add("active");
 }
 
 function closePlayer(){
@@ -341,9 +357,9 @@ b.onclick=()=>{
 currentEpisode=e;
 
 servers=[
-{name:"Server 1",url:`https://vidsrc.me/embed/tv/${i.id}/1/${e}`},
-{name:"Server 2",url:`https://vidsrc.xyz/embed/tv/${i.id}/1/${e}`},
-{name:"Server 3",url:`https://vidlink.pro/tv/${i.id}/1/${e}`}
+{name:"Server 1",url:`https://vidsrc.me/embed/movie/${i.id}`},
+{name:"Server 2",url:`https://vidlink.pro/movie/${i.id}`},
+{name:"Server 3",url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1`}
 ];
 
 renderEpisodes(i);
@@ -440,6 +456,21 @@ renderMyList();
 }
 
 init();
+// 🔥 BLOCK POPUP ADS
+window.open = function() { return null; };
+
+// 🔥 BLOCK TOP REDIRECT (extra protection)
+window.addEventListener("beforeunload", (e)=>{
+e.stopPropagation();
+});
+init();
+
+// 🔥 ANTI ADS CLICK BLOCK
+document.addEventListener("click", function(e){
+if(e.target.tagName === "A"){
+e.preventDefault();
+}
+});
 </script>
 
 </body>
