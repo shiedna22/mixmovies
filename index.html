@@ -27,8 +27,6 @@ width:120px;
 /* HERO */
 #hero{
 height:45vh;
-min-height:260px;
-max-height:420px;
 margin-top:60px;
 position:relative;
 overflow:hidden;
@@ -54,11 +52,9 @@ left:15px;
 z-index:2;
 max-width:90%;
 }
-.hero-content h1{font-size:16px}
-.hero-content p{font-size:11px;max-height:50px;overflow:hidden}
+.hero-buttons{margin-top:10px;display:flex;gap:8px}
 
 /* BUTTONS */
-.hero-buttons{margin-top:10px;display:flex;gap:8px}
 .play-btn{background:white;color:black;padding:8px 12px;border:none;border-radius:5px}
 .trailer-btn{background:red;color:white;padding:8px 12px;border:none;border-radius:5px}
 .list-btn{background:#333;color:white;padding:8px 12px;border:none;border-radius:5px}
@@ -66,7 +62,9 @@ max-width:90%;
 /* ROW */
 .row{margin-top:10px}
 .row h2{font-size:14px;padding-left:10px}
-.row-posters{display:flex;overflow-x:auto;gap:10px;padding:10px}
+.row-posters{
+display:flex;overflow-x:auto;gap:10px;padding:10px;
+}
 .row-posters::-webkit-scrollbar{display:none}
 
 .card{cursor:pointer}
@@ -85,17 +83,19 @@ z-index:9999;
 #player iframe{
 position:absolute;
 top:0;left:0;
-width:100%;height:100%;
+width:100%;
+height:100%;
 border:none;
 z-index:1;
-pointer-events:auto;
 }
 
 /* SHIELD */
 #clickShield{
 position:absolute;
-top:0;left:0;
-width:100%;height:100%;
+top:0;
+left:0;
+width:100%;
+height:100%;
 z-index:2;
 }
 
@@ -124,6 +124,7 @@ z-index:99998;
 #serverControls{top:10px}
 #episodeControls{top:55px}
 
+/* EPISODE STYLE */
 #episodeControls button{
 background:#1a1a1a;
 color:#ccc;
@@ -149,12 +150,6 @@ z-index:9998;
 padding:10px;
 }
 #previewVideo{width:100%;height:200px}
-
-@media(min-width:768px){
-#hero{height:60vh;}
-.hero-content h1{font-size:22px}
-.hero-content p{font-size:14px}
-}
 </style>
 </head>
 
@@ -165,7 +160,6 @@ padding:10px;
 <input id="search" placeholder="Search...">
 </div>
 
-<!-- HERO -->
 <div id="hero">
 <iframe id="heroVideo"></iframe>
 <div class="hero-content">
@@ -179,23 +173,20 @@ padding:10px;
 </div>
 </div>
 
-<!-- ROWS -->
 <div class="row"><h2>▶ Continue Watching</h2><div id="continue" class="row-posters"></div></div>
 <div class="row"><h2>❤️ My List</h2><div id="mylist" class="row-posters"></div></div>
 <div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
 <div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
 <div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
 
-<!-- PLAYER -->
 <div id="player">
 <div id="clickShield"></div>
 <span class="close-btn" onclick="closePlayer()">✖</span>
 <div id="serverControls"></div>
 <div id="episodeControls"></div>
-<iframe id="full"></iframe>
+<iframe id="full" allow="fullscreen; autoplay"></iframe>
 </div>
 
-<!-- PREVIEW -->
 <div id="previewModal">
 <span class="close-btn" onclick="closePreview()">✖</span>
 <iframe id="previewVideo"></iframe>
@@ -224,19 +215,16 @@ const res=await fetch(url);
 return (await res.json()).results;
 }
 
-/* TRAILER */
-async function getTrailer(id,type){
-const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
-const data=await res.json();
-let t=data.results?.find(v=>v.site==="YouTube");
-return t?`https://www.youtube.com/embed/${t.key}`:null;
-}
-
-/* CARD */
+/* CARD WITH YEAR */
 function createCard(i,type){
-const c=document.createElement("div");
+let c=document.createElement("div");
+let year=(i.release_date||i.first_air_date||"").slice(0,4);
+
 c.className="card";
-c.innerHTML=`<img src="${IMG+i.poster_path}">`;
+c.innerHTML=`
+<img src="${IMG+i.poster_path}">
+<div style="font-size:11px">${i.title||i.name} ${year?`(${year})`:""}</div>
+`;
 c.onclick=()=>openPreview(i,type);
 return c;
 }
@@ -249,15 +237,10 @@ document.getElementById("previewModal").style.display="block";
 let year=(i.release_date||i.first_air_date||"").slice(0,4);
 document.getElementById("previewTitle").innerText=(i.title||i.name)+" ("+year+")";
 document.getElementById("previewDesc").innerText=i.overview||"";
-
-getTrailer(i.id,type).then(t=>{
-if(t) document.getElementById("previewVideo").src=t;
-});
 }
 
 function closePreview(){
 document.getElementById("previewModal").style.display="none";
-document.getElementById("previewVideo").src="";
 }
 
 function playFromPreview(){
@@ -277,9 +260,6 @@ servers=[
 ];
 document.getElementById("episodeControls").innerHTML="";
 }else{
-servers=[
-{name:"S1",url:`https://vidlink.pro/tv/${i.id}/1/1`}
-];
 renderEpisodes(i);
 }
 
@@ -288,6 +268,7 @@ loadServer(0);
 saveContinue(i);
 }
 
+/* SERVER */
 function renderServers(){
 let box=document.getElementById("serverControls");
 box.innerHTML="";
@@ -312,7 +293,6 @@ box.innerHTML="";
 for(let e=1;e<=10;e++){
 let b=document.createElement("button");
 b.innerText="Ep "+e;
-
 if(e===currentEpisode) b.classList.add("active");
 
 b.onclick=()=>{
@@ -323,7 +303,6 @@ servers=[
 renderEpisodes(i);
 loadServer(0);
 };
-
 box.appendChild(b);
 }
 }
@@ -360,12 +339,7 @@ myList.forEach(m=>box.appendChild(createCard(m,"movie")));
 /* HERO */
 async function init(){
 heroList=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
-const movies=await fetchData(`${API}/movie/popular?api_key=${KEY}`);
-const tv=await fetchData(`${API}/tv/popular?api_key=${KEY}`);
-
 heroList.forEach(i=>document.getElementById("trending").appendChild(createCard(i,i.media_type)));
-movies.forEach(i=>document.getElementById("movies").appendChild(createCard(i,"movie")));
-tv.forEach(i=>document.getElementById("tv").appendChild(createCard(i,"tv")));
 
 setHero(heroList[0]);
 
@@ -383,13 +357,6 @@ let year=(m.release_date||m.first_air_date||"").slice(0,4);
 document.getElementById("hero-title").innerText=(m.title||m.name)+" ("+year+")";
 document.getElementById("hero-desc").innerText=m.overview||"";
 
-let t=await getTrailer(m.id,m.title?"movie":"tv");
-if(t){
-document.getElementById("heroVideo").src=t+"?autoplay=1&mute=1";
-}else{
-document.getElementById("heroVideo").src="";
-}
-
 document.getElementById("playHero").onclick=()=>openPlayer(m);
 }
 
@@ -402,14 +369,14 @@ document.getElementById("full").src="";
 document.getElementById("clickShield").style.display="block";
 }
 
-/* SHIELD CLICK */
+/* SHIELD */
 document.getElementById("clickShield").onclick=function(e){
 this.style.display="none";
 e.stopPropagation();
 };
 
 /* BLOCK POPUPS */
-window.open = function(){ return null; };
+window.open=function(){return null;}
 </script>
 
 </body>
