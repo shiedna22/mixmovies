@@ -34,7 +34,6 @@ margin-top:60px;
 position:relative;
 overflow:hidden;
 }
-
 #hero iframe{
 position:absolute;
 top:50%;left:50%;
@@ -44,7 +43,6 @@ opacity:0.5;
 pointer-events:none;
 z-index:0;
 }
-
 #hero::before{
 content:"";
 position:absolute;
@@ -64,13 +62,11 @@ z-index:1;
 /* ROW */
 .row{margin-top:15px}
 .row h2{padding-left:10px}
-
-.row-posters{
-display:flex;overflow-x:auto;gap:10px;padding:10px;
-}
+.row-posters{display:flex;overflow-x:auto;gap:10px;padding:10px}
 .row-posters::-webkit-scrollbar{display:none}
 
-.card{min-width:130px;cursor:pointer}
+.card{min-width:130px;cursor:pointer;transition:.3s}
+.card:hover{transform:scale(1.08)}
 .card img{width:130px;height:190px;border-radius:8px}
 
 /* PLAYER */
@@ -85,21 +81,20 @@ z-index:9999;
 
 #player iframe{
 position:absolute;
-top:0;
-left:0;
+top:0;left:0;
 width:100%;
 height:100dvh;
 border:none;
 z-index:1;
 }
 
-/* 🔥 FIX CLICK */
+/* CLOSE BUTTON FIX */
 .close-btn{
 position:fixed;
 top:15px;
 right:15px;
 font-size:32px;
-z-index:999999; /* pinakamataas */
+z-index:999999;
 cursor:pointer;
 background:rgba(0,0,0,0.7);
 padding:10px 14px;
@@ -140,6 +135,16 @@ padding:8px 12px;border-radius:20px;
 background:red;
 }
 
+/* CLICK SHIELD */
+#clickShield{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+z-index:5;
+}
+
 /* PREVIEW */
 #previewModal{
 display:none;
@@ -152,37 +157,6 @@ overflow-y:auto;
 }
 #previewVideo{width:100%;height:220px}
 
-iframe{
-pointer-events:auto;
-}
-#player{
-pointer-events:none;
-}
-
-#player iframe{
-pointer-events:auto;
-}
-
-.close-btn,
-#serverControls,
-#episodeControls{
-pointer-events:auto;
-}
-#clickShield{
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:100%;
-z-index:5;
-background:transparent;
-}
-.close-btn,
-#serverControls,
-#episodeControls{
-z-index:999999;
-pointer-events:auto;
-}
 </style>
 </head>
 
@@ -193,13 +167,11 @@ pointer-events:auto;
 <input id="search" placeholder="Search...">
 </div>
 
-<!-- HERO -->
 <div id="hero">
 <iframe id="heroVideo"></iframe>
 <div class="hero-content">
 <h1 id="hero-title"></h1>
 <p id="hero-desc"></p>
-
 <div class="hero-buttons">
 <button class="play-btn" id="playHero">▶ Play</button>
 <button class="trailer-btn" id="watchTrailer">🎬 Trailer</button>
@@ -208,37 +180,26 @@ pointer-events:auto;
 </div>
 </div>
 
-<!-- CONTINUE -->
 <div class="row"><h2>▶ Continue Watching</h2><div id="continue" class="row-posters"></div></div>
-
-<!-- MY LIST -->
 <div class="row"><h2>❤️ My List</h2><div id="mylist" class="row-posters"></div></div>
 
-<!-- SEARCH -->
 <div class="row" id="searchRow" style="display:none;">
 <h2>🔎 Search Results</h2>
 <div id="searchResults" class="row-posters"></div>
 </div>
 
-<!-- ROWS -->
 <div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
 <div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
 <div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
 
-<!-- PLAYER -->
 <div id="player">
-<div id="clickShield"></div> <!-- ADD THIS -->
+<div id="clickShield"></div>
 <span class="close-btn" onclick="closePlayer()">✖</span>
 <div id="serverControls"></div>
 <div id="episodeControls"></div>
-<iframe 
-id="full" 
-allow="autoplay; fullscreen"
-sandbox="allow-same-origin allow-scripts allow-presentation"
-></iframe>
+<iframe id="full" allow="autoplay; fullscreen"></iframe>
 </div>
 
-<!-- PREVIEW -->
 <div id="previewModal">
 <span onclick="closePreview()" class="close-btn">✖</span>
 <iframe id="previewVideo"></iframe>
@@ -313,11 +274,10 @@ let isMovie=!!i.title;
 
 if(isMovie){
 currentShowId=null;
-document.getElementById("episodeControls").innerHTML="";
 servers=[
-{name:"Server 1",url:`https://vidsrc.me/embed/tv/${i.id}/1/${e}`},
-{name:"Server 2",url:`https://vidlink.pro/tv/${i.id}/1/${e}`},
-{name:"Server 3",url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1&s=1&e=${e}`}
+{name:"Server 1",url:`https://vidsrc.me/embed/movie/${i.id}`},
+{name:"Server 2",url:`https://vidlink.pro/movie/${i.id}`},
+{name:"Server 3",url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1`}
 ];
 }else{
 currentEpisode=1;
@@ -327,17 +287,15 @@ renderEpisodes(i);
 servers=[
 {name:"Server 1",url:`https://vidsrc.me/embed/tv/${i.id}/1/1`},
 {name:"Server 2",url:`https://vidlink.pro/tv/${i.id}/1/1`},
-{name:"Server 3",url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1&s=1&e=1`},
-{name:"Server 4",url:`https://superembed.stream/embed/tv/${i.id}/1/1`},
-{name:"Server 5",url:`https://embed.su/embed/tv/${i.id}/1/1`}
+{name:"Server 3",url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1&s=1&e=1`}
 ];
 }
 
 renderServers();
 loadServer(0);
-saveContinue(i);
 }
 
+/* SERVERS */
 function renderServers(){
 const box=document.getElementById("serverControls");
 box.innerHTML="";
@@ -346,32 +304,19 @@ let b=document.createElement("button");
 b.innerText=s.name;
 b.onclick=()=>{
 loadServer(i);
-document.querySelectorAll("#serverControls button")
-.forEach(btn=>btn.classList.remove("active"));
+document.querySelectorAll("#serverControls button").forEach(btn=>btn.classList.remove("active"));
 b.classList.add("active");
 };
+if(i===0) b.classList.add("active");
 box.appendChild(b);
 });
 }
 
+/* LOAD */
 function loadServer(i){
-const iframe = document.getElementById("full");
-
-iframe.src = "";
-
-setTimeout(()=>{
-iframe.src = servers[i].url;
-},150);
-
-// highlight active
-const buttons = document.querySelectorAll("#serverControls button");
-buttons.forEach(btn=>btn.classList.remove("active"));
-if(buttons[i]) buttons[i].classList.add("active");
-}
-
-function closePlayer(){
-document.getElementById("player").style.display="none";
-document.getElementById("full").src="";
+const iframe=document.getElementById("full");
+iframe.src="";
+setTimeout(()=>iframe.src=servers[i].url,150);
 }
 
 /* EPISODES */
@@ -389,9 +334,9 @@ b.onclick=()=>{
 currentEpisode=e;
 
 servers=[
-{name:"Server 1",url:`https://vidsrc.me/embed/movie/${i.id}`},
-{name:"Server 2",url:`https://vidlink.pro/movie/${i.id}`},
-{name:"Server 3",url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1`}
+{name:"Server 1",url:`https://vidsrc.me/embed/tv/${i.id}/1/${e}`},
+{name:"Server 2",url:`https://vidlink.pro/tv/${i.id}/1/${e}`},
+{name:"Server 3",url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1&s=1&e=${e}`}
 ];
 
 renderEpisodes(i);
@@ -403,42 +348,10 @@ box.appendChild(b);
 }
 }
 
-/* CONTINUE */
-function saveContinue(m){
-continueList=continueList.filter(x=>x.id!==m.id);
-continueList.unshift(m);
-localStorage.setItem("continue",JSON.stringify(continueList));
-renderContinue();
-}
-
-function renderContinue(){
-const box=document.getElementById("continue");
-box.innerHTML="";
-continueList.forEach(m=>box.appendChild(createCard(m,"movie")));
-}
-
-/* MY LIST */
-function toggleMyList(){
-let exist=myList.find(m=>m.id===previewItem.id);
-if(exist){myList=myList.filter(m=>m.id!==previewItem.id);}
-else{myList.push(previewItem);}
-localStorage.setItem("myList",JSON.stringify(myList));
-renderMyList();
-}
-
-function renderMyList(){
-const box=document.getElementById("mylist");
-box.innerHTML="";
-myList.forEach(m=>box.appendChild(createCard(m,"movie")));
-}
-
 /* HERO */
 async function setHero(m){
 let year=(m.release_date||m.first_air_date||"").slice(0,4);
-
-document.getElementById("hero-title").innerText=
-(m.title||m.name)+(year?` (${year})`:"");
-
+document.getElementById("hero-title").innerText=(m.title||m.name)+(year?` (${year})`:"");
 document.getElementById("hero-desc").innerText=m.overview||"";
 
 let type=m.title?"movie":"tv";
@@ -451,26 +364,6 @@ document.getElementById("heroVideo").src=t+"?autoplay=1&mute=1";
 document.getElementById("playHero").onclick=()=>openPlayer(m);
 }
 
-/* SEARCH */
-document.getElementById("search").addEventListener("input",async(e)=>{
-const v=e.target.value.trim();
-const row=document.getElementById("searchRow");
-const box=document.getElementById("searchResults");
-
-if(!v){row.style.display="none";return;}
-
-const res=await fetch(`${API}/search/multi?api_key=${KEY}&query=${v}`);
-const data=await res.json();
-
-box.innerHTML="";
-let valid=data.results.filter(i=>i.poster_path);
-
-if(valid.length===0){row.style.display="none";return;}
-
-row.style.display="block";
-valid.forEach(i=>box.appendChild(createCard(i,i.media_type)));
-});
-
 /* INIT */
 async function init(){
 const trending=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
@@ -482,36 +375,17 @@ movies.forEach(i=>document.getElementById("movies").appendChild(createCard(i,"mo
 tv.forEach(i=>document.getElementById("tv").appendChild(createCard(i,"tv")));
 
 if(trending.length>0) setHero(trending[0]);
-
-renderContinue();
-renderMyList();
 }
 
 init();
-// 🔥 BLOCK POPUP ADS
-window.open = function() { return null; };
 
-// 🔥 BLOCK REDIRECT
-window.addEventListener("beforeunload", (e)=>{
-e.stopPropagation();
-});
-
-// 🔥 BLOCK LINK CLICK
-document.addEventListener("click", function(e){
-if(e.target.closest("a")){
-e.preventDefault();
-e.stopPropagation();
-}
-});
+/* SHIELD */
 setTimeout(()=>{
-let shield = document.getElementById("clickShield");
+let shield=document.getElementById("clickShield");
 if(shield){
-shield.onclick = function(){
-this.style.display = "none";
-};
+shield.onclick=()=>shield.style.display="none";
 }
 },500);
-
 </script>
 
 </body>
