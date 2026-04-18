@@ -79,12 +79,10 @@ width:100%;height:100%;
 background:black;
 z-index:9999;
 }
-
 #player iframe{
 position:absolute;
 top:0;left:0;
-width:100%;
-height:100%;
+width:100%;height:100%;
 border:none;
 z-index:1;
 }
@@ -92,8 +90,7 @@ z-index:1;
 /* SHIELD */
 #clickShield{
 position:absolute;
-top:0;
-left:0;
+top:0;left:0;
 width:100%;
 height:100%;
 z-index:2;
@@ -124,7 +121,6 @@ z-index:99998;
 #serverControls{top:10px}
 #episodeControls{top:55px}
 
-/* EPISODE STYLE */
 #episodeControls button{
 background:#1a1a1a;
 color:#ccc;
@@ -136,7 +132,6 @@ font-size:12px;
 #episodeControls button.active{
 background:#e50914;
 color:white;
-box-shadow:0 0 8px rgba(229,9,20,0.7);
 }
 
 /* PREVIEW */
@@ -160,6 +155,7 @@ padding:10px;
 <input id="search" placeholder="Search...">
 </div>
 
+<!-- HERO -->
 <div id="hero">
 <iframe id="heroVideo"></iframe>
 <div class="hero-content">
@@ -167,18 +163,26 @@ padding:10px;
 <p id="hero-desc"></p>
 <div class="hero-buttons">
 <button class="play-btn" id="playHero">▶ Play</button>
-<button class="trailer-btn">🎬 Trailer</button>
+<button class="trailer-btn" id="watchTrailer">🎬 Trailer</button>
 <button class="list-btn" onclick="toggleMyList()">❤️ My List</button>
 </div>
 </div>
 </div>
 
+<!-- SEARCH -->
+<div class="row" id="searchRow" style="display:none;">
+<h2>🔎 Search Results</h2>
+<div id="searchResults" class="row-posters"></div>
+</div>
+
+<!-- ROWS -->
 <div class="row"><h2>▶ Continue Watching</h2><div id="continue" class="row-posters"></div></div>
 <div class="row"><h2>❤️ My List</h2><div id="mylist" class="row-posters"></div></div>
 <div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
 <div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
 <div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
 
+<!-- PLAYER -->
 <div id="player">
 <div id="clickShield"></div>
 <span class="close-btn" onclick="closePlayer()">✖</span>
@@ -187,6 +191,7 @@ padding:10px;
 <iframe id="full" allow="fullscreen; autoplay"></iframe>
 </div>
 
+<!-- PREVIEW -->
 <div id="previewModal">
 <span class="close-btn" onclick="closePreview()">✖</span>
 <iframe id="previewVideo"></iframe>
@@ -215,16 +220,21 @@ const res=await fetch(url);
 return (await res.json()).results;
 }
 
-/* CARD WITH YEAR */
-function createCard(i,type){
-let c=document.createElement("div");
-let year=(i.release_date||i.first_air_date||"").slice(0,4);
+/* TRAILER */
+async function getTrailer(id,type){
+const res=await fetch(`${API}/${type}/${id}/videos?api_key=${KEY}`);
+const data=await res.json();
+let t=data.results?.find(v=>v.site==="YouTube");
+return t?`https://www.youtube.com/embed/${t.key}`:null;
+}
 
+/* CARD */
+function createCard(i,type){
+let year=(i.release_date||i.first_air_date||"").slice(0,4);
+let c=document.createElement("div");
 c.className="card";
-c.innerHTML=`
-<img src="${IMG+i.poster_path}">
-<div style="font-size:11px">${i.title||i.name} ${year?`(${year})`:""}</div>
-`;
+c.innerHTML=`<img src="${IMG+i.poster_path}">
+<div style="font-size:11px">${i.title||i.name} ${year?`(${year})`:""}</div>`;
 c.onclick=()=>openPreview(i,type);
 return c;
 }
@@ -237,10 +247,15 @@ document.getElementById("previewModal").style.display="block";
 let year=(i.release_date||i.first_air_date||"").slice(0,4);
 document.getElementById("previewTitle").innerText=(i.title||i.name)+" ("+year+")";
 document.getElementById("previewDesc").innerText=i.overview||"";
+
+getTrailer(i.id,type).then(t=>{
+if(t) document.getElementById("previewVideo").src=t;
+});
 }
 
 function closePreview(){
 document.getElementById("previewModal").style.display="none";
+document.getElementById("previewVideo").src="";
 }
 
 function playFromPreview(){
@@ -268,7 +283,6 @@ loadServer(0);
 saveContinue(i);
 }
 
-/* SERVER */
 function renderServers(){
 let box=document.getElementById("serverControls");
 box.innerHTML="";
@@ -307,39 +321,35 @@ box.appendChild(b);
 }
 }
 
-/* CONTINUE */
-function saveContinue(m){
-continueList=continueList.filter(x=>x.id!==m.id);
-continueList.unshift(m);
-localStorage.setItem("continue",JSON.stringify(continueList));
-renderContinue();
-}
+/* SEARCH */
+document.getElementById("search").addEventListener("input",async(e)=>{
+let v=e.target.value.trim();
+let row=document.getElementById("searchRow");
+let box=document.getElementById("searchResults");
 
-function renderContinue(){
-let box=document.getElementById("continue");
+if(!v){row.style.display="none";return;}
+
+const res=await fetch(`${API}/search/multi?api_key=${KEY}&query=${v}`);
+const data=await res.json();
+
 box.innerHTML="";
-continueList.forEach(m=>box.appendChild(createCard(m,"movie")));
-}
+let valid=data.results.filter(i=>i.poster_path);
 
-/* MY LIST */
-function toggleMyList(){
-let exist=myList.find(m=>m.id===previewItem.id);
-if(exist){myList=myList.filter(m=>m.id!==previewItem.id);}
-else{myList.push(previewItem);}
-localStorage.setItem("myList",JSON.stringify(myList));
-renderMyList();
-}
+if(valid.length===0){row.style.display="none";return;}
 
-function renderMyList(){
-let box=document.getElementById("mylist");
-box.innerHTML="";
-myList.forEach(m=>box.appendChild(createCard(m,"movie")));
-}
+row.style.display="block";
+valid.forEach(i=>box.appendChild(createCard(i,i.media_type)));
+});
 
-/* HERO */
+/* HERO + DATA */
 async function init(){
 heroList=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
+const movies=await fetchData(`${API}/movie/popular?api_key=${KEY}`);
+const tv=await fetchData(`${API}/tv/popular?api_key=${KEY}`);
+
 heroList.forEach(i=>document.getElementById("trending").appendChild(createCard(i,i.media_type)));
+movies.forEach(i=>document.getElementById("movies").appendChild(createCard(i,"movie")));
+tv.forEach(i=>document.getElementById("tv").appendChild(createCard(i,"tv")));
 
 setHero(heroList[0]);
 
@@ -352,10 +362,16 @@ renderContinue();
 renderMyList();
 }
 
+/* HERO */
 async function setHero(m){
 let year=(m.release_date||m.first_air_date||"").slice(0,4);
 document.getElementById("hero-title").innerText=(m.title||m.name)+" ("+year+")";
 document.getElementById("hero-desc").innerText=m.overview||"";
+
+let t=await getTrailer(m.id,m.title?"movie":"tv");
+if(t){
+document.getElementById("heroVideo").src=t+"?autoplay=1&mute=1";
+}
 
 document.getElementById("playHero").onclick=()=>openPlayer(m);
 }
