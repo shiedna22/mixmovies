@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiedFlix Ultra</title>
+<title>ShiedFlix Ultra FINAL</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -16,7 +16,15 @@ background:rgba(0,0,0,0.9);z-index:1000;
 }
 .logo{color:red;font-weight:bold}
 
-/* HERO (AUTO SLIDE MOBILE FIT) */
+/* SEARCH */
+#search{
+background:#222;border:none;color:white;
+padding:8px 15px;border-radius:20px;
+width:120px;
+}
+#search:focus{width:200px}
+
+/* HERO */
 #hero{
 height:55vh;
 margin-top:60px;
@@ -53,13 +61,9 @@ overflow:hidden;
 
 /* BUTTONS */
 .hero-buttons{margin-top:10px;display:flex;gap:8px}
-button{
-border:none;
-padding:8px 12px;
-border-radius:5px;
-}
-.play-btn{background:white;color:black}
-.trailer-btn{background:red;color:white}
+.play-btn{background:white;color:black;padding:8px 12px;border:none;border-radius:5px}
+.trailer-btn{background:red;color:white;padding:8px 12px;border:none;border-radius:5px}
+.list-btn{background:#333;color:white;padding:8px 12px;border:none;border-radius:5px}
 
 /* ROW */
 .row{margin-top:10px}
@@ -68,6 +72,8 @@ border-radius:5px;
 display:flex;overflow-x:auto;gap:10px;padding:10px;
 }
 .row-posters::-webkit-scrollbar{display:none}
+
+.card{cursor:pointer}
 .card img{width:110px;height:160px;border-radius:6px}
 
 /* PLAYER */
@@ -115,7 +121,6 @@ overflow-x:auto;
 padding:8px;
 z-index:999998;
 }
-
 #serverControls{top:10px}
 #episodeControls{top:55px}
 
@@ -125,7 +130,6 @@ background:#222;color:white;border:none;
 padding:6px 10px;border-radius:20px;
 font-size:12px;
 }
-
 .active{background:red}
 
 /* PREVIEW */
@@ -146,6 +150,7 @@ padding:10px;
 
 <div class="navbar">
 <div class="logo">ShiedFlix</div>
+<input id="search" placeholder="Search...">
 </div>
 
 <!-- HERO -->
@@ -157,11 +162,17 @@ padding:10px;
 <div class="hero-buttons">
 <button class="play-btn" id="playHero">▶ Play</button>
 <button class="trailer-btn" id="watchTrailer">🎬 Trailer</button>
+<button class="list-btn" onclick="toggleMyList()">❤️ My List</button>
 </div>
 </div>
 </div>
 
+<!-- ROWS -->
+<div class="row"><h2>▶ Continue Watching</h2><div id="continue" class="row-posters"></div></div>
+<div class="row"><h2>❤️ My List</h2><div id="mylist" class="row-posters"></div></div>
 <div class="row"><h2>🔥 Trending</h2><div id="trending" class="row-posters"></div></div>
+<div class="row"><h2>🎬 Movies</h2><div id="movies" class="row-posters"></div></div>
+<div class="row"><h2>📺 TV Shows</h2><div id="tv" class="row-posters"></div></div>
 
 <!-- PLAYER -->
 <div id="player">
@@ -187,8 +198,13 @@ const KEY="43c2413701b5c752d07b62acf8e57736";
 const IMG="https://image.tmdb.org/t/p/w500";
 
 let previewItem=null;
+let continueList=JSON.parse(localStorage.getItem("continue"))||[];
+let myList=JSON.parse(localStorage.getItem("myList"))||[];
+
 let servers=[];
 let currentEpisode=1;
+let heroList=[];
+let heroIndex=0;
 
 /* FETCH */
 async function fetchData(url){
@@ -219,7 +235,6 @@ previewItem=i;
 document.getElementById("previewModal").style.display="block";
 
 let year=(i.release_date||i.first_air_date||"").slice(0,4);
-
 document.getElementById("previewTitle").innerText=(i.title||i.name)+" ("+year+")";
 document.getElementById("previewDesc").innerText=i.overview||"";
 
@@ -247,6 +262,7 @@ servers=[
 {name:"S1",url:`https://vidlink.pro/movie/${i.id}`},
 {name:"S2",url:`https://multiembed.mov/?video_id=${i.id}&tmdb=1`}
 ];
+document.getElementById("episodeControls").innerHTML="";
 }else{
 servers=[
 {name:"S1",url:`https://vidlink.pro/tv/${i.id}/1/1`}
@@ -256,6 +272,7 @@ renderEpisodes(i);
 
 renderServers();
 loadServer(0);
+saveContinue(i);
 }
 
 function renderServers(){
@@ -276,7 +293,6 @@ f.src="";
 setTimeout(()=>f.src=servers[i].url,150);
 }
 
-/* EPISODES */
 function renderEpisodes(i){
 let box=document.getElementById("episodeControls");
 box.innerHTML="";
@@ -293,22 +309,44 @@ box.appendChild(b);
 }
 }
 
-/* CLOSE */
-function closePlayer(){
-document.getElementById("player").style.display="none";
-document.getElementById("full").src="";
+/* CONTINUE */
+function saveContinue(m){
+continueList=continueList.filter(x=>x.id!==m.id);
+continueList.unshift(m);
+localStorage.setItem("continue",JSON.stringify(continueList));
+renderContinue();
+}
+
+function renderContinue(){
+let box=document.getElementById("continue");
+box.innerHTML="";
+continueList.forEach(m=>box.appendChild(createCard(m,"movie")));
+}
+
+/* MY LIST */
+function toggleMyList(){
+let exist=myList.find(m=>m.id===previewItem.id);
+if(exist){myList=myList.filter(m=>m.id!==previewItem.id);}
+else{myList.push(previewItem);}
+localStorage.setItem("myList",JSON.stringify(myList));
+renderMyList();
+}
+
+function renderMyList(){
+let box=document.getElementById("mylist");
+box.innerHTML="";
+myList.forEach(m=>box.appendChild(createCard(m,"movie")));
 }
 
 /* HERO AUTO SLIDE */
-let heroList=[];
-let heroIndex=0;
-
 async function init(){
 heroList=await fetchData(`${API}/trending/all/week?api_key=${KEY}`);
+const movies=await fetchData(`${API}/movie/popular?api_key=${KEY}`);
+const tv=await fetchData(`${API}/tv/popular?api_key=${KEY}`);
 
-heroList.forEach(i=>{
-document.getElementById("trending").appendChild(createCard(i,i.media_type));
-});
+heroList.forEach(i=>document.getElementById("trending").appendChild(createCard(i,i.media_type)));
+movies.forEach(i=>document.getElementById("movies").appendChild(createCard(i,"movie")));
+tv.forEach(i=>document.getElementById("tv").appendChild(createCard(i,"tv")));
 
 setHero(heroList[0]);
 
@@ -316,15 +354,16 @@ setInterval(()=>{
 heroIndex=(heroIndex+1)%heroList.length;
 setHero(heroList[heroIndex]);
 },5000);
+
+renderContinue();
+renderMyList();
 }
 
-/* HERO SET */
+/* HERO */
 async function setHero(m){
 let year=(m.release_date||m.first_air_date||"").slice(0,4);
 
-document.getElementById("hero-title").innerText=
-(m.title||m.name)+" ("+year+")";
-
+document.getElementById("hero-title").innerText=(m.title||m.name)+" ("+year+")";
 document.getElementById("hero-desc").innerText=m.overview||"";
 
 let type=m.title?"movie":"tv";
@@ -339,7 +378,13 @@ document.getElementById("playHero").onclick=()=>openPlayer(m);
 
 init();
 
-/* SHIELD FIX */
+/* CLOSE */
+function closePlayer(){
+document.getElementById("player").style.display="none";
+document.getElementById("full").src="";
+}
+
+/* SHIELD */
 setTimeout(()=>{
 let shield=document.getElementById("clickShield");
 if(shield){
@@ -350,7 +395,7 @@ this.style.display="none";
 }
 },300);
 
-/* BLOCK IFRAME CLICK */
+/* BLOCK CLICK */
 document.addEventListener("click",function(e){
 if(e.target.tagName==="IFRAME"){
 e.preventDefault();
