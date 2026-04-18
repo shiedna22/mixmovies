@@ -100,7 +100,6 @@ z-index:1;
 pointer-events:none; /* block muna clicks */
 }
 
-/* SHIELD */
 #clickShield{
 position:absolute;
 top:0;
@@ -108,11 +107,8 @@ left:0;
 width:100%;
 height:100%;
 z-index:5;
-background:transparent;
-/* 🔥 IMPORTANT */
 pointer-events:auto;
 }
-
 /* CONTROLS */
 .close-btn{
 position:fixed;
@@ -174,11 +170,6 @@ padding:10px;
 .hero-content h1{font-size:22px}
 .hero-content p{font-size:14px}
 }
-
-#player iframe{
-pointer-events:auto;
-}
-
 #serverControls,
 #episodeControls,
 .close-btn{
@@ -299,8 +290,14 @@ openPlayer(previewItem);
 function openPlayer(i){
 
 unlocked = false;
+
+/* reset shield */
 document.getElementById("clickShield").style.display = "block";
+
+/* disable muna video */
 document.getElementById("full").style.pointerEvents = "none";
+
+/* show player */
 document.getElementById("player").style.display="block";
 
 if(i.title){
@@ -437,25 +434,24 @@ document.getElementById("full").src="";
 /* SHIELD */
 let unlocked = false;
 
+function enablePlayer(){
+const iframe = document.getElementById("full");
 const shield = document.getElementById("clickShield");
-const player = document.getElementById("full");
 
-if(shield){
-shield.onclick = function(e){
+iframe.style.pointerEvents = "auto";
+shield.style.display = "none";
+}
+
+/* CLICK SHIELD */
+document.getElementById("clickShield").addEventListener("click", function(e){
 
 if(!unlocked){
 unlocked = true;
-
-/* enable video */
-player.style.pointerEvents = "auto";
-
-/* remove shield */
-this.style.display = "none";
+enablePlayer();
 }
 
 e.stopPropagation();
-};
-}
+});
 
 </script>
 
